@@ -1,15 +1,15 @@
-function PositionBuilder(game,curNode){
+Game.PositionBuilder=function(game,node){
 	this.game=game;
 	this.board=game.board;
 	this.gameModel=game.gameModel;
 	this.boardSize=game.gameModel.boardSize;
-	this.curNode=curNode;
+	this.curNode=node;
 
 	this.basePosition=null;
 	this.position=[];
 }
 
-PositionBuilder.prototype={
+Game.PositionBuilder.prototype={
 
 	getPointColor: function(x,y){
 		var status=(this.position[x]||this.basePosition[x])[y];
@@ -138,7 +138,7 @@ PositionBuilder.prototype={
 			for(var i=0;i<points.length;i++){
 				var point=points[i];
 				if(point.coorFrom){
-					var rangePoints=this.game.evaluatePointRange(point.coorFrom,point.coorTo);
+					var rangePoints=yogo.evaluatePointRange(point.coorFrom,point.coorTo);
 					this.removeStones(rangePoints,false);
 				}else{
 					this.setPointColor(x,y,null);
@@ -156,7 +156,7 @@ PositionBuilder.prototype={
 			for(var i=0;i<points.length;i++){
 				var point=points[i];
 				if(point.coorFrom){
-					var rangePoints=this.game.evaluatePointRange(point.coorFrom,point.coorTo);
+					var rangePoints=yogo.evaluatePointRange(point.coorFrom,point.coorTo);
 					this.addStones(rangePoints,color,false);
 				}else{
 					this.setPointColor(point.x,point.y,color);
@@ -271,7 +271,7 @@ PositionBuilder.prototype={
 		var previousNode=curNode.previousNode;
 		if(previousNode){
 			if(!previousNode.status.positionBuilt){
-				var positionBuilder=new PositionBuilder(this.game,previousNode);
+				var positionBuilder=new Game.PositionBuilder(this.game,previousNode);
 				positionBuilder.buildPosition();
 			}
 			this.basePosition=previousNode.position;
@@ -307,7 +307,7 @@ PositionBuilder.prototype={
 				for(var pi=0;pi<points.length;pi++){
 					var point=points[pi];
 					if(point.coorFrom){
-						var rangePoints=this.game.evaluatePointRange(point.coorFrom,point.coorTo);
+						var rangePoints=yogo.evaluatePointRange(point.coorFrom,point.coorTo);
 						for(var ri=0;ri<rangePoints.length;ri++){
 							doAERemove(rangePoints[ri]);
 						}

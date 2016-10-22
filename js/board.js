@@ -27,30 +27,18 @@ function Board(boardContainer,boardSizeOrSetting,paper){
 	this.zoomMode=null;// TL/TR/BL/BR
 
 
-	var exportFunctions=function(obj,funcNames){
-		for(var i=0;i<funcNames.length;i++){
-			var funcName=funcNames[i];
-			var func=obj[funcName];
-			if(typeof(func)!=='function'){
-				yogo.logWarn(funcName+' is not a function','board init');
-				continue;
-			}
-			this[funcName]=func.bind(obj);
-		}
-	};
-
 	this.coordinateManager=new Board.Coordinate(this);
-	exportFunctions.call(this,this.coordinateManager,['drawCoordinate','hideCoordinate','showCoordinate','boardCoorToViewBoxCoor']);
+	yogo.exportFunctions.call(this,this.coordinateManager,['drawCoordinate','hideCoordinate','showCoordinate','boardCoorToViewBoxCoor']);
 
 	this.stoneManager=new Board.Stone(this);
-	exportFunctions.call(this,this.stoneManager,['placeStone','removeStone','addStones','removeStones',
+	yogo.exportFunctions.call(this,this.stoneManager,['placeStone','removeStone','addStones','removeStones',
 		'showMoveNumber','showMoveNumbers','hideMoveNumbers','unmarkCurrentMoveNumber']);
 
 	this.markerManager=new Board.Marker(this);
-	exportFunctions.call(this,this.markerManager,['setMarker','setMarkers','removeMarker','removeAllMarkers','markCurrentMove']);
+	yogo.exportFunctions.call(this,this.markerManager,['setMarker','setMarkers','removeMarker','removeAllMarkers','markCurrentMove']);
 
 	this.labelManager=new Board.Label(this);
-	exportFunctions.call(this,this.labelManager,['setLabel','setLabels','removeLabel','removeAllLabels','removeBranchPointLabels']);
+	yogo.exportFunctions.call(this,this.labelManager,['setLabel','setLabels','removeLabel','removeAllLabels','removeBranchPointLabels']);
 
 }
 

@@ -250,6 +250,11 @@ SgfParser.prototype={
 			gameModel.traverseNodes(null,nodeCallback,{});
 
 
+			var variationCallback=function(variation,context){
+				variation.id='v'+context.seq++;
+				gameModel.variationMap[variation.id]=variation;
+			};
+
 			var nodeCallback2=function(node,context){
 
 				var lastMoveNode=node.previousNode;
@@ -293,9 +298,21 @@ SgfParser.prototype={
 					}
 					node.branchPoints=branchPoints;
 				}
+
+				node.id='n'+context.seq++;
+				gameModel.nodeMap[node.id]=node;
+				if(node.belongingVariation.realGame){
+					var mn=node.numbers.globalMoveNumber;
+					if(mn&&!gameModel.nodesByMoveNumber[mn]){
+						gameModel.nodesByMoveNumber[mn]=node;
+					}
+					if(!node.nextNode&&!node.variations){
+						gameModel.gameEndingNode=node;
+					}
+				}
 			};
 
-			gameModel.traverseNodes(null,nodeCallback2,{});
+			gameModel.traverseNodes(variationCallback,nodeCallback2,{seq:1000});
 		}
 	},
 

@@ -27,30 +27,18 @@ function Board(boardContainer,boardSizeOrSetting,paper){
 	this.zoomMode=null;// TL/TR/BL/BR
 
 
-	var exportFunctions=function(obj,funcNames){
-		for(var i=0;i<funcNames.length;i++){
-			var funcName=funcNames[i];
-			var func=obj[funcName];
-			if(typeof(func)!=='function'){
-				yogo.logWarn(funcName+' is not a function','board init');
-				continue;
-			}
-			this[funcName]=func.bind(obj);
-		}
-	};
-
 	this.coordinateManager=new Board.Coordinate(this);
-	exportFunctions.call(this,this.coordinateManager,['drawCoordinate','hideCoordinate','showCoordinate','boardCoorToViewBoxCoor']);
+	yogo.exportFunctions.call(this,this.coordinateManager,['drawCoordinate','hideCoordinate','showCoordinate','boardCoorToViewBoxCoor']);
 
 	this.stoneManager=new Board.Stone(this);
-	exportFunctions.call(this,this.stoneManager,['placeStone','removeStone','addStones','removeStones',
+	yogo.exportFunctions.call(this,this.stoneManager,['placeStone','removeStone','addStones','removeStones',
 		'showMoveNumber','showMoveNumbers','hideMoveNumbers','unmarkCurrentMoveNumber']);
 
 	this.markerManager=new Board.Marker(this);
-	exportFunctions.call(this,this.markerManager,['setMarker','setMarkers','removeMarker','removeAllMarkers','markCurrentMove']);
+	yogo.exportFunctions.call(this,this.markerManager,['setMarker','setMarkers','removeMarker','removeAllMarkers','markCurrentMove']);
 
 	this.labelManager=new Board.Label(this);
-	exportFunctions.call(this,this.labelManager,['setLabel','setLabels','removeLabel','removeAllLabels','removeBranchPointLabels']);
+	yogo.exportFunctions.call(this,this.labelManager,['setLabel','setLabels','removeLabel','removeAllLabels','removeBranchPointLabels']);
 
 }
 
@@ -755,294 +743,20 @@ Board.Stone.prototype={
 
 	this.curNode=gameModel.nodes[0];
 
-	this.markCurrentMove=true;
-
-	this.markBranchPoints=true;
-
-	this.showMoveNumber=false;
-
-	this.showMoveNumberCount=10;
-
-	this.hideMoveNumberTemporarily=false;
-
-	this.gameEndingNode=null;
-
 	this.onPlayNode=null;
 
-	var variationMap=this.variationMap={};
+	this.nodeNavigator=new Game.NodeNavigator(this);
+	yogo.exportFunctions.call(this,this.nodeNavigator,['gotoNextX','gotoLastX',
+		'gotoNode','gotoBeginning','gotoGameEnd','fastFoward','fastBackward',
+		'goinBranch','gotoVariationBegin','gotoVariationEnd','backFromVariation']);
 
-	var nodeMap=this.nodeMap={};
-
-	var nodesByMoveNumber=this.nodesByMoveNumber=[];
-
-
-	var variationCallback=function(variation,context){
-		variation.id='v'+context.seq++;
-		variationMap[variation.id]=variation;
-	};
-
-	var game=this;
-
-	var nodeCallback=function(node,context){
-		node.id='n'+context.seq++;
-		nodeMap[node.id]=node;
-		if(node.belongingVariation.realGame){
-			var mn=node.numbers.globalMoveNumber;
-			if(mn&&!nodesByMoveNumber[mn]){
-				nodesByMoveNumber[mn]=node;
-			}
-			if(!node.nextNode&&!node.variations){
-				game.gameEndingNode=node;
-			}
-		}
-	};
-
-	this.gameModel.traverseNodes(variationCallback,nodeCallback,{seq:1000});
-
-
-	var trueFunc=function(){return true};
-	var hasVariations=function(node){return !!node.variations;};
-	var hasRemark=function(node){return node.status.remark;};
-	var hasComments=function(node){return node.status.comment;};
-	var hasMarks=function(node){return node.status.mark;};
-	var isKo=function(node){var s=node.status;return s.positionBuilt&&(s.startKo||s.ko);};
-	var isCapture=function(node){return node.status.positionBuilt&&node.status.capture;};
-	var notEvaluated=function(node){return !node.status.positionBuilt;};
-
-	var navigationFuncs=[
-		{name:'Node',predicate:trueFunc},
-		{name:'Branch',predicate:hasVariations},
-		{name:'Remark',predicate:hasRemark},
-		{name:'Comment',predicate:hasComments},
-		{name:'Marks',predicate:hasMarks},
-		{name:'Ko',predicate:isKo},
-		{name:'Capture',predicate:isCapture},
-		{name:'NotEvaluated',predicate:notEvaluated}
-	];
-
-	var newNavigation=function(navi,predicate){
-		return function(){
-			return navi.call(this,predicate);
-		};
-	}.bind(this);
-
-	for(var ni=0;ni<navigationFuncs.length;ni++){
-		var nf=navigationFuncs[ni];
-		var navi=nf.navi,predicate=nf.predicate;
-		this['next'+nf.name]=newNavigation(this.gotoNextX,predicate);
-		this['previous'+nf.name]=newNavigation(this.gotoLastX,predicate);
-	}
-
+	this.markersManager=new Game.Markers(this);
+	yogo.exportFunctions.call(this,this.markersManager,['setCurrentNodeMarkers','setMarkers',
+		'setMarkCurrentMove','setMarkBranchPoints','markBranchPointsIfAny',
+		'setShowMoveNumber','hideMoveNumbers','handleMoveNumbers']);
 }
 
 Game.prototype={
-
-	setCurrentNodeMarkers: function(){
-		var board=this.board;
-		board.removeAllMarkers();
-		board.removeAllLabels();
-		board.removeBranchPointLabels();
-		var curNode=this.curNode;
-		if(curNode.status.mark){
-			if(curNode.marks['LB']){
-				board.setLabels(curNode.marks['LB']);
-			}
-			var markerTypes=['TR','CR','SQ','MA','TW','TB'];
-			for(var mi=0;mi<markerTypes.length;mi++){
-				var marker=markerTypes[mi];
-				if(curNode.marks[marker]){
-					this.setMarkers(curNode.marks[marker],marker,true);
-				}
-			}
-		}
-		if(this.markBranchPoints){
-			this.markBranchPointsIfAny();
-		}
-
-		if(this.markCurrentMove&&!this.showMoveNumber){
-			board.markCurrentMove(curNode.move.point);
-		}else{
-			board.markCurrentMove(null);
-		}
-	},
-
-	setMarkers: function(points,marker,processRange){
-		var board=this.board;
-		if(processRange){
-			for(var i=0;i<points.length;i++){
-				var point=points[i];
-				if(point.coorFrom){
-					var rangePoints=this.evaluatePointRange(point.coorFrom,point.coorTo);
-					board.setMarkers(rangePoints,marker);
-				}else{
-					board.setMarker(point,marker);
-				}
-			}
-		}else{
-			board.setMarkers(points,marker);
-		}
-	},
-
-	setMarkCurrentMove: function(mark){
-		this.markCurrentMove=mark;
-		if(this.markCurrentMove){
-			this.board.markCurrentMove(this.curNode.move.point);
-		}else{
-			this.board.markCurrentMove(null);
-		}
-	},
-
-	setMarkBranchPoints: function(markBranchPoints){
-		this.markBranchPoints=markBranchPoints;
-		if(this.markBranchPoints){
-			this.markBranchPointsIfAny();
-		}else{
-			this.board.removeBranchPointLabels();
-		}
-	},
-
-
-	markBranchPointsIfAny: function(){
-		var branchPoints=this.curNode.branchPoints;
-		if(branchPoints){
-			for(var i=0;i<branchPoints.length;i++){
-				if(i>25){
-					continue;
-				}
-				var point=branchPoints[i];
-				var label=String.fromCharCode(65+i);
-				this.board.setLabel(point,label,'branch_point');
-			}
-		}
-	},
-
-
-	setShowMoveNumber: function(show){
-		if(typeof(show)==='boolean'){
-			this.showMoveNumber=show;
-			if(this.showMoveNumberCount==0){
-				this.showMoveNumberCount=1;
-			}
-		}else if(typeof(show)==='number'){
-			this.showMoveNumberCount=show;
-			this.showMoveNumber=show>0;
-		}else if(typeof(show)==='string'){
-			var mnc=parseInt(show);
-			if(!NaN(mnc)){
-				this.showMoveNumberCount=mnc;
-				this.showMoveNumber=mnc>0;
-			}
-		}
-		if(this.showMoveNumber){
-			this.board.markCurrentMove(null);
-		}else{
-			this.board.markCurrentMove(this.curNode.move.point);
-		}
-		this.resetMoveNumbers();
-	},
-
-	resetMoveNumbers: function(){
-		this.board.hideMoveNumbers();
-		if(!this.showMoveNumber){
-			return;
-		}
-
-		var moveNumbers=[];
-		var count=this.showMoveNumberCount;
-		var variation=this.curNode.belongingVariation;
-		var node=this.curNode;
-		var curPosition=this.curNode.position;
-		for(;count>0;count--){
-			var point=node.move.point;
-			if(point){
-				var pointCurStatus=curPosition[point.x][point.y];
-				if(pointCurStatus&&pointCurStatus.node===node){
-					var moveNumber=node.numbers.displayMoveNumber;
-					var mn={x:point.x,y:point.y,color:node.move.color,moveNumber:moveNumber};
-					if(node===this.curNode){
-						mn.current=true;
-					}
-					moveNumbers.push(mn);
-				}
-			}
-			if(!variation.realGame&&(node.status.variationFirstNode||node.belongingVariation!==variation)){
-				break;
-			}
-			node=node.previousNode;
-			if(!node){
-				break;
-			}
-		}
-		this.board.showMoveNumbers(moveNumbers);
-	},
-
-	hideMoveNumbers: function(){
-		this.board.hideMoveNumbers();
-	},
-
-	handleMoveNumbers: function(lastNode){
-		var board=this.board;
-		var curNode=this.curNode;
-		if(curNode.status.mark){
-			this.hideMoveNumberTemporarily=true;
-			this.hideMoveNumbers();
-			if(this.markCurrentMove){
-				board.markCurrentMove(curNode.move.point);
-			}
-			return;
-		}
-		if(this.hideMoveNumberTemporarily){
-			this.hideMoveNumberTemporarily=false;
-			this.resetMoveNumbers();
-			return;
-		}
-
-		var moveNumberSet=false;
-		if(this.showMoveNumberCount!==0&&!this.showMoveNumberCount){
-			if(curNode.label)
-			if(lastNode.nextNode==curNode){
-				var variation=curNode.belongingVariation;
-				if(variation.realGame||variation==lastNode.belongingVariation){
-					var point=curNode.move.point;
-					if(point){
-						var moveNumber=curNode.numbers.displayMoveNumber;
-						var mn={x:point.x,y:point.y,color:curNode.move.color,moveNumber:moveNumber,current:true};
-						board.showMoveNumber(mn);
-					}else{
-						board.unmarkCurrentMoveNumber();
-					}
-					moveNumberSet=true;
-				}
-			}
-			if(lastNode.previousNode==curNode){
-				var variation=lastNode.belongingVariation;
-				if(variation.realGame||variation==curNode.belongingVariation){
-					var point=curNode.move.point;
-					if(point){
-						var moveNumber=curNode.numbers.displayMoveNumber;
-						var mn={x:point.x,y:point.y,color:curNode.move.color,moveNumber:moveNumber,current:true};
-						board.showMoveNumber(mn);
-					}
-					moveNumberSet=true;
-				}
-			}
-		}
-		if(!moveNumberSet){
-			this.resetMoveNumbers();
-		}
-	},
-
-	evaluatePointRange: function(coorFrom,coorTo){
-		var rangePoints=[];
-		var fromX=coorFrom.x,toX=coorTo.x;
-		var fromY=coorFrom.y,toY=coorTo.y;
-		for(var x=fromX;x<=toX;x++){
-			for(var y=fromY;y<=toY;y++){
-				rangePoints.push({x:x,y:y});
-			}
-		}
-		return rangePoints;
-	},
 
 	diffPosition: function(fromPosition,toPosition){
 
@@ -1118,7 +832,7 @@ Game.prototype={
 				board.addStones(diffStones.stonesToAddW,'W');
 			}
 		} else{
-			var positionBuilder=new PositionBuilder(this,curNode);
+			var positionBuilder=new Game.PositionBuilder(this,curNode);
 			success=positionBuilder.buildPosition();
 		}
 		this.setCurrentNodeMarkers();
@@ -1129,135 +843,6 @@ Game.prototype={
 		return success;
 	},
 
-	gotoNextX: function(predicate){
-		var node=this.curNode;
-		while(true){
-			if(node.nextNode){
-				node=node.nextNode;
-			}else if(node.variations){
-				node=node.variations[0].nodes[0];
-			}else{
-				return false;
-			}
-			if(!node){
-				return false;
-			}
-			if(predicate.call(node,node)){
-				return this.playNode(node);
-			}
-		}
-	},
-
-	gotoLastX: function(predicate){
-		var node=this.curNode;
-		while(true){
-			node=node.previousNode;
-			if(!node){
-				return false;
-			}
-			if(predicate.call(node,node)){
-				return this.playNode(node);
-			}
-		}
-	},
-
-	gotoNode: function(obj){
-		var node;
-		if(typeof(obj)==='string'){
-			node=this.nodeMap[obj];
-		}else if(typeof(obj)==='number'){
-			node=this.nodesByMoveNumber[obj];
-		}else if(obj instanceof Node){
-			node=obj;
-		}
-		if(node){
-			return this.playNode(node);
-		}
-		return false;
-	},
-
-	gotoBeginning: function(){
-		var firstNode=this.gameModel.nodes[0];
-		return this.playNode(firstNode);
-	},
-
-	gotoGameEnd: function(){
-		return this.playNode(this.gameEndingNode);
-	},
-
-	fastFoward: function(n){
-		n=n||10;
-		var node=this.curNode;
-		for(;n>0;n--){
-			if(node.nextNode){
-				node=node.nextNode;
-			}else if(node.variations){
-				node=node.variations[0].nodes[0];
-			}else{
-				break;
-			}
-		}
-		return this.playNode(node);
-	},
-
-	fastBackward: function(n){
-		n=n||10;
-		var node=this.curNode;
-		for(;n>0;n--){
-			if(node.previousNode){
-				node=node.previousNode;
-			}else{
-				break;
-			}
-		}
-		return this.playNode(node);
-	},
-
-	goinBranch: function(branch){
-		var variations=this.curNode.variations;
-		if(variations){
-			var variation;
-			if(typeof(branch)==='number'){
-				variation=variations[branch];
-			}else if(typeof(branch)==='string' && branch.length==1){
-				var vi=branch.charCodeAt(0)-65;
-				variation=variations[vi];
-			}
-			if(variation){
-				var node=variation.nodes[0];
-				return this.playNode(node);
-			}
-		}
-		return false;
-	},
-
-	gotoVariationBegin: function(){
-		if(this.inRealGame()){
-			return false;
-		}
-		if(this.curNode.status.variationFirstNode){
-			return false;
-		}
-		return this.gotoLastX(function(node){return node.status.variationFirstNode;});
-	},
-
-	gotoVariationEnd: function(){
-		if(this.inRealGame()){
-			return false;
-		}
-		if(this.curNode.status.variationLastNode){
-			return false;
-		}
-		return this.gotoNextX(function(node){return node.status.variationLastNode;});
-	},
-
-	backFromVariation: function(){
-		if(this.inRealGame()){
-			return false;
-		}
-		return this.playNode(this.curNode.belongingVariation.baseNode);
-	},
-
 	inRealGame: function(){
 		return this.curNode.belongingVariation.realGame;
 	}
@@ -1265,9 +850,227 @@ Game.prototype={
 	// find node by commentary/nodename
 
 };
+Game.Markers=function(game){
+	this.game=game;
+	this.board=game.board;
+
+	this.markCurrentMove=true;
+
+	this.markBranchPoints=true;
+
+	this.showMoveNumber=false;
+
+	this.showMoveNumberCount=10;
+
+	this.hideMoveNumberTemporarily=false;
+
+};
+
+Game.Markers.prototype={
+
+	setCurrentNodeMarkers: function(){
+		var board=this.board;
+		board.removeAllMarkers();
+		board.removeAllLabels();
+		board.removeBranchPointLabels();
+		var curNode=this.game.curNode;
+		if(curNode.status.mark){
+			if(curNode.marks['LB']){
+				board.setLabels(curNode.marks['LB']);
+			}
+			var markerTypes=['TR','CR','SQ','MA','TW','TB'];
+			for(var mi=0;mi<markerTypes.length;mi++){
+				var marker=markerTypes[mi];
+				if(curNode.marks[marker]){
+					this.setMarkers(curNode.marks[marker],marker,true);
+				}
+			}
+		}
+		if(this.markBranchPoints){
+			this.markBranchPointsIfAny();
+		}
+
+		if(this.markCurrentMove&&!this.showMoveNumber){
+			board.markCurrentMove(curNode.move.point);
+		}else{
+			board.markCurrentMove(null);
+		}
+	},
+
+	setMarkers: function(points,marker,processRange){
+		var board=this.board;
+		if(processRange){
+			for(var i=0;i<points.length;i++){
+				var point=points[i];
+				if(point.coorFrom){
+					var rangePoints=yogo.evaluatePointRange(point.coorFrom,point.coorTo);
+					board.setMarkers(rangePoints,marker);
+				}else{
+					board.setMarker(point,marker);
+				}
+			}
+		}else{
+			board.setMarkers(points,marker);
+		}
+	},
+
+	setMarkCurrentMove: function(mark){
+		this.markCurrentMove=mark;
+		if(this.markCurrentMove){
+			this.board.markCurrentMove(this.game.curNode.move.point);
+		}else{
+			this.board.markCurrentMove(null);
+		}
+	},
+
+	setMarkBranchPoints: function(markBranchPoints){
+		this.markBranchPoints=markBranchPoints;
+		if(this.markBranchPoints){
+			this.markBranchPointsIfAny();
+		}else{
+			this.board.removeBranchPointLabels();
+		}
+	},
+
+
+	markBranchPointsIfAny: function(){
+		var branchPoints=this.game.curNode.branchPoints;
+		if(branchPoints){
+			for(var i=0;i<branchPoints.length;i++){
+				if(i>25){
+					continue;
+				}
+				var point=branchPoints[i];
+				var label=String.fromCharCode(65+i);
+				this.board.setLabel(point,label,'branch_point');
+			}
+		}
+	},
+
+
+	setShowMoveNumber: function(show){
+		if(typeof(show)==='boolean'){
+			this.showMoveNumber=show;
+			if(this.showMoveNumberCount==0){
+				this.showMoveNumberCount=1;
+			}
+		}else if(typeof(show)==='number'){
+			this.showMoveNumberCount=show;
+			this.showMoveNumber=show>0;
+		}else if(typeof(show)==='string'){
+			var mnc=parseInt(show);
+			if(!NaN(mnc)){
+				this.showMoveNumberCount=mnc;
+				this.showMoveNumber=mnc>0;
+			}
+		}
+		if(this.showMoveNumber){
+			this.board.markCurrentMove(null);
+		}else{
+			this.board.markCurrentMove(this.game.curNode.move.point);
+		}
+		this.resetMoveNumbers();
+	},
+
+	resetMoveNumbers: function(){
+		this.board.hideMoveNumbers();
+		if(!this.showMoveNumber){
+			return;
+		}
+
+		var moveNumbers=[];
+		var count=this.showMoveNumberCount;
+		var node=this.game.curNode;
+		var variation=node.belongingVariation;
+		var curPosition=node.position;
+		for(;count>0;count--){
+			var point=node.move.point;
+			if(point){
+				var pointCurStatus=curPosition[point.x][point.y];
+				if(pointCurStatus&&pointCurStatus.node===node){
+					var moveNumber=node.numbers.displayMoveNumber;
+					var mn={x:point.x,y:point.y,color:node.move.color,moveNumber:moveNumber};
+					if(node===this.game.curNode){
+						mn.current=true;
+					}
+					moveNumbers.push(mn);
+				}
+			}
+			if(!variation.realGame&&(node.status.variationFirstNode||node.belongingVariation!==variation)){
+				break;
+			}
+			node=node.previousNode;
+			if(!node){
+				break;
+			}
+		}
+		this.board.showMoveNumbers(moveNumbers);
+	},
+
+	hideMoveNumbers: function(){
+		this.board.hideMoveNumbers();
+	},
+
+	handleMoveNumbers: function(lastNode){
+		var board=this.board;
+		var curNode=this.game.curNode;
+		if(curNode.status.mark){
+			this.hideMoveNumberTemporarily=true;
+			this.hideMoveNumbers();
+			if(this.markCurrentMove){
+				board.markCurrentMove(curNode.move.point);
+			}
+			return;
+		}
+		if(this.hideMoveNumberTemporarily){
+			this.hideMoveNumberTemporarily=false;
+			this.resetMoveNumbers();
+			return;
+		}
+
+		var moveNumberSet=false;
+		if(this.showMoveNumberCount!==0&&!this.showMoveNumberCount){
+			if(curNode.label)
+			if(lastNode.nextNode==curNode){
+				var variation=curNode.belongingVariation;
+				if(variation.realGame||variation==lastNode.belongingVariation){
+					var point=curNode.move.point;
+					if(point){
+						var moveNumber=curNode.numbers.displayMoveNumber;
+						var mn={x:point.x,y:point.y,color:curNode.move.color,moveNumber:moveNumber,current:true};
+						board.showMoveNumber(mn);
+					}else{
+						board.unmarkCurrentMoveNumber();
+					}
+					moveNumberSet=true;
+				}
+			}
+			if(lastNode.previousNode==curNode){
+				var variation=lastNode.belongingVariation;
+				if(variation.realGame||variation==curNode.belongingVariation){
+					var point=curNode.move.point;
+					if(point){
+						var moveNumber=curNode.numbers.displayMoveNumber;
+						var mn={x:point.x,y:point.y,color:curNode.move.color,moveNumber:moveNumber,current:true};
+						board.showMoveNumber(mn);
+					}
+					moveNumberSet=true;
+				}
+			}
+		}
+		if(!moveNumberSet){
+			this.resetMoveNumbers();
+		}
+	}
+};
 function GameModel(){
 	this.realGame=true;
 	this.nodes=[];
+	this.variationMap={};
+	this.nodeMap={};
+	this.nodesByMoveNumber=[];
+	this.id=null;
+	this.gameEndingNode=null;
 }
 
 GameModel.prototype={
@@ -1317,89 +1120,207 @@ function Variation(baseNode,parentVariation){
 	this.parentVariation=parentVariation;
 	this.realGame=false;
 	this.nodes=[];
+	this.id=null;
 }
 
-Variation.prototype=GameModel.prototype;
+Variation.prototype={};
+
+Variation.prototype.traverseNodes=GameModel.prototype.traverseNodes;
+Variation.prototype.selectNodes=GameModel.prototype.selectNodes;
 
 function Node(previousNode,belongingVariation){
 	this.previousNode=previousNode;
 	this.belongingVariation=belongingVariation;
 	this.props={};
 	this.status={};
+	this.id=null;
 }
 
 Node.prototype={
 	
 };
+Game.NodeNavigator=function(game){
+	this.game=game;
+	this.gameModel=game.gameModel;
 
-if (!String.prototype.trim) {
-	String.prototype.trim = function () {
-		rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
-		return this.replace(rtrim, "");
+	var trueFunc=function(){return true};
+	var hasVariations=function(node){return !!node.variations;};
+	var hasRemark=function(node){return node.status.remark;};
+	var hasComments=function(node){return node.status.comment;};
+	var hasMarks=function(node){return node.status.mark;};
+	var isKo=function(node){var s=node.status;return s.positionBuilt&&(s.startKo||s.ko);};
+	var isCapture=function(node){return node.status.positionBuilt&&node.status.capture;};
+	var notEvaluated=function(node){return !node.status.positionBuilt;};
+
+	var navigationFuncs=[
+		{name:'Node',predicate:trueFunc},
+		{name:'Branch',predicate:hasVariations},
+		{name:'Remark',predicate:hasRemark},
+		{name:'Comment',predicate:hasComments},
+		{name:'Marks',predicate:hasMarks},
+		{name:'Ko',predicate:isKo},
+		{name:'Capture',predicate:isCapture},
+		{name:'NotEvaluated',predicate:notEvaluated}
+	];
+
+	var newNavigation=function(navi,predicate){
+		return function(){
+			return navi.call(this,predicate);
+		}.bind(this);
+	}.bind(this);
+
+	for(var ni=0;ni<navigationFuncs.length;ni++){
+		var nf=navigationFuncs[ni];
+		var navi=nf.navi,predicate=nf.predicate;
+		var nextFn='next'+nf.name,previousFn='previous'+nf.name;
+		this.game[nextFn]=this[nextFn]=newNavigation(this.gotoNextX,predicate);
+		this.game[previousFn]=this[previousFn]=newNavigation(this.gotoLastX,predicate);
 	}
-}
+};
 
-if (!Array.prototype.indexOf) {
-	Array.prototype.indexOf = function(searchElement, fromIndex) {
-		var k;
-		if (this == null) {
-			throw new TypeError('');
-		}
-		var O = Object(this);
-		var len = O.length >>> 0;
-		if (len === 0) {
-			return -1;
-		}
-		var n = +fromIndex || 0;
-		if (Math.abs(n) === Infinity) {
-			n = 0;
-		}
-		if (n >= len) {
-			return -1;
-		}
-		k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
-		while (k < len) {
-			var kValue;
-			if (k in O && O[k] === searchElement) {
-				return k;
+Game.NodeNavigator.prototype={
+
+	gotoNextX: function(predicate){
+		var node=this.game.curNode;
+		while(true){
+			if(node.nextNode){
+				node=node.nextNode;
+			}else if(node.variations){
+				node=node.variations[0].nodes[0];
+			}else{
+				return false;
 			}
-			k++;
+			if(!node){
+				return false;
+			}
+			if(predicate.call(node,node)){
+				return this.game.playNode(node);
+			}
 		}
-		return -1;
-	};
-}
+	},
 
-if (!Function.prototype.bind) {
-	Function.prototype.bind = function(oThis) {
-		if (typeof this !== 'function') {
-			throw new TypeError('');
+	gotoLastX: function(predicate){
+		var node=this.game.curNode;
+		while(true){
+			node=node.previousNode;
+			if(!node){
+				return false;
+			}
+			if(predicate.call(node,node)){
+				return this.game.playNode(node);
+			}
 		}
-		var aArgs	 = Array.prototype.slice.call(arguments, 1),
-				fToBind = this,
-				fNOP    = function() {},
-				fBound  = function() {
-					return fToBind.apply(this instanceof fNOP && oThis
-								 ? this
-								 : oThis,
-								 aArgs.concat(Array.prototype.slice.call(arguments)));
-				};
-		fNOP.prototype = this.prototype;
-		fBound.prototype = new fNOP();
-		return fBound;
-	};
-}
-function PositionBuilder(game,curNode){
+	},
+
+	gotoNode: function(obj){
+		var node;
+		if(typeof(obj)==='string'){
+			node=this.gameModel.nodeMap[obj];
+		}else if(typeof(obj)==='number'){
+			node=this.gameModel.nodesByMoveNumber[obj];
+		}else if(obj instanceof Node){
+			node=obj;
+		}
+		if(node){
+			return this.game.playNode(node);
+		}
+		return false;
+	},
+
+	gotoBeginning: function(){
+		var firstNode=this.gameModel.nodes[0];
+		return this.game.playNode(firstNode);
+	},
+
+	gotoGameEnd: function(){
+		return this.game.playNode(this.gameModel.gameEndingNode);
+	},
+
+	fastFoward: function(n){
+		n=n||10;
+		var node=this.game.curNode;
+		for(;n>0;n--){
+			if(node.nextNode){
+				node=node.nextNode;
+			}else if(node.variations){
+				node=node.variations[0].nodes[0];
+			}else{
+				break;
+			}
+		}
+		return this.game.playNode(node);
+	},
+
+	fastBackward: function(n){
+		n=n||10;
+		var node=this.game.curNode;
+		for(;n>0;n--){
+			if(node.previousNode){
+				node=node.previousNode;
+			}else{
+				break;
+			}
+		}
+		return this.game.playNode(node);
+	},
+
+	goinBranch: function(branch){
+		var variations=this.game.curNode.variations;
+		if(variations){
+			var variation;
+			if(typeof(branch)==='number'){
+				variation=variations[branch];
+			}else if(typeof(branch)==='string' && branch.length==1){
+				var vi=branch.charCodeAt(0)-65;
+				variation=variations[vi];
+			}
+			if(variation){
+				var node=variation.nodes[0];
+				return this.game.playNode(node);
+			}
+		}
+		return false;
+	},
+
+	gotoVariationBegin: function(){
+		if(this.game.inRealGame()){
+			return false;
+		}
+		if(this.game.curNode.status.variationFirstNode){
+			return false;
+		}
+		return this.gotoLastX(function(node){return node.status.variationFirstNode;});
+	},
+
+	gotoVariationEnd: function(){
+		if(this.game.inRealGame()){
+			return false;
+		}
+		if(this.game.curNode.status.variationLastNode){
+			return false;
+		}
+		return this.gotoNextX(function(node){return node.status.variationLastNode;});
+	},
+
+	backFromVariation: function(){
+		if(this.game.inRealGame()){
+			return false;
+		}
+		return this.game.playNode(this.game.curNode.belongingVariation.baseNode);
+	}
+};
+Game.PositionBuilder=function(game,node){
 	this.game=game;
 	this.board=game.board;
 	this.gameModel=game.gameModel;
 	this.boardSize=game.gameModel.boardSize;
-	this.curNode=curNode;
+	this.curNode=node;
 
 	this.basePosition=null;
 	this.position=[];
 }
 
-PositionBuilder.prototype={
+Game.PositionBuilder.prototype={
 
 	getPointColor: function(x,y){
 		var status=(this.position[x]||this.basePosition[x])[y];
@@ -1528,7 +1449,7 @@ PositionBuilder.prototype={
 			for(var i=0;i<points.length;i++){
 				var point=points[i];
 				if(point.coorFrom){
-					var rangePoints=this.game.evaluatePointRange(point.coorFrom,point.coorTo);
+					var rangePoints=yogo.evaluatePointRange(point.coorFrom,point.coorTo);
 					this.removeStones(rangePoints,false);
 				}else{
 					this.setPointColor(x,y,null);
@@ -1546,7 +1467,7 @@ PositionBuilder.prototype={
 			for(var i=0;i<points.length;i++){
 				var point=points[i];
 				if(point.coorFrom){
-					var rangePoints=this.game.evaluatePointRange(point.coorFrom,point.coorTo);
+					var rangePoints=yogo.evaluatePointRange(point.coorFrom,point.coorTo);
 					this.addStones(rangePoints,color,false);
 				}else{
 					this.setPointColor(point.x,point.y,color);
@@ -1661,7 +1582,7 @@ PositionBuilder.prototype={
 		var previousNode=curNode.previousNode;
 		if(previousNode){
 			if(!previousNode.status.positionBuilt){
-				var positionBuilder=new PositionBuilder(this.game,previousNode);
+				var positionBuilder=new Game.PositionBuilder(this.game,previousNode);
 				positionBuilder.buildPosition();
 			}
 			this.basePosition=previousNode.position;
@@ -1697,7 +1618,7 @@ PositionBuilder.prototype={
 				for(var pi=0;pi<points.length;pi++){
 					var point=points[pi];
 					if(point.coorFrom){
-						var rangePoints=this.game.evaluatePointRange(point.coorFrom,point.coorTo);
+						var rangePoints=yogo.evaluatePointRange(point.coorFrom,point.coorTo);
 						for(var ri=0;ri<rangePoints.length;ri++){
 							doAERemove(rangePoints[ri]);
 						}
@@ -1712,6 +1633,63 @@ PositionBuilder.prototype={
 		return success;
 	}
 };
+
+if (!String.prototype.trim) {
+	String.prototype.trim = function () {
+		rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
+		return this.replace(rtrim, "");
+	}
+}
+
+if (!Array.prototype.indexOf) {
+	Array.prototype.indexOf = function(searchElement, fromIndex) {
+		var k;
+		if (this == null) {
+			throw new TypeError('');
+		}
+		var O = Object(this);
+		var len = O.length >>> 0;
+		if (len === 0) {
+			return -1;
+		}
+		var n = +fromIndex || 0;
+		if (Math.abs(n) === Infinity) {
+			n = 0;
+		}
+		if (n >= len) {
+			return -1;
+		}
+		k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+		while (k < len) {
+			var kValue;
+			if (k in O && O[k] === searchElement) {
+				return k;
+			}
+			k++;
+		}
+		return -1;
+	};
+}
+
+if (!Function.prototype.bind) {
+	Function.prototype.bind = function(oThis) {
+		if (typeof this !== 'function') {
+			throw new TypeError('');
+		}
+		var aArgs	 = Array.prototype.slice.call(arguments, 1),
+				fToBind = this,
+				fNOP    = function() {},
+				fBound  = function() {
+					return fToBind.apply(this instanceof fNOP && oThis
+								 ? this
+								 : oThis,
+								 aArgs.concat(Array.prototype.slice.call(arguments)));
+				};
+		fNOP.prototype = this.prototype;
+		fBound.prototype = new fNOP();
+		return fBound;
+	};
+}
 
 function SgfParser(){
 
@@ -1964,6 +1942,11 @@ SgfParser.prototype={
 			gameModel.traverseNodes(null,nodeCallback,{});
 
 
+			var variationCallback=function(variation,context){
+				variation.id='v'+context.seq++;
+				gameModel.variationMap[variation.id]=variation;
+			};
+
 			var nodeCallback2=function(node,context){
 
 				var lastMoveNode=node.previousNode;
@@ -2007,9 +1990,21 @@ SgfParser.prototype={
 					}
 					node.branchPoints=branchPoints;
 				}
+
+				node.id='n'+context.seq++;
+				gameModel.nodeMap[node.id]=node;
+				if(node.belongingVariation.realGame){
+					var mn=node.numbers.globalMoveNumber;
+					if(mn&&!gameModel.nodesByMoveNumber[mn]){
+						gameModel.nodesByMoveNumber[mn]=node;
+					}
+					if(!node.nextNode&&!node.variations){
+						gameModel.gameEndingNode=node;
+					}
+				}
 			};
 
-			gameModel.traverseNodes(null,nodeCallback2,{});
+			gameModel.traverseNodes(variationCallback,nodeCallback2,{seq:1000});
 		}
 	},
 
@@ -2186,16 +2181,40 @@ yogo.log=function(msg,category,level){
 		if(!category)category='yogo';
 		try{func.call(window.console,category+':',msg);}catch(e){}
 	}
-}
+};
 
 yogo.logInfo=function(msg,category){
 	yogo.log(msg,category,'info');
-}
+};
 
 yogo.logWarn=function(msg,category){
 	yogo.log(msg,category,'warn');
-}
+};
 
 yogo.logError=function(msg,category){
 	yogo.log(msg,category,'error');
-}
+};
+
+yogo.exportFunctions=function(obj,funcNames){
+	for(var i=0;i<funcNames.length;i++){
+		var funcName=funcNames[i];
+		var func=obj[funcName];
+		if(typeof(func)!=='function'){
+			yogo.logWarn(funcName+' is not a function');
+			continue;
+		}
+		this[funcName]=func.bind(obj);
+	}
+};
+
+yogo.evaluatePointRange=function(coorFrom,coorTo){
+	var rangePoints=[];
+	var fromX=coorFrom.x,toX=coorTo.x;
+	var fromY=coorFrom.y,toY=coorTo.y;
+	for(var x=fromX;x<=toX;x++){
+		for(var y=fromY;y<=toY;y++){
+			rangePoints.push({x:x,y:y});
+		}
+	}
+	return rangePoints;
+};
