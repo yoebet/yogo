@@ -18,6 +18,8 @@ function Game(board,gameModel){
 
 	this.gameEndingNode=null;
 
+	this.onPlayNode=null;
+
 	var variationMap=this.variationMap={};
 
 	var nodeMap=this.nodeMap={};
@@ -79,10 +81,9 @@ function Game(board,gameModel){
 		var nf=navigationFuncs[ni];
 		var navi=nf.navi,predicate=nf.predicate;
 		this['next'+nf.name]=newNavigation(this.gotoNextX,predicate);
-		this['last'+nf.name]=newNavigation(this.gotoLastX,predicate);
+		this['previous'+nf.name]=newNavigation(this.gotoLastX,predicate);
 	}
 
-	this.previousNode=this.lastNode;
 }
 
 Game.prototype={
@@ -373,6 +374,9 @@ Game.prototype={
 		}
 		this.setCurrentNodeMarkers();
 		this.handleMoveNumbers(lastNode);
+		if(typeof(this.onPlayNode)==='function'){
+			this.onPlayNode.call(this);
+		}
 		return success;
 	},
 
@@ -408,11 +412,6 @@ Game.prototype={
 		}
 	},
 
-	firstNode: function(){
-		var firstNode=this.gameModel.nodes[0];
-		return this.playNode(firstNode);
-	},
-
 	gotoNode: function(obj){
 		var node;
 		if(typeof(obj)==='string'){
@@ -425,8 +424,44 @@ Game.prototype={
 		if(node){
 			return this.playNode(node);
 		}
-
 		return false;
+	},
+
+	gotoBeginning: function(){
+		var firstNode=this.gameModel.nodes[0];
+		return this.playNode(firstNode);
+	},
+
+	gotoGameEnd: function(){
+		return this.playNode(this.gameEndingNode);
+	},
+
+	fastFoward: function(n){
+		n=n||10;
+		var node=this.curNode;
+		for(;n>0;n--){
+			if(node.nextNode){
+				node=node.nextNode;
+			}else if(node.variations){
+				node=node.variations[0].nodes[0];
+			}else{
+				break;
+			}
+		}
+		return this.playNode(node);
+	},
+
+	fastBackward: function(n){
+		n=n||10;
+		var node=this.curNode;
+		for(;n>0;n--){
+			if(node.previousNode){
+				node=node.previousNode;
+			}else{
+				break;
+			}
+		}
+		return this.playNode(node);
 	},
 
 	goinBranch: function(branch){
@@ -467,39 +502,7 @@ Game.prototype={
 		return this.gotoNextX(function(node){return node.status.variationLastNode;});
 	},
 
-	gotoGameEnd: function(){
-		return this.playNode(this.gameEndingNode);
-	},
-
-	gotoNextNMoves: function(n){
-		n=n||10;
-		var node=this.curNode;
-		for(;n>0;n--){
-			if(node.nextNode){
-				node=node.nextNode;
-			}else if(node.variations){
-				node=node.variations[0].nodes[0];
-			}else{
-				break;
-			}
-		}
-		return this.playNode(node);
-	},
-
-	gotoLastNMoves: function(n){
-		n=n||10;
-		var node=this.curNode;
-		for(;n>0;n--){
-			if(node.previousNode){
-				node=node.previousNode;
-			}else{
-				break;
-			}
-		}
-		return this.playNode(node);
-	},
-
-	gotoBaseNode: function(){
+	backFromVariation: function(){
 		if(this.inRealGame()){
 			return false;
 		}

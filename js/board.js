@@ -1,11 +1,16 @@
-function Board(boardContainer,boardSizeOrSetting){
+function Board(boardContainer,boardSizeOrSetting,paper){
 
 	this.boardContainer=boardContainer;
 
 	if(typeof(boardContainer)==='string'){
 		this.boardContainer=document.getElementById(boardContainer);
 	}
-	this.paper=Raphael(boardContainer);
+	if(paper){
+		paper.clear();
+		this.paper=paper;
+	}else{
+		this.paper=Raphael(boardContainer);
+	}
 
 	if(typeof(boardSizeOrSetting)==='number'){
 		this.boardSize=boardSizeOrSetting;

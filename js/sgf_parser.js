@@ -404,7 +404,7 @@ SgfParser.prototype={
 					var coorStr=coorStrAndLabel[0];
 					var label=coorStrAndLabel[1];
 					if(!label)continue;
-					var coor=this.parseCoordinate(coorStr);
+					var coor=this.parseCoordinate(coorStr,boardSize);
 					if(coor!=null){
 						coor.label=label;
 						coordinates.push(coor);
@@ -417,14 +417,14 @@ SgfParser.prototype={
 					var coorStr=propValue[pi];
 					if(coorStr.indexOf(':')>0){
 						var coorStrPair=coorStr.split(':');
-						var coorFrom=this.parseCoordinate(coorStrPair[0]);
-						var coorTo=this.parseCoordinate(coorStrPair[1]);
+						var coorFrom=this.parseCoordinate(coorStrPair[0],boardSize);
+						var coorTo=this.parseCoordinate(coorStrPair[1],boardSize);
 						if(coorFrom&&coorTo){
 							var coorRange={coorFrom:coorFrom,coorTo:coorTo};
 							coordinates.push(coorRange);
 						}
 					}else{
-						var coor=this.parseCoordinate(coorStr);
+						var coor=this.parseCoordinate(coorStr,boardSize);
 						if(coor!=null){
 							coordinates.push(coor);
 						}
@@ -454,4 +454,11 @@ SgfParser.prototype={
 	}
 
 };
+
+SgfParser.parse=function(sgfText){
+	var sgfParser=new SgfParser();
+	var gameCollection=sgfParser.parseSgf(sgfText);
+	sgfParser.buildGoGameModel(gameCollection);
+	return gameCollection;
+}
 

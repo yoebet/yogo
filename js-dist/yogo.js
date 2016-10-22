@@ -1,11 +1,16 @@
-function Board(boardContainer,boardSizeOrSetting){
+function Board(boardContainer,boardSizeOrSetting,paper){
 
 	this.boardContainer=boardContainer;
 
 	if(typeof(boardContainer)==='string'){
 		this.boardContainer=document.getElementById(boardContainer);
 	}
-	this.paper=Raphael(boardContainer);
+	if(paper){
+		paper.clear();
+		this.paper=paper;
+	}else{
+		this.paper=Raphael(boardContainer);
+	}
 
 	if(typeof(boardSizeOrSetting)==='number'){
 		this.boardSize=boardSizeOrSetting;
@@ -762,6 +767,8 @@ Board.Stone.prototype={
 
 	this.gameEndingNode=null;
 
+	this.onPlayNode=null;
+
 	var variationMap=this.variationMap={};
 
 	var nodeMap=this.nodeMap={};
@@ -823,10 +830,9 @@ Board.Stone.prototype={
 		var nf=navigationFuncs[ni];
 		var navi=nf.navi,predicate=nf.predicate;
 		this['next'+nf.name]=newNavigation(this.gotoNextX,predicate);
-		this['last'+nf.name]=newNavigation(this.gotoLastX,predicate);
+		this['previous'+nf.name]=newNavigation(this.gotoLastX,predicate);
 	}
 
-	this.previousNode=this.lastNode;
 }
 
 Game.prototype={
@@ -1117,6 +1123,9 @@ Game.prototype={
 		}
 		this.setCurrentNodeMarkers();
 		this.handleMoveNumbers(lastNode);
+		if(typeof(this.onPlayNode)==='function'){
+			this.onPlayNode.call(this);
+		}
 		return success;
 	},
 
@@ -1152,11 +1161,6 @@ Game.prototype={
 		}
 	},
 
-	firstNode: function(){
-		var firstNode=this.gameModel.nodes[0];
-		return this.playNode(firstNode);
-	},
-
 	gotoNode: function(obj){
 		var node;
 		if(typeof(obj)==='string'){
@@ -1169,8 +1173,44 @@ Game.prototype={
 		if(node){
 			return this.playNode(node);
 		}
-
 		return false;
+	},
+
+	gotoBeginning: function(){
+		var firstNode=this.gameModel.nodes[0];
+		return this.playNode(firstNode);
+	},
+
+	gotoGameEnd: function(){
+		return this.playNode(this.gameEndingNode);
+	},
+
+	fastFoward: function(n){
+		n=n||10;
+		var node=this.curNode;
+		for(;n>0;n--){
+			if(node.nextNode){
+				node=node.nextNode;
+			}else if(node.variations){
+				node=node.variations[0].nodes[0];
+			}else{
+				break;
+			}
+		}
+		return this.playNode(node);
+	},
+
+	fastBackward: function(n){
+		n=n||10;
+		var node=this.curNode;
+		for(;n>0;n--){
+			if(node.previousNode){
+				node=node.previousNode;
+			}else{
+				break;
+			}
+		}
+		return this.playNode(node);
 	},
 
 	goinBranch: function(branch){
@@ -1211,39 +1251,7 @@ Game.prototype={
 		return this.gotoNextX(function(node){return node.status.variationLastNode;});
 	},
 
-	gotoGameEnd: function(){
-		return this.playNode(this.gameEndingNode);
-	},
-
-	gotoNextNMoves: function(n){
-		n=n||10;
-		var node=this.curNode;
-		for(;n>0;n--){
-			if(node.nextNode){
-				node=node.nextNode;
-			}else if(node.variations){
-				node=node.variations[0].nodes[0];
-			}else{
-				break;
-			}
-		}
-		return this.playNode(node);
-	},
-
-	gotoLastNMoves: function(n){
-		n=n||10;
-		var node=this.curNode;
-		for(;n>0;n--){
-			if(node.previousNode){
-				node=node.previousNode;
-			}else{
-				break;
-			}
-		}
-		return this.playNode(node);
-	},
-
-	gotoBaseNode: function(){
+	backFromVariation: function(){
 		if(this.inRealGame()){
 			return false;
 		}
@@ -1579,7 +1587,7 @@ PositionBuilder.prototype={
 
 		var pointColor=this.getPointColor(point.x,point.y);
 		if(pointColor){
-    		yogo.logWarn('point occupied: ('+point.x+','+point.y+','+color+')','play move');
+			yogo.logWarn('point occupied: ('+point.x+','+point.y+','+color+')','play move');
 			return false;
 		}
 
@@ -1598,10 +1606,10 @@ PositionBuilder.prototype={
 					var pmove=previousNode.move[opponentColor];
 					if(pmove&&capturedStone.x==pmove.x&&capturedStone.y==pmove.y
 						&&point.x==pcs.x&&point.y==pcs.y){
-			    		yogo.logWarn('ko, cann\'t recapture immediately: ('+point.x+','+point.y+','+color+')','play move');
-			    		if(!previousNode.status.ko){
-			    			previousNode.status.startKo=true;
-			    		}
+						yogo.logWarn('ko, cann\'t recapture immediately: ('+point.x+','+point.y+','+color+')','play move');
+						if(!previousNode.status.ko){
+							previousNode.status.startKo=true;
+						}
 						return false;
 					}
 				}
@@ -1613,10 +1621,10 @@ PositionBuilder.prototype={
 						if(pppmove&&capturedStone.x==pppmove.x&&capturedStone.y==pppmove.y
 							&&point.x==pppcs.x&&point.y==pppcs.y){
 							curNode.status.ko=true;
-				    		if(!ppp.status.ko){
-				    			ppp.status.startKo=true;
-				    		}
-				    		yogo.logInfo('ko: ('+point.x+','+point.y+','+color+')','play move');
+							if(!ppp.status.ko){
+								ppp.status.startKo=true;
+							}
+							yogo.logInfo('ko: ('+point.x+','+point.y+','+color+')','play move');
 						}
 					}
 				}
@@ -1636,7 +1644,7 @@ PositionBuilder.prototype={
 			if(!libertyStatus.hasLiberty){
 				yogo.logWarn('is self capture? ('+point.x+','+point.y+','+color+')','play move');
 				this.setPointColor(point.x,point.y,null);
-    			this.board.removeStone(point);
+				this.board.removeStone(point);
 				return false;
 			}
 		}
@@ -2110,7 +2118,7 @@ SgfParser.prototype={
 					var coorStr=coorStrAndLabel[0];
 					var label=coorStrAndLabel[1];
 					if(!label)continue;
-					var coor=this.parseCoordinate(coorStr);
+					var coor=this.parseCoordinate(coorStr,boardSize);
 					if(coor!=null){
 						coor.label=label;
 						coordinates.push(coor);
@@ -2123,14 +2131,14 @@ SgfParser.prototype={
 					var coorStr=propValue[pi];
 					if(coorStr.indexOf(':')>0){
 						var coorStrPair=coorStr.split(':');
-						var coorFrom=this.parseCoordinate(coorStrPair[0]);
-						var coorTo=this.parseCoordinate(coorStrPair[1]);
+						var coorFrom=this.parseCoordinate(coorStrPair[0],boardSize);
+						var coorTo=this.parseCoordinate(coorStrPair[1],boardSize);
 						if(coorFrom&&coorTo){
 							var coorRange={coorFrom:coorFrom,coorTo:coorTo};
 							coordinates.push(coorRange);
 						}
 					}else{
-						var coor=this.parseCoordinate(coorStr);
+						var coor=this.parseCoordinate(coorStr,boardSize);
 						if(coor!=null){
 							coordinates.push(coor);
 						}
@@ -2160,6 +2168,13 @@ SgfParser.prototype={
 	}
 
 };
+
+SgfParser.parse=function(sgfText){
+	var sgfParser=new SgfParser();
+	var gameCollection=sgfParser.parseSgf(sgfText);
+	sgfParser.buildGoGameModel(gameCollection);
+	return gameCollection;
+}
 
 yogo={};
 
