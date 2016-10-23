@@ -295,6 +295,7 @@ Game.PositionBuilder.prototype={
 				this.basePosition[x]=[];
 			}
 			curNode.move.accumulatedCaptures={B:0,W:0};
+			this.buildPositionOnly=false;//the first node must set up the board
 		}
 		if(curNode.status.move){
 			success=this.evaluateMove();
