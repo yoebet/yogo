@@ -69,12 +69,18 @@ GameViewer.prototype={
 		if(!event.wheelDelta&&event.originalEvent){
 			event=event.originalEvent;
 		}
-		if (event.wheelDelta >= 0) {
-			game.previousNode();
+		var scrollUp=false;
+		if(typeof(event.wheelDelta)==='number'){
+			scrollUp=event.wheelDelta > 0;
+		}else{
+			scrollUp=event.detail < 0;
 		}
-		else {
+		if (scrollUp) {
+			game.previousNode();
+		}else{
 			game.nextNode();
 		}
+		event.preventDefault();
 		return false;
 	}
 }
