@@ -117,6 +117,7 @@ SgfParser.prototype={
 							curNode.variations=[];
 						}
 					}
+					curVariation.index=curNode.variations.length;
 					curNode.variations.push(curVariation);
 				}
 				tokenBuffer='';
@@ -318,8 +319,10 @@ SgfParser.prototype={
 
 	processGameInfo: function(gameModel){
 
-		var gameInfo={};
-		gameModel.gameInfo=gameInfo;
+		if(!gameModel.gameInfo){
+			gameModel.gameInfo={};
+		}
+		var gameInfo=gameModel.gameInfo;
 
 		var gameInfoNode=gameModel.nodes[0];
 		var props=gameInfoNode.props;

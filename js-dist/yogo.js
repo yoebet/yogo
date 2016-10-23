@@ -843,6 +843,20 @@ Game.prototype={
 		return success;
 	},
 
+	buildAllPositions: function(){
+		var game=this;
+		var nodeCallback=function(node,context){
+			var positionBuilder=new Game.PositionBuilder(game,node,true);
+			var success=positionBuilder.buildPosition();
+			if(success===false){
+				context.push(node);
+			}
+		};
+		var invalidatedMoves=[];
+		this.gameModel.traverseNodes(null,nodeCallback,invalidatedMoves);
+		return invalidatedMoves;
+	},
+
 	inRealGame: function(){
 		return this.curNode.belongingVariation.realGame;
 	}
@@ -1066,10 +1080,10 @@ Game.Markers.prototype={
 function GameModel(){
 	this.realGame=true;
 	this.nodes=[];
+	this.gameInfo={};
 	this.variationMap={};
 	this.nodeMap={};
 	this.nodesByMoveNumber=[];
-	this.id=null;
 	this.gameEndingNode=null;
 }
 
@@ -1106,7 +1120,7 @@ GameModel.prototype={
 	},
 
 	selectNodes: function(predicate){
-		return traverseNodes(null,
+		return this.traverseNodes(null,
 			function(node,context){
 				if(predicate.call(node,node)){
 					context.push(node);
@@ -1120,10 +1134,29 @@ function Variation(baseNode,parentVariation){
 	this.parentVariation=parentVariation;
 	this.realGame=false;
 	this.nodes=[];
+	this.index=0;
 	this.id=null;
 }
 
-Variation.prototype={};
+Variation.prototype={
+	nextVariation: function(){
+        var variations=this.baseNode.variations;
+        var nextVindex=(this.index+1)%variations.length;
+        if(nextVindex==0){
+        	nextVindex=1;
+        }
+        return variations[nextVindex];
+	},
+	previousVariation: function(){
+        var variations=this.baseNode.variations;
+        var nextVindex=(this.index-1+variations.length)%variations.length;
+        if(nextVindex==0){
+        	nextVindex=variations.length-1;
+        }
+        return variations[nextVindex];
+	}
+
+};
 
 Variation.prototype.traverseNodes=GameModel.prototype.traverseNodes;
 Variation.prototype.selectNodes=GameModel.prototype.selectNodes;
@@ -1144,9 +1177,10 @@ Game.NodeNavigator=function(game){
 	this.gameModel=game.gameModel;
 
 	var trueFunc=function(){return true};
-	var hasVariations=function(node){return !!node.variations;};
+	var hasVariation=function(node){return !!node.variations;};
+	var hasComment=function(node){return node.status.comment;};
+	var hasCommentOrVariation=function(node){return node.status.comment||!!node.variations;};
 	var hasRemark=function(node){return node.status.remark;};
-	var hasComments=function(node){return node.status.comment;};
 	var hasMarks=function(node){return node.status.mark;};
 	var isKo=function(node){var s=node.status;return s.positionBuilt&&(s.startKo||s.ko);};
 	var isCapture=function(node){return node.status.positionBuilt&&node.status.capture;};
@@ -1154,9 +1188,10 @@ Game.NodeNavigator=function(game){
 
 	var navigationFuncs=[
 		{name:'Node',predicate:trueFunc},
-		{name:'Branch',predicate:hasVariations},
+		{name:'Branch',predicate:hasVariation},
+		{name:'Comment',predicate:hasComment},
+		{name:'CommentOrBranch',predicate:hasCommentOrVariation},
 		{name:'Remark',predicate:hasRemark},
-		{name:'Comment',predicate:hasComments},
 		{name:'Marks',predicate:hasMarks},
 		{name:'Ko',predicate:isKo},
 		{name:'Capture',predicate:isCapture},
@@ -1309,12 +1344,13 @@ Game.NodeNavigator.prototype={
 		return this.game.playNode(this.game.curNode.belongingVariation.baseNode);
 	}
 };
-Game.PositionBuilder=function(game,node){
+Game.PositionBuilder=function(game,node,buildPositionOnly){
 	this.game=game;
 	this.board=game.board;
 	this.gameModel=game.gameModel;
 	this.boardSize=game.gameModel.boardSize;
 	this.curNode=node;
+	this.buildPositionOnly=buildPositionOnly||false;
 
 	this.basePosition=null;
 	this.position=[];
@@ -1453,12 +1489,16 @@ Game.PositionBuilder.prototype={
 					this.removeStones(rangePoints,false);
 				}else{
 					this.setPointColor(x,y,null);
-					this.board.removeStone(point);
+					if(!this.buildPositionOnly){
+						this.board.removeStone(point);
+					}
 				}
 			}
 		}else{
 			this.setPointsStatus(points,null);
-			this.board.removeStones(points);
+			if(!this.buildPositionOnly){
+				this.board.removeStones(points);
+			}
 		}
 	},
 
@@ -1471,12 +1511,16 @@ Game.PositionBuilder.prototype={
 					this.addStones(rangePoints,color,false);
 				}else{
 					this.setPointColor(point.x,point.y,color);
-					this.board.placeStone(point,color);
+					if(!this.buildPositionOnly){
+						this.board.placeStone(point,color);
+					}
 				}
 			}
 		}else{
 			this.setPointsStatus(points,color);
-			this.board.addStones(points,color);
+			if(!this.buildPositionOnly){
+				this.board.addStones(points,color);
+			}
 		}
 	},
 
@@ -1512,7 +1556,9 @@ Game.PositionBuilder.prototype={
 			return false;
 		}
 
-		this.board.placeStone(point,color);
+		if(!this.buildPositionOnly){
+			this.board.placeStone(point,color);
+		}
 		this.setPointColor(point.x,point.y,color);
 
 		var opponentColor=(color=='B')? 'W':'B';
@@ -1565,7 +1611,9 @@ Game.PositionBuilder.prototype={
 			if(!libertyStatus.hasLiberty){
 				yogo.logWarn('is self capture? ('+point.x+','+point.y+','+color+')','play move');
 				this.setPointColor(point.x,point.y,null);
-				this.board.removeStone(point);
+				if(!this.buildPositionOnly){
+					this.board.removeStone(point);
+				}
 				return false;
 			}
 		}
@@ -1612,7 +1660,9 @@ Game.PositionBuilder.prototype={
 					if(color){
 						aeRemovedStones.push({x:point.x,y:point.y,color:color});
 						this.setPointColor(point.x,point.y,null);
-						this.board.removeStone(point);
+						if(!this.buildPositionOnly){
+							this.board.removeStone(point);
+						}
 					}
 				}
 				for(var pi=0;pi<points.length;pi++){
@@ -1633,6 +1683,86 @@ Game.PositionBuilder.prototype={
 		return success;
 	}
 };
+function GameViewer(game){
+	this.game=game;
+}
+
+GameViewer.prototype={
+	keydownHandler: function(event) {
+		var game=this.game;
+		var ctrlKey=event.ctrlKey||event.metaKey;
+		switch(event.keyCode){
+			case 37://ArrowLeft
+			if(ctrlKey){
+				game.previousCommentOrBranch();
+			}else{
+				game.previousNode();
+			}
+			break;
+			case 39://ArrowRight
+			if(ctrlKey){
+				game.nextCommentOrBranch();
+			}else{
+				game.nextNode();
+			}
+			break;
+			case 38://ArrowUp
+				var curNode=game.curNode;
+				if(game.inRealGame()){
+					if(curNode.variations){
+						var variation=curNode.variations[curNode.variations.length-1];
+						var node=variation.nodes[0];
+						game.gotoNode(node);
+					}
+				}else{
+					if(curNode.status.variationFirstNode){
+						var variation=curNode.belongingVariation;
+						var previousVariation=variation.previousVariation();
+						var pvNode=previousVariation.nodes[0];
+						game.gotoNode(pvNode);
+					}else{
+						game.gotoVariationBegin();
+					}
+				}
+			break;
+			case 40://ArrowDown
+				var curNode=game.curNode;
+				if(game.inRealGame()){
+					if(curNode.variations){
+						var variation=curNode.variations[1];
+						var node=variation.nodes[0];
+						game.gotoNode(node);
+					}
+				}else{
+					if(curNode.status.variationLastNode){
+						var variation=curNode.belongingVariation;
+						var nextVariation=variation.nextVariation();
+						var nvNode=nextVariation.nodes[0];
+						game.gotoNode(nvNode);
+					}else{
+						game.gotoVariationEnd();
+					}
+				}
+			break;
+			default:;
+		}
+		return true;
+	},
+
+	mousewheelHandler: function(event) {
+		var game=this.game;
+		if(!event.wheelDelta&&event.originalEvent){
+			event=event.originalEvent;
+		}
+		if (event.wheelDelta >= 0) {
+			game.previousNode();
+		}
+		else {
+			game.nextNode();
+		}
+		return false;
+	}
+}
 
 if (!String.prototype.trim) {
 	String.prototype.trim = function () {
@@ -1809,6 +1939,7 @@ SgfParser.prototype={
 							curNode.variations=[];
 						}
 					}
+					curVariation.index=curNode.variations.length;
 					curNode.variations.push(curVariation);
 				}
 				tokenBuffer='';
@@ -2010,8 +2141,10 @@ SgfParser.prototype={
 
 	processGameInfo: function(gameModel){
 
-		var gameInfo={};
-		gameModel.gameInfo=gameInfo;
+		if(!gameModel.gameInfo){
+			gameModel.gameInfo={};
+		}
+		var gameInfo=gameModel.gameInfo;
 
 		var gameInfoNode=gameModel.nodes[0];
 		var props=gameInfoNode.props;

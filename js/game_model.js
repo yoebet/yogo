@@ -1,10 +1,10 @@
 function GameModel(){
 	this.realGame=true;
 	this.nodes=[];
+	this.gameInfo={};
 	this.variationMap={};
 	this.nodeMap={};
 	this.nodesByMoveNumber=[];
-	this.id=null;
 	this.gameEndingNode=null;
 }
 
@@ -41,7 +41,7 @@ GameModel.prototype={
 	},
 
 	selectNodes: function(predicate){
-		return traverseNodes(null,
+		return this.traverseNodes(null,
 			function(node,context){
 				if(predicate.call(node,node)){
 					context.push(node);
@@ -55,10 +55,29 @@ function Variation(baseNode,parentVariation){
 	this.parentVariation=parentVariation;
 	this.realGame=false;
 	this.nodes=[];
+	this.index=0;
 	this.id=null;
 }
 
-Variation.prototype={};
+Variation.prototype={
+	nextVariation: function(){
+        var variations=this.baseNode.variations;
+        var nextVindex=(this.index+1)%variations.length;
+        if(nextVindex==0){
+        	nextVindex=1;
+        }
+        return variations[nextVindex];
+	},
+	previousVariation: function(){
+        var variations=this.baseNode.variations;
+        var nextVindex=(this.index-1+variations.length)%variations.length;
+        if(nextVindex==0){
+        	nextVindex=variations.length-1;
+        }
+        return variations[nextVindex];
+	}
+
+};
 
 Variation.prototype.traverseNodes=GameModel.prototype.traverseNodes;
 Variation.prototype.selectNodes=GameModel.prototype.selectNodes;

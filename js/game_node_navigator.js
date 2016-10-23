@@ -3,9 +3,10 @@ Game.NodeNavigator=function(game){
 	this.gameModel=game.gameModel;
 
 	var trueFunc=function(){return true};
-	var hasVariations=function(node){return !!node.variations;};
+	var hasVariation=function(node){return !!node.variations;};
+	var hasComment=function(node){return node.status.comment;};
+	var hasCommentOrVariation=function(node){return node.status.comment||!!node.variations;};
 	var hasRemark=function(node){return node.status.remark;};
-	var hasComments=function(node){return node.status.comment;};
 	var hasMarks=function(node){return node.status.mark;};
 	var isKo=function(node){var s=node.status;return s.positionBuilt&&(s.startKo||s.ko);};
 	var isCapture=function(node){return node.status.positionBuilt&&node.status.capture;};
@@ -13,9 +14,10 @@ Game.NodeNavigator=function(game){
 
 	var navigationFuncs=[
 		{name:'Node',predicate:trueFunc},
-		{name:'Branch',predicate:hasVariations},
+		{name:'Branch',predicate:hasVariation},
+		{name:'Comment',predicate:hasComment},
+		{name:'CommentOrBranch',predicate:hasCommentOrVariation},
 		{name:'Remark',predicate:hasRemark},
-		{name:'Comment',predicate:hasComments},
 		{name:'Marks',predicate:hasMarks},
 		{name:'Ko',predicate:isKo},
 		{name:'Capture',predicate:isCapture},

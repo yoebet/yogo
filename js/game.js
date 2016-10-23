@@ -106,6 +106,20 @@ Game.prototype={
 		return success;
 	},
 
+	buildAllPositions: function(){
+		var game=this;
+		var nodeCallback=function(node,context){
+			var positionBuilder=new Game.PositionBuilder(game,node,true);
+			var success=positionBuilder.buildPosition();
+			if(success===false){
+				context.push(node);
+			}
+		};
+		var invalidatedMoves=[];
+		this.gameModel.traverseNodes(null,nodeCallback,invalidatedMoves);
+		return invalidatedMoves;
+	},
+
 	inRealGame: function(){
 		return this.curNode.belongingVariation.realGame;
 	}

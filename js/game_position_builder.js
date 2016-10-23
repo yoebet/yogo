@@ -1,9 +1,10 @@
-Game.PositionBuilder=function(game,node){
+Game.PositionBuilder=function(game,node,buildPositionOnly){
 	this.game=game;
 	this.board=game.board;
 	this.gameModel=game.gameModel;
 	this.boardSize=game.gameModel.boardSize;
 	this.curNode=node;
+	this.buildPositionOnly=buildPositionOnly||false;
 
 	this.basePosition=null;
 	this.position=[];
@@ -142,12 +143,16 @@ Game.PositionBuilder.prototype={
 					this.removeStones(rangePoints,false);
 				}else{
 					this.setPointColor(x,y,null);
-					this.board.removeStone(point);
+					if(!this.buildPositionOnly){
+						this.board.removeStone(point);
+					}
 				}
 			}
 		}else{
 			this.setPointsStatus(points,null);
-			this.board.removeStones(points);
+			if(!this.buildPositionOnly){
+				this.board.removeStones(points);
+			}
 		}
 	},
 
@@ -160,12 +165,16 @@ Game.PositionBuilder.prototype={
 					this.addStones(rangePoints,color,false);
 				}else{
 					this.setPointColor(point.x,point.y,color);
-					this.board.placeStone(point,color);
+					if(!this.buildPositionOnly){
+						this.board.placeStone(point,color);
+					}
 				}
 			}
 		}else{
 			this.setPointsStatus(points,color);
-			this.board.addStones(points,color);
+			if(!this.buildPositionOnly){
+				this.board.addStones(points,color);
+			}
 		}
 	},
 
@@ -201,7 +210,9 @@ Game.PositionBuilder.prototype={
 			return false;
 		}
 
-		this.board.placeStone(point,color);
+		if(!this.buildPositionOnly){
+			this.board.placeStone(point,color);
+		}
 		this.setPointColor(point.x,point.y,color);
 
 		var opponentColor=(color=='B')? 'W':'B';
@@ -254,7 +265,9 @@ Game.PositionBuilder.prototype={
 			if(!libertyStatus.hasLiberty){
 				yogo.logWarn('is self capture? ('+point.x+','+point.y+','+color+')','play move');
 				this.setPointColor(point.x,point.y,null);
-				this.board.removeStone(point);
+				if(!this.buildPositionOnly){
+					this.board.removeStone(point);
+				}
 				return false;
 			}
 		}
@@ -301,7 +314,9 @@ Game.PositionBuilder.prototype={
 					if(color){
 						aeRemovedStones.push({x:point.x,y:point.y,color:color});
 						this.setPointColor(point.x,point.y,null);
-						this.board.removeStone(point);
+						if(!this.buildPositionOnly){
+							this.board.removeStone(point);
+						}
 					}
 				}
 				for(var pi=0;pi<points.length;pi++){
