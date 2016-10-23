@@ -17,6 +17,8 @@ function Game(board,gameModel){
 	yogo.exportFunctions.call(this,this.markersManager,['setCurrentNodeMarkers','setMarkers',
 		'setMarkCurrentMove','setMarkBranchPoints','markBranchPointsIfAny',
 		'setShowMoveNumber','hideMoveNumbers','handleMoveNumbers']);
+
+	this.board.setBranchPointOnclickHandler(this.goinBranch);
 }
 
 Game.prototype={

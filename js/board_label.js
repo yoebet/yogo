@@ -4,12 +4,18 @@ Board.Label=function(board){
 	this.paper=board.paper;
 	this.pointStatusMap=board.pointStatusMap;
 	this.coordinateManager=board.coordinateManager;
+	this.branchPointOnclickHandler;
 
 	this.labelPoints=[];
 	this.branchPoints=[];
 }
 
 Board.Label.prototype={
+
+	setBranchPointOnclickHandler: function(handler){
+		this.branchPointOnclickHandler=handler;
+	},
+
 	setLabel: function(coor,labelChar,type){
 		if(!labelChar){
 			yogo.logError('label missing: ('+coor.x+','+coor.y+')','setLabel');
@@ -57,6 +63,14 @@ Board.Label.prototype={
 		pointStatus.label=labelChar;
 		if(type==='branch_point'){
 			this.branchPoints.push(coor);
+			labelElement.attr({cursor:'pointer'});
+			labelElement.data('branch',labelChar);
+			var onclickHandler=this.branchPointOnclickHandler;
+			labelElement.click(function(event){
+				if(typeof(onclickHandler)==='function'){
+					onclickHandler(this.data('branch'));
+				}
+			});
 		}else{
 			this.labelPoints.push(coor);
 		}

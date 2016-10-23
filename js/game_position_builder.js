@@ -309,7 +309,7 @@ Game.PositionBuilder.prototype={
 			if(curNode.setup['AE']){
 				var aeRemovedStones=curNode.setup.aeRemovedStones=[];
 				var points=curNode.setup['AE'];
-				function doAERemove(point){
+				var doAERemove=function(point){
 					var color=this.getPointColor(point.x,point.y);
 					if(color){
 						aeRemovedStones.push({x:point.x,y:point.y,color:color});
@@ -318,16 +318,16 @@ Game.PositionBuilder.prototype={
 							this.board.removeStone(point);
 						}
 					}
-				}
+				}.bind(this);
 				for(var pi=0;pi<points.length;pi++){
 					var point=points[pi];
 					if(point.coorFrom){
 						var rangePoints=yogo.evaluatePointRange(point.coorFrom,point.coorTo);
 						for(var ri=0;ri<rangePoints.length;ri++){
-							doAERemove(rangePoints[ri]);
+							doAERemove.call(this,rangePoints[ri]);
 						}
 					}else{
-						doAERemove(point);
+						doAERemove.call(this,point);
 					}
 				}
 			}

@@ -22,7 +22,7 @@ Board.Stone.prototype={
 		var blackStone=this.paper.circle(invisiblePoint.x, invisiblePoint.y, stoneRadius).attr({'stroke-width':strokes.stone,fill:'black'});
 		return {
 			blackStone:blackStone,
-			whiteStone:blackStone.clone().attr({fill:'white'})
+			whiteStone:blackStone.clone().attr({fill:'white',stroke:'#333'})
 		};
 	},
 
