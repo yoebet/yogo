@@ -72,7 +72,7 @@ Board.Marker.prototype={
 		}
 	},
 
-	//markerType: TR/CR/SQ/MA
+	// markerType: TR/CR/SQ/MA
 	setMarker: function(coor,markerType){
 		var statusKey='x'+coor.x+'y'+coor.y;
 		var pointStatus=this.pointStatusMap[statusKey];
@@ -105,7 +105,7 @@ Board.Marker.prototype={
 			return;
 		}
 		markerElement=markerTemplate.clone();
-		//yogo.logInfo('marker '+markerKey+' from template','setMarker');
+		// yogo.logInfo('marker '+markerKey+' from template','setMarker');
 		var vbCoor=this.coordinateManager.boardCoorToViewBoxCoor(coor);
 		if(markerType=='CR'||markerType=='TW'||markerType=='TB'){
 			markerElement.attr({cx:vbCoor.x,cy:vbCoor.y});

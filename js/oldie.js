@@ -1,6 +1,5 @@
-
 if (!String.prototype.trim) {
-	String.prototype.trim = function () {
+	String.prototype.trim = function() {
 		rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
 		return this.replace(rtrim, "");
 	}
@@ -41,15 +40,15 @@ if (!Function.prototype.bind) {
 		if (typeof this !== 'function') {
 			throw new TypeError('');
 		}
-		var aArgs	 = Array.prototype.slice.call(arguments, 1),
-				fToBind = this,
-				fNOP    = function() {},
-				fBound  = function() {
-					return fToBind.apply(this instanceof fNOP && oThis
-								 ? this
-								 : oThis,
-								 aArgs.concat(Array.prototype.slice.call(arguments)));
-				};
+		var aArgs = Array.prototype.slice.call(arguments, 1);
+		var fToBind = this;
+		var fNOP = function() {
+		};
+		var fBound = function() {
+			var self = this instanceof fNOP && oThis ? this : oThis;
+			var args = aArgs.concat(Array.prototype.slice.call(arguments));
+			return fToBind.apply(self, args);
+		};
 		fNOP.prototype = this.prototype;
 		fBound.prototype = new fNOP();
 		return fBound;

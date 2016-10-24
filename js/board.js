@@ -19,7 +19,7 @@ function Board(boardContainer,boardSizeOrSetting,paper){
 		this.boardSetting=boardSizeOrSetting;
 		this.boardSize=this.boardSetting.boardSize;
 	}else{
-		//...
+		// ...
 	}
 
 	this.pointStatusMap={};
@@ -62,7 +62,7 @@ Board.getDefaultBoardSetting=function(boardSize){
 
 	if(boardSize!=19){
 		var viewBoxSize19=gridWidth*18+totalOutterWidth;
-		//normalize
+		// normalize
 		var mul=viewBoxSize/viewBoxSize19;
 		viewBoxSize=viewBoxSize19;
 		gridWidth=gridWidth/mul;
@@ -155,7 +155,8 @@ Board.prototype={
 		yogo.logInfo('viewBox size:'+viewBoxSize,'board');
 
 		paper.setViewBox(0, 0, viewBoxSize, viewBoxSize);
-		//paper.image("board/bambootile_warm.jpg", 0, 0, viewBoxSize, viewBoxSize);//board/purty_wood.jpg
+		// paper.image("board/bambootile_warm.jpg", 0, 0, viewBoxSize,
+		// viewBoxSize);//board/purty_wood.jpg
 
 		var boardSize=boardSetting.boardSize;
 		var boardOrigin=boardSetting.boardOrigin;
@@ -166,7 +167,7 @@ Board.prototype={
 		var boardEdgeWidth=gridWidth*(boardSize-1)+boardOuterEdge*2;
 		var boardEdgeRect=paper.rect(boardOrigin.x-boardOuterEdge,boardOrigin.y-boardOuterEdge,boardEdgeWidth,boardEdgeWidth);
 		boardEdgeRect.attr({'stroke-width':0});
-		boardEdgeRect.attr({fill:'#DCB35C'});//#DCB35C,#DEC090
+		// boardEdgeRect.attr({fill:'#DCB35C'});//#DCB35C,#DEC090
 		var outerBorderLineRect=paper.rect(boardOrigin.x,boardOrigin.y,gridWidth*(boardSize-1),gridWidth*(boardSize-1));
 		outerBorderLineRect.attr({'stroke-width':strokes.outerBorderLine});
 
