@@ -31,7 +31,7 @@ Board.Stone.prototype = {
 			blackStone : blackStone,
 			whiteStone : blackStone.clone().attr({
 				fill : 'white',
-				stroke : '#333'
+				stroke : '#666'
 			})
 		};
 	},
@@ -72,6 +72,16 @@ Board.Stone.prototype = {
 		var stone = (color == 'B') ? this.stoneTemplates.blackStone
 				: this.stoneTemplates.whiteStone;
 		thisColorStone = stone.clone();
+		thisColorStone
+				.data({
+					type : 'stone',
+					boardElement : true,
+					coor : {
+						x : coor.x,
+						y : coor.y
+					},
+					onCoordinateChange : this.coordinateManager.onCircleCoordinateChange
+				});
 		var vbCoor = this.coordinateManager.boardCoorToViewBoxCoor(coor);
 		thisColorStone.attr({
 			cx : vbCoor.x,
@@ -166,7 +176,16 @@ Board.Stone.prototype = {
 			'font-size' : fontSize,
 			fill : mnColor
 		});
-		mnElement.data('oriColor', oriColor);
+		mnElement.data({
+			type : 'moveNumber',
+			oriColor : oriColor,
+			boardElement : true,
+			coor : {
+				x : mn.x,
+				y : mn.y
+			},
+			onCoordinateChange : this.coordinateManager.onLabelCoordinateChange
+		});
 		stone.data('mn_' + moveNumber, mnElement);
 		pointStatus.moveNumberElement = mnElement;
 		this.moveNumberElements.push(mnElement);

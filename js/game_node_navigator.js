@@ -2,27 +2,63 @@ Game.NodeNavigator = function(game) {
 	this.game = game;
 	this.gameModel = game.gameModel;
 
-	var trueFunc=function(){return true};
-	var hasVariation=function(node){return !!node.variations;};
-	var hasComment=function(node){return node.status.comment;};
-	var hasCommentOrVariation=function(node){return node.status.comment||!!node.variations;};
-	var hasRemark=function(node){return node.status.remark;};
-	var hasMarks=function(node){return node.status.mark;};
-	var isKo=function(node){var s=node.status;return s.positionBuilt&&(s.startKo||s.ko);};
-	var isCapture=function(node){return node.status.positionBuilt&&node.status.capture;};
-	var notEvaluated=function(node){return !node.status.positionBuilt;};
+	var trueFunc = function() {
+		return true
+	};
+	var hasVariation = function(node) {
+		return !!node.variations;
+	};
+	var hasComment = function(node) {
+		return node.status.comment;
+	};
+	var hasCommentOrVariation = function(node) {
+		return node.status.comment || !!node.variations;
+	};
+	var hasRemark = function(node) {
+		return node.status.remark;
+	};
+	var hasMarks = function(node) {
+		return node.status.mark;
+	};
+	var isKo = function(node) {
+		var s = node.status;
+		return s.positionBuilt && (s.startKo || s.ko);
+	};
+	var isCapture = function(node) {
+		return node.status.positionBuilt && node.status.capture;
+	};
+	var notEvaluated = function(node) {
+		return !node.status.positionBuilt;
+	};
 
-	var navigationFuncs = [
-		{name:'Node',predicate:trueFunc},
-		{name:'Branch',predicate:hasVariation},
-		{name:'Comment',predicate:hasComment},
-		{name:'CommentOrBranch',predicate:hasCommentOrVariation},
-		{name:'Remark',predicate:hasRemark},
-		{name:'Marks',predicate:hasMarks},
-		{name:'Ko',predicate:isKo},
-		{name:'Capture',predicate:isCapture},
-		{name:'NotEvaluated',predicate:notEvaluated}
-	];
+	var navigationFuncs = [ {
+		name : 'Node',
+		predicate : trueFunc
+	}, {
+		name : 'Branch',
+		predicate : hasVariation
+	}, {
+		name : 'Comment',
+		predicate : hasComment
+	}, {
+		name : 'CommentOrBranch',
+		predicate : hasCommentOrVariation
+	}, {
+		name : 'Remark',
+		predicate : hasRemark
+	}, {
+		name : 'Marks',
+		predicate : hasMarks
+	}, {
+		name : 'Ko',
+		predicate : isKo
+	}, {
+		name : 'Capture',
+		predicate : isCapture
+	}, {
+		name : 'NotEvaluated',
+		predicate : notEvaluated
+	} ];
 
 	var newNavigation = function(navi, predicate) {
 		return function() {
@@ -41,7 +77,7 @@ Game.NodeNavigator = function(game) {
 	}
 };
 
-Game.NodeNavigator.prototype={
+Game.NodeNavigator.prototype = {
 
 	gotoNextX : function(predicate) {
 		var node = this.game.curNode;

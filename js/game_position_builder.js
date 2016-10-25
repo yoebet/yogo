@@ -86,13 +86,13 @@ Game.PositionBuilder.prototype = {
 
 		var checkedPoints = {};
 
-		var game = this;
+		var builder = this;
 		function doTraverseGroup(point, comingDirection) {
 			var key = 'x' + point.x + 'y' + point.y;
 			if (checkedPoints[key]) {
 				return;
 			}
-			var pointsStatus = game.getAdjacentPointsStatus(point);
+			var pointsStatus = builder.getAdjacentPointsStatus(point);
 
 			var result = callback(point, pointsStatus);
 			if (result === false) {
@@ -255,6 +255,8 @@ Game.PositionBuilder.prototype = {
 						}
 						return false;
 					}
+				} else {
+					// find ko
 				}
 				if (previousNode && previousNode.previousNode
 						&& previousNode.previousNode.previousNode) {
@@ -268,10 +270,12 @@ Game.PositionBuilder.prototype = {
 								&& point.x == pppcs.x && point.y == pppcs.y) {
 							curNode.status.ko = true;
 							if (!ppp.status.ko) {
-								ppp.status.startKo = true;
+								if (curNode.belongingVariation.realGame === ppp.belongingVariation.realGame) {
+									ppp.status.startKo = true;
+								}
 							}
-							yogo.logInfo('ko: (' + point.x + ',' + point.y
-									+ ',' + color + ')', 'play move');
+							// yogo.logInfo('ko: (' + point.x + ',' + point.y
+							// + ',' + color + ')', 'play move');
 						}
 					}
 				}
@@ -331,7 +335,7 @@ Game.PositionBuilder.prototype = {
 				W : 0
 			};
 			this.buildPositionOnly = false;// the first node must set up the
-											// board
+			// board
 		}
 		if (curNode.status.move) {
 			success = this.evaluateMove();

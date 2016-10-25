@@ -66,6 +66,15 @@ Board.Label.prototype = {
 					'font-size' : fontSize,
 					fill : labelColor
 				});
+		labelElement.data({
+			type : 'label',
+			boardElement : true,
+			coor : {
+				x : coor.x,
+				y : coor.y
+			},
+			onCoordinateChange : this.coordinateManager.onLabelCoordinateChange
+		});
 		pointStatus.labelElement = labelElement;
 		pointStatus.label = labelChar;
 		if (type === 'branch_point') {
