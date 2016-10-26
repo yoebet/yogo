@@ -122,7 +122,7 @@ Board.prototype = {
 		var halfBoard = gridWidth * (boardSize - 1) / 2;
 		this.centralPoint = {
 			x : ox + halfBoard,
-			y : oy + halfBoard,
+			y : oy + halfBoard
 		};
 
 		this.drawCoordinate();

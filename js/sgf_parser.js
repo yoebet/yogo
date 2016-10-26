@@ -257,7 +257,6 @@ SgfParser.prototype = {
 					node.move.point = (node.move['W'] || node.move['B']);
 				}
 
-				delete node.props;
 			};
 
 			gameModel.traverseNodes(null, nodeCallback, {});
@@ -269,6 +268,7 @@ SgfParser.prototype = {
 
 			var nodeCallback2 = function(node, context) {
 
+				var realGame=node.belongingVariation.realGame;
 				var lastMoveNode = node.previousNode;
 				var mns;
 				if (lastMoveNode) {
@@ -294,15 +294,21 @@ SgfParser.prototype = {
 					displayMoveNumber : mns[1],
 					variationMoveNumber : mns[2]
 				};
-				if (node.move['MN']) {
-					node.numbers.displayMoveNumber = node.move['MN'];
-				}
 				if (node.status.variationFirstNode) {
 					if (node.status.move || node.status.pass) {
 						node.numbers.variationMoveNumber = 1;
+						if(!realGame){
+							node.numbers.displayMoveNumber = 1;
+						}
 					} else {
 						node.numbers.variationMoveNumber = 0;
+						if(!realGame){
+							node.numbers.displayMoveNumber = 0;
+						}
 					}
+				}
+				if (node.move['MN']) {
+					node.numbers.displayMoveNumber = node.move['MN'];
 				}
 
 				if (node.variations) {
@@ -321,7 +327,7 @@ SgfParser.prototype = {
 
 				node.id = 'n' + context.seq++;
 				gameModel.nodeMap[node.id] = node;
-				if (node.belongingVariation.realGame) {
+				if (realGame) {
 					var mn = node.numbers.globalMoveNumber;
 					if (mn && !gameModel.nodesByMoveNumber[mn]) {
 						gameModel.nodesByMoveNumber[mn] = node;
