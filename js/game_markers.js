@@ -10,6 +10,8 @@ Game.Markers = function(game) {
 
 	this.showMoveNumberCount = 10;
 
+	this.moveNumberMod = false;
+
 	this.hideMoveNumberTemporarily = false;
 
 };
@@ -102,11 +104,16 @@ Game.Markers.prototype = {
 				this.showMoveNumberCount = 1;
 			}
 		} else if (typeof (show) === 'number') {
+			this.moveNumberMod=false;
 			this.showMoveNumberCount = show;
 			this.showMoveNumber = show > 0;
 		} else if (typeof (show) === 'string') {
+			if(show.charAt(0)=='%'){
+				this.moveNumberMod=true;
+				show=show.substr(1);
+			}
 			var mnc = parseInt(show);
-			if (!NaN(mnc)) {
+			if (!isNaN(mnc)) {
 				this.showMoveNumberCount = mnc;
 				this.showMoveNumber = mnc > 0;
 			}
@@ -127,6 +134,14 @@ Game.Markers.prototype = {
 
 		var moveNumbers = [];
 		var count = this.showMoveNumberCount;
+		var mod;
+		if(this.moveNumberMod){
+			mod=count;
+			count=this.game.curNode.numbers.displayMoveNumber%mod;
+			if(count==0){
+				count=mod;
+			}
+		}
 		var node = this.game.curNode;
 		var variation = node.belongingVariation;
 		var curPosition = node.position;
@@ -136,6 +151,12 @@ Game.Markers.prototype = {
 				var pointCurStatus = curPosition[point.x][point.y];
 				if (pointCurStatus && pointCurStatus.node === node) {
 					var moveNumber = node.numbers.displayMoveNumber;
+					if(this.moveNumberMod){
+						moveNumber=moveNumber%mod;
+						if(moveNumber==0){
+							moveNumber=mod;
+						}
+					}
 					var mn = {
 						x : point.x,
 						y : point.y,

@@ -1,4 +1,10 @@
-yogo = {};
+yogo = {
+	_uid: 1024,
+	nextuid: function(){
+		yogo._uid++;
+		return yogo._uid;
+	}
+};
 
 yogo.log = function(msg, category, level) {
 	if (!window.console)

@@ -76,14 +76,18 @@ Board.Coordinate.prototype = {
 
 		if (type === '1') {
 			;
-		} else if (type === 'a' || type === 'A') {
+		} else if ('aA⒜🄐ⓐⒶ'.indexOf(type) >= 0) {
 			if (coor >= 26) {
-				label = String.fromCharCode(65 + (coor - 26));
-			} else if (type === 'a') {
-				label = String.fromCharCode(97 + coor);
-			} else if (type === 'A') {
-				label = String.fromCharCode(65 + coor);
+				if (type === 'a') {
+					type = 'A';
+				} else if (type === '⒜') {
+					type = '🄐';
+				} else if (type === 'ⓐ') {
+					type = 'Ⓐ';
+				}
+				coor = coor % 26;
 			}
+			label = String.fromCharCode(type.charCodeAt(0) + coor);
 		} else if (type === '一') {
 			var zhArray = '一二三四五六七八九十'.split('');
 			label = zhArray[coor % 10];
@@ -93,16 +97,6 @@ Board.Coordinate.prototype = {
 			}
 		} else if ('①⑴⒈'.indexOf(type) >= 0) {
 			coor = coor % 20;
-			label = String.fromCharCode(type.charCodeAt(0) + coor);
-		} else if ('⒜🄐ⓐⒶ'.indexOf(type) >= 0) {
-			if (coor >= 26) {
-				if (type === '⒜') {
-					type = '🄐';
-				} else if (type === 'ⓐ') {
-					type = 'Ⓐ';
-				}
-				coor = coor % 26;
-			}
 			label = String.fromCharCode(type.charCodeAt(0) + coor);
 		}
 		return label;
@@ -121,11 +115,7 @@ Board.Coordinate.prototype = {
 			var oriX = boardOrigin.x + gridWidth * coor;
 			var oriY = this.setting.baseCoor;
 
-			var tc = {
-				x : oriX,
-				y : oriY
-			};
-			// var tc=this._transformCoor({x:oriX,y:oriY},true);
+			var tc=this._transformCoor({x:oriX,y:oriY},true);
 			var xlabel = this.generateCoordinateLabel(coor, this.xType);
 			var xlabelElement = this.paper.text(tc.x, tc.y, xlabel).attr({
 				'font-size' : this.setting.fontSize
@@ -137,12 +127,7 @@ Board.Coordinate.prototype = {
 			this.xCoordinateLabels1.push(xlabelElement);
 
 			if (this.fullCoordinate) {
-				// var
-				// tc2=this._transformCoor({x:oriX,y:viewBoxSize-oriY},true);
-				var tc2 = {
-					x : oriX,
-					y : viewBoxSize - oriY
-				};
+				var tc2=this._transformCoor({x:oriX,y:viewBoxSize-oriY},true);
 				var xlabelElement2 = xlabelElement.clone().attr({
 					x : tc2.x,
 					y : tc2.y
@@ -159,11 +144,7 @@ Board.Coordinate.prototype = {
 			var oriX = this.setting.baseCoor;
 			var oriY = boardOrigin.y + gridWidth * coor;
 
-			// var tc=this._transformCoor({x:oriX,y:oriY},true);
-			var tc = {
-				x : oriX,
-				y : oriY
-			};
+			var tc=this._transformCoor({x:oriX,y:oriY},true);
 			var ylabel = this.generateCoordinateLabel(coor, this.yType);
 			var ylabelElement = this.paper.text(tc.x, tc.y, ylabel).attr({
 				'font-size' : this.setting.fontSize
@@ -175,12 +156,7 @@ Board.Coordinate.prototype = {
 			this.yCoordinateLabels1.push(ylabelElement);
 
 			if (this.fullCoordinate) {
-				// var
-				// tc2=this._transformCoor({x:viewBoxSize-oriX,y:oriY},true);
-				var tc2 = {
-					x : viewBoxSize - oriX,
-					y : oriY
-				};
+				var tc2=this._transformCoor({x:viewBoxSize-oriX,y:oriY},true);
 				var ylabelElement2 = ylabelElement.clone().attr({
 					x : tc2.x,
 					y : tc2.y

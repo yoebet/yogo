@@ -13,7 +13,7 @@ function GameTree(treeContainer,game){
 	this.elementTemplates={
 		gameTree:'<div class="game-tree"></div>',
 		nodeGroup:'<ul class="node-group"></ul>',
-		nodeGroupHeader:'<li class="node-group-header"></li>',
+		nodeGroupHeader:'<li class="node-group-head"></li>',
 		treeNodes:'<ul class="tree-nodes"></ul>',
 		treeNode:'<li class="tree-node"><span class="node-name"></span><span class="node-info"></span></li>',
 		variation:'<ul class="variation"></ul>',
@@ -34,6 +34,7 @@ GameTree.prototype={
 		$treeNodeTmpl=$(ets.treeNode);
 
 		var $gameTree=$(ets.gameTree).clone();
+		$gameTree.attr('id','t'+yogo.nextuid());
 
 		this.treeContainer.append($gameTree);
 
@@ -68,7 +69,7 @@ GameTree.prototype={
 
 					if($currentNodeGroup){
 						var groupName=groupMoveNumberFrom+'-'+pmn;
-						$currentNodeGroup.find('> .node-group-header').text(groupName);
+						$currentNodeGroup.find('> .node-group-head').text(groupName);
 					}
 					groupMoveNumberFrom=moveNumber||1;
 					$currentNodeGroup=$nodeGroup;
@@ -104,7 +105,7 @@ GameTree.prototype={
 		if($currentNodeGroup){
 			var lastMoveNumber=this.gameModel.gameEndingNode.numbers.globalMoveNumber;
 			var groupName=groupMoveNumberFrom+'-'+lastMoveNumber;
-			$currentNodeGroup.find('> .node-group-header').text(groupName);
+			$currentNodeGroup.find('> .node-group-head').text(groupName);
 		}
 	},
 
@@ -115,7 +116,7 @@ GameTree.prototype={
 		var displayMoveNumber=node.numbers.displayMoveNumber;
 		var move='';
 		if(node.status.move){
-			move=node.props['B']||node.props['W'];
+			//move=node.props['B']||node.props['W'];
 			$treeNode.addClass((node.move.color=='B')? 'black':'white');
 		}else if(node.status.pass){
 			move='pass';
@@ -124,7 +125,7 @@ GameTree.prototype={
 		}
 		var nodeName=(displayMoveNumber===0)? 'game info':displayMoveNumber;
 		if(move!=''){
-			nodeName+='['+move+']';
+			nodeName+=' ['+move+']';
 		}
 		if(node.basic['N']){
 			nodeName+=' '+node.basic['N'];
@@ -154,7 +155,8 @@ GameTree.prototype={
 
 		$variation=$variationTmpl.clone().attr('id',variation.id);
 		$variationHead=$variationHeadTmpl.clone();
-		$variationHead.html('variation '+variation.id);
+		var label = String.fromCharCode(65 + variation.index);
+		$variationHead.html('variation '+label);
 		$variation.append($variationHead);
 		var $treeNodes=$treeNodesTmpl.clone();
 		$variation.append($treeNodes);

@@ -262,7 +262,7 @@ SgfParser.prototype = {
 			gameModel.traverseNodes(null, nodeCallback, {});
 
 			var variationCallback = function(variation, context) {
-				variation.id = 'v' + context.seq++;
+				variation.id = 'v' + yogo.nextuid();
 				gameModel.variationMap[variation.id] = variation;
 			};
 
@@ -325,7 +325,7 @@ SgfParser.prototype = {
 					node.branchPoints = branchPoints;
 				}
 
-				node.id = 'n' + context.seq++;
+				node.id = 'n' + yogo.nextuid();
 				gameModel.nodeMap[node.id] = node;
 				if (realGame) {
 					var mn = node.numbers.globalMoveNumber;
@@ -339,7 +339,6 @@ SgfParser.prototype = {
 			};
 
 			gameModel.traverseNodes(variationCallback, nodeCallback2, {
-				seq : 1000
 			});
 		}
 	},
