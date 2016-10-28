@@ -181,8 +181,8 @@ GameTree.prototype = {
 	},
 
 	showNode : function(id, trigger) {
-		$node = $('#' + id);
-		$('li.tree-node.current').removeClass('current');
+		$node = $('#' + id, this.$container);
+		$('li.tree-node.current', this.$container).removeClass('current');
 		$node.addClass('current');
 		if (trigger !== 'tree-click') {
 			var collapsed = $node.parents('ul.tree-nodes:hidden');

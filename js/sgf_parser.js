@@ -268,7 +268,7 @@ SgfParser.prototype = {
 
 			var nodeCallback2 = function(node, context) {
 
-				var realGame=node.belongingVariation.realGame;
+				var realGame = node.belongingVariation.realGame;
 				var lastMoveNode = node.previousNode;
 				var mns;
 				if (lastMoveNode) {
@@ -297,12 +297,12 @@ SgfParser.prototype = {
 				if (node.status.variationFirstNode) {
 					if (node.status.move || node.status.pass) {
 						node.numbers.variationMoveNumber = 1;
-						if(!realGame){
+						if (!realGame) {
 							node.numbers.displayMoveNumber = 1;
 						}
 					} else {
 						node.numbers.variationMoveNumber = 0;
-						if(!realGame){
+						if (!realGame) {
 							node.numbers.displayMoveNumber = 0;
 						}
 					}
@@ -338,8 +338,7 @@ SgfParser.prototype = {
 				}
 			};
 
-			gameModel.traverseNodes(variationCallback, nodeCallback2, {
-			});
+			gameModel.traverseNodes(variationCallback, nodeCallback2, {});
 		}
 	},
 

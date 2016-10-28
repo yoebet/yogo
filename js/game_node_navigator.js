@@ -111,7 +111,7 @@ Game.NodeNavigator.prototype = {
 		}
 	},
 
-	gotoNode : function(obj,trigger) {
+	gotoNode : function(obj, trigger) {
 		var node;
 		if (typeof (obj) === 'string') {
 			node = this.gameModel.nodeMap[obj];
@@ -121,7 +121,7 @@ Game.NodeNavigator.prototype = {
 			node = obj;
 		}
 		if (node) {
-			return this.game.playNode(node,trigger);
+			return this.game.playNode(node, trigger);
 		}
 		return false;
 	},

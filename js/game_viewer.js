@@ -1,12 +1,12 @@
 function GameViewer(selector) {
-	this.$viewer = $(selector);
-	if (this.$viewer.length == 0) {
+	this.$v = $(selector);
+	if (this.$v.length == 0) {
 		yogo.logWarn('no game viewer by this selector: ' + selector,
 				'game viewer');
-	} else if (this.$viewer.length > 1) {
+	} else if (this.$v.length > 1) {
 		yogo.logWarn('more than one game viewer by this selector: ' + selector,
 				'game viewer');
-		this.$viewer = $(this.$viewer.get(0));
+		this.$v = $(this.$v.get(0));
 	}
 
 	this.board = null;
@@ -20,10 +20,11 @@ GameViewer.prototype = {
 	init : function(event) {
 
 		var viewer = this;
+		var $v = this.$v;
 
-		$('button.parse-sgf').click(function() {
+		$('button.parse-sgf', $v).click(function() {
 
-			var sgfText = $('textarea.sgf-text').val();
+			var sgfText = $('textarea.sgf-text', $v).val();
 			if (!sgfText.trim()) {
 				return;
 			}
@@ -31,7 +32,7 @@ GameViewer.prototype = {
 			viewer.loadGame(sgfText);
 		});
 
-		$('button.perspective').click(function() {
+		$('button.perspective', $v).click(function() {
 			if (!viewer.board) {
 				return;
 			}
@@ -39,10 +40,10 @@ GameViewer.prototype = {
 			var fn = viewer.board[perspective];
 			if (typeof (fn) !== 'function')
 				return;
-			fn.call(board);
+			fn.call(viewer.board);
 		});
 
-		$('button.node-finder').click(function() {
+		$('button.node-finder', $v).click(function() {
 			if (!viewer.game) {
 				return;
 			}
@@ -53,15 +54,15 @@ GameViewer.prototype = {
 			fn.call(viewer.game);
 		});
 
-		$('.goto-node').click(function() {
+		$('.goto-node', $v).click(function() {
 			if (!viewer.game) {
 				return;
 			}
-			var number = $('.move-number-input').val();
+			var number = $('.move-number-input', $v).val();
 			viewer.game.gotoNode(parseInt(number));
 		});
 
-		$('.move-number-input').keydown(function(e) {
+		$('.move-number-input', $v).keydown(function(e) {
 			if (!viewer.game) {
 				return;
 			}
@@ -71,12 +72,12 @@ GameViewer.prototype = {
 			}
 		});
 
-		$('.branch-select').on('click', 'button.branch', function() {
+		$('.branch-select', $v).on('click', 'button.branch', function() {
 			var branch = $(this).data('branch');
 			viewer.game.goinBranch(branch);
 		});
 
-		$('button.coordinate').click(function() {
+		$('button.coordinate', $v).click(function() {
 			var board = viewer.board;
 			if (!board) {
 				return;
@@ -103,7 +104,7 @@ GameViewer.prototype = {
 			}
 		});
 
-		$('button.move-number').click(function() {
+		$('button.move-number', $v).click(function() {
 			var game = viewer.game;
 			if (!game) {
 				return;
@@ -120,7 +121,7 @@ GameViewer.prototype = {
 			}
 		});
 
-		$('.mark-current-move').click(function() {
+		$('.mark-current-move', $v).click(function() {
 			if (!viewer.game) {
 				return;
 			}
@@ -133,7 +134,7 @@ GameViewer.prototype = {
 			this.game.setMarkCurrentMove(value);
 		});
 
-		$('button.zoom').click(function() {
+		$('button.zoom', $v).click(function() {
 			if (!viewer.board) {
 				return;
 			}
@@ -147,15 +148,16 @@ GameViewer.prototype = {
 	},
 
 	onPlayNode : function(trigger) {
-		var $commentBox = $('.comment-box');
+		var $v = this.$v;
+		var $commentBox = $('.comment-box', $v);
 		$commentBox.text('');
 		var curNode = this.game.curNode;
 		if (curNode.basic['C']) {
 			$commentBox.text(curNode.basic['C']);
 		}
 		var captures = curNode.move.accumulatedCaptures;
-		$(".black-capture").text(captures['B']);
-		$(".white-capture").text(captures['W']);
+		$(".black-capture", $v).text(captures['B']);
+		$(".white-capture", $v).text(captures['W']);
 
 		if (curNode.variations) {
 			var indexFrom = curNode.belongingVariation.realGame ? 1 : 0;
@@ -166,20 +168,20 @@ GameViewer.prototype = {
 				if ($branchButton.length > 0) {
 					$branchButton.show();
 				} else {
-					$('.branch-select').append(
+					$('.branch-select', $v).append(
 							'<button class="branch branch' + label
 									+ '" data-branch="' + label + '">' + label
 									+ '</button>');
 				}
 			}
-			$('.branch-select').show();
+			$('.branch-select', $v).show();
 		} else {
-			$('.branch-select').hide().find('button.branch').hide();
+			$('.branch-select', $v).hide().find('button.branch').hide();
 		}
 		if (curNode.belongingVariation.realGame) {
-			$('.in-branch').hide();
+			$('.in-branch', $v).hide();
 		} else {
-			$('.in-branch').show();
+			$('.in-branch', $v).show();
 		}
 
 		if (this.gameTree) {
@@ -216,13 +218,14 @@ GameViewer.prototype = {
 
 	setupBoard : function() {
 
+		var $v = this.$v;
 		if (!this.gameModel) {
 			return;
 		}
 
 		var existedPaper = this.game && this.game.board.paper;
 
-		this.board = new Board($(".board-container").get(0),
+		this.board = new Board($(".board-container", $v).get(0),
 				this.gameModel.boardSize, existedPaper);
 
 		this.board.drawBoard();
@@ -236,6 +239,7 @@ GameViewer.prototype = {
 
 	setupGameInfo : function() {
 
+		var $v = this.$v;
 		var gameInfo = this.gameModel.gameInfo;
 		var blackPlayer = gameInfo.blackPlayer;
 		var whitePlayer = gameInfo.whitePlayer;
@@ -247,7 +251,7 @@ GameViewer.prototype = {
 				player = player + ' ' + blackPlayer.rank;
 			}
 		}
-		$(".black-player-name").text(player);
+		$(".black-player-name", $v).text(player);
 
 		player = '';
 		if (whitePlayer) {
@@ -256,12 +260,12 @@ GameViewer.prototype = {
 				player = player + ' ' + whitePlayer.rank;
 			}
 		}
-		$(".white-player-name").text(player);
+		$(".white-player-name", $v).text(player);
 	},
 
 	setupGameTree : function() {
 
-		var $treeContainer = $('.game-tree-container');
+		var $treeContainer = $('.game-tree-container', this.$v);
 		this.gameTree = new GameTree($treeContainer, this.game);
 
 		this.gameTree.setup();

@@ -1,11 +1,11 @@
 yogo = {
-	_uid: 1024,
-	nextuid: function(){
+	_uid : 1024,
+	nextuid : function() {
 		yogo._uid++;
 		return yogo._uid;
 	},
 
-	log: function(msg, category, level) {
+	log : function(msg, category, level) {
 		if (!window.console)
 			return;
 		var func = window.console[level];
@@ -21,19 +21,19 @@ yogo = {
 		}
 	},
 
-	logInfo: function(msg, category) {
+	logInfo : function(msg, category) {
 		yogo.log(msg, category, 'info');
 	},
 
-	logWarn: function(msg, category) {
+	logWarn : function(msg, category) {
 		yogo.log(msg, category, 'warn');
 	},
 
-	logError: function(msg, category) {
+	logError : function(msg, category) {
 		yogo.log(msg, category, 'error');
 	},
 
-	exportFunctions: function(obj, funcNames) {
+	exportFunctions : function(obj, funcNames) {
 		for (var i = 0; i < funcNames.length; i++) {
 			var funcName = funcNames[i];
 			var func = obj[funcName];
@@ -45,7 +45,7 @@ yogo = {
 		}
 	},
 
-	evaluatePointRange: function(coorFrom, coorTo) {
+	evaluatePointRange : function(coorFrom, coorTo) {
 		var rangePoints = [];
 		var fromX = coorFrom.x, toX = coorTo.x;
 		var fromY = coorFrom.y, toY = coorTo.y;
