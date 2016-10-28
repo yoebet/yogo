@@ -23,8 +23,10 @@ Board.Label.prototype = {
 			return;
 		}
 		if (labelChar.length > 2) {
-			yogo.logError('label too long: ' + labelChar, 'setLabel');
-			return;
+			if(!(/^\d+$/.test(labelChar)&&labelChar.length==3)){
+				yogo.logError('label too long: ' + labelChar, 'setLabel');
+				return;
+			}
 		}
 		var statusKey = 'x' + coor.x + 'y' + coor.y;
 		var pointStatus = this.pointStatusMap[statusKey];
@@ -59,6 +61,8 @@ Board.Label.prototype = {
 		var fontSize = labelSetting.fontSize;
 		if (labelChar.length == 2) {
 			fontSize -= 1;
+		}else if (labelChar.length >= 3) {
+			fontSize -= 2;
 		}
 		var vbCoor = this.coordinateManager.boardCoorToViewBoxCoor(coor);
 		var labelElement = this.paper.text(vbCoor.x, vbCoor.y, labelChar).attr(

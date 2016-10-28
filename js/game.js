@@ -74,7 +74,8 @@ Game.prototype = {
 		};
 	},
 
-	playNode : function(node) {
+	//trigger: board-click/tree-click/mousewheel/button/program
+	playNode : function(node,trigger) {
 		if (!node) {
 			return false;
 		}
@@ -114,7 +115,7 @@ Game.prototype = {
 		this.setCurrentNodeMarkers();
 		this.handleMoveNumbers(lastNode);
 		if (typeof (this.onPlayNode) === 'function') {
-			this.onPlayNode.call(this);
+			this.onPlayNode(trigger);
 		}
 		return success;
 	},
@@ -136,7 +137,5 @@ Game.prototype = {
 	inRealGame : function() {
 		return this.curNode.belongingVariation.realGame;
 	}
-
-// find node by commentary/nodename
 
 };

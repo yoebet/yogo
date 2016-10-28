@@ -24,6 +24,13 @@ Game.Markers.prototype = {
 		board.removeAllLabels();
 		board.removeBranchPointLabels();
 		var curNode = this.game.curNode;
+
+		if (this.markCurrentMove && !this.showMoveNumber) {
+			board.markCurrentMove(curNode.move.point);
+		} else {
+			board.markCurrentMove(null);
+		}
+
 		if (curNode.status.mark) {
 			if (curNode.marks['LB']) {
 				board.setLabels(curNode.marks['LB']);
@@ -38,12 +45,6 @@ Game.Markers.prototype = {
 		}
 		if (this.markBranchPoints) {
 			this.markBranchPointsIfAny();
-		}
-
-		if (this.markCurrentMove && !this.showMoveNumber) {
-			board.markCurrentMove(curNode.move.point);
-		} else {
-			board.markCurrentMove(null);
 		}
 	},
 
@@ -191,9 +192,6 @@ Game.Markers.prototype = {
 		if (curNode.status.mark) {
 			this.hideMoveNumberTemporarily = true;
 			this.hideMoveNumbers();
-			if (this.markCurrentMove) {
-				board.markCurrentMove(curNode.move.point);
-			}
 			return;
 		}
 		if (this.hideMoveNumberTemporarily) {
