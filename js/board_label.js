@@ -9,6 +9,17 @@ Board.Label = function(board) {
 
 	this.labelPoints = [];
 	this.branchPoints = [];
+
+	var theBoard=this.board;
+	this.labelClickHandler=function(e){
+		theBoard.pointClickHandler(this.data('coor'),'label');
+	};
+	var labelManager=this;
+	this.branchPointClickHandler=function(e) {
+		if (typeof (labelManager.branchPointOnclickHandler) === 'function') {
+			labelManager.branchPointOnclickHandler(this.data('branch'));
+		}
+	}
 }
 
 Board.Label.prototype = {
@@ -88,13 +99,10 @@ Board.Label.prototype = {
 			});
 			labelElement.data('branch', labelChar);
 			var labelManager=this;
-			labelElement.click(function(event) {
-				if (typeof (labelManager.branchPointOnclickHandler) === 'function') {
-					labelManager.branchPointOnclickHandler(this.data('branch'));
-				}
-			});
+			labelElement.click(this.branchPointClickHandler);
 		} else {
 			this.labelPoints.push(coor);
+			labelElement.click(this.labelClickHandler);
 		}
 
 		if(!stoneColor && labelSetting.eraseBoardLine){

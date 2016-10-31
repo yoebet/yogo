@@ -9,6 +9,14 @@ Board.Stone = function(board) {
 	this.stoneTemplates = this.setupStoneTemplates();
 	this.moveNumberElements = [];
 	this.currentMoveNumberElement = null;
+
+	var theBoard=this.board;
+	this.stoneClickHandler=function(e){
+		theBoard.pointClickHandler(this.data('coor'),'stone');
+	};
+	this.moveNumberClickHandler=function(e){
+		theBoard.pointClickHandler(this.data('coor'),'moveNumber');
+	};
 }
 
 Board.Stone.prototype = {
@@ -71,6 +79,14 @@ Board.Stone.prototype = {
 		var stone = (color == 'B') ? this.stoneTemplates.blackStone
 				: this.stoneTemplates.whiteStone;
 		thisColorStone = stone.clone();
+		var vbCoor = this.coordinateManager.boardCoorToViewBoxCoor(coor);
+		thisColorStone.attr({
+			cx : vbCoor.x,
+			cy : vbCoor.y
+		});
+		pointStatus['stone' + color] = thisColorStone;
+		this.pointStatusMatrix[coor.x][coor.y] = pointStatus;
+
 		thisColorStone
 				.data({
 					type : 'stone',
@@ -81,13 +97,8 @@ Board.Stone.prototype = {
 					},
 					onCoordinateChange : this.coordinateManager.onCircleCoordinateChange
 				});
-		var vbCoor = this.coordinateManager.boardCoorToViewBoxCoor(coor);
-		thisColorStone.attr({
-			cx : vbCoor.x,
-			cy : vbCoor.y
-		});
-		pointStatus['stone' + color] = thisColorStone;
-		this.pointStatusMatrix[coor.x][coor.y] = pointStatus;
+
+		thisColorStone.click(this.stoneClickHandler);
 	},
 
 	removeStone : function(coor) {
@@ -190,6 +201,8 @@ Board.Stone.prototype = {
 			this.unmarkCurrentMoveNumber();
 			this.currentMoveNumberElement = mnElement;
 		}
+
+		mnElement.click(this.moveNumberClickHandler);
 	},
 
 	unmarkCurrentMoveNumber : function() {

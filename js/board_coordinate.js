@@ -85,8 +85,31 @@ Board.Coordinate.prototype = {
 		};
 	},
 
-	boardCoorToViewBoxCoor : function(coor) {
+	_reverseTransformCoor : function(coor, isViewBoxCoor) {
+		var coorMax = isViewBoxCoor ? this.boardSetting.viewBoxSize
+				: (this.boardSize - 1);
 
+		var x = coor.x, y = coor.y;
+		var rotate90 = (4-this.board.rotate90)%4;
+		while (rotate90 > 0) {
+			var tmp = y;
+			y = x;
+			x = coorMax - tmp;
+			rotate90--;
+		}
+		if (this.board.reversed) {
+			var tmp=x;
+			x = y;
+			y = tmp;
+		}
+
+		return {
+			x : x,
+			y : y
+		};
+	},
+
+	boardCoorToViewBoxCoor : function(coor) {
 		var tc = this._transformCoor(coor, false);
 		var boardOrigin = this.boardSetting.boardOrigin;
 		var gridWidth = this.boardSetting.gridWidth;

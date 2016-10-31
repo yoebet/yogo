@@ -129,8 +129,7 @@ Board.prototype._drawBoardLine= function() {
 			var lineElement=paper.path(path).attr({
 				'stroke-width' : strokes.borderLine
 			});
-			var pointStatus=lineOrStarMatrix[x][y];
-			pointStatus.push(lineElement);
+			lineOrStarMatrix[x][y].push(lineElement);
 		}
 	}
 
@@ -181,8 +180,7 @@ Board.prototype._drawBoardStars= function() {
 		});
 
 		if(boardSetting.labels.eraseBoardLine){
-			var pointStatus=this.lineOrStarMatrix[point.x][point.y];
-			pointStatus.push(star);
+			this.lineOrStarMatrix[point.x][point.y].push(star);
 		}
 	}
 };

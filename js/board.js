@@ -37,6 +37,10 @@ function Board(boardContainer, boardSizeOrSetting, paper) {
 		}
 	}
 
+	this.pointClickHandler=function(coor,elementType){
+		yogo.logInfo(elementType+' ('+coor.x+','+coor.y+') clicked');
+	};
+
 	this.centralPoint;
 
 	this.zoomMode = null;// TL/TR/BL/BR
@@ -66,6 +70,16 @@ function Board(boardContainer, boardSizeOrSetting, paper) {
 			'setBranchPointOnclickHandler', 'setLabel', 'setLabels',
 			'removeLabel', 'removeAllLabels', 'removeBranchPointLabels' ]);
 
+	var theBoard=this;
+	var coordinateManager=this.coordinateManager;
+	this.boardMaskClickHandler=function(e){
+		var oriCoor=this.data('coor');
+		if(theBoard.reversed||theBoard.rotate90>0){
+			oriCoor=coordinateManager._reverseTransformCoor(oriCoor,false);
+		}
+		theBoard.pointClickHandler(oriCoor,'mask');
+	};
+
 }
 
 Board.prototype = {
@@ -84,14 +98,13 @@ Board.prototype = {
 		// paper.image("board/bambootile_warm.jpg", 0, 0, viewBoxSize,
 		// viewBoxSize);//board/purty_wood.jpg
 
-		var boardSize = boardSetting.boardSize;
 		var boardOrigin = boardSetting.boardOrigin;
 		var gridWidth = boardSetting.gridWidth;
 		var boardOuterEdge = boardSetting.boardOuterEdge;
 
 		var ox = boardOrigin.x, oy = boardOrigin.y;
 
-		var boardEdgeWidth = gridWidth * (boardSize - 1) + boardOuterEdge * 2;
+		var boardEdgeWidth = gridWidth * (this.boardSize - 1) + boardOuterEdge * 2;
 		var boardEdgeRect = paper.rect(ox - boardOuterEdge,
 				oy - boardOuterEdge, boardEdgeWidth, boardEdgeWidth);
 		boardEdgeRect.attr({
@@ -107,7 +120,7 @@ Board.prototype = {
 			this._drawBoardLineSimple();
 		}
 
-		var halfBoard = gridWidth * (boardSize - 1) / 2;
+		var halfBoard = gridWidth * (this.boardSize - 1) / 2;
 		this.centralPoint = {
 			x : ox + halfBoard,
 			y : oy + halfBoard
@@ -115,6 +128,26 @@ Board.prototype = {
 
 		this.drawCoordinate();
 		this._drawBoardStars();
+
+		this._setupMask();
+	},
+
+	_setupMask : function() {
+		var boardSetting = this.boardSetting;
+		var paper = this.paper;
+		var gridWidth = boardSetting.gridWidth;
+
+		var stoneRadius = gridWidth / 2;
+		for (var x = 0; x < this.boardSize; x++) {
+			for (var y = 0; y < this.boardSize; y++) {
+				var coor={x:x,y:y};
+				var vbCoor = this.coordinateManager.boardCoorToViewBoxCoor(coor);
+				var maskCircle=paper.circle(vbCoor.x, vbCoor.y, stoneRadius).attr({
+					'stroke-width' : 0 ,fill: 'white', 'fill-opacity': 0, cursor: 'pointer'});
+				maskCircle.data('coor',coor);
+				maskCircle.click(this.boardMaskClickHandler);
+			}
+		}
 	},
 
 	clearBoard : function() {
