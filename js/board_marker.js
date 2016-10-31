@@ -2,7 +2,7 @@ Board.Marker=function(board){
 	this.board=board;
 	this.boardSetting=board.boardSetting;
 	this.paper=board.paper;
-	this.pointStatusMap=board.pointStatusMap;
+	this.pointStatusMatrix=board.pointStatusMatrix;
 	this.coordinateManager=board.coordinateManager;
 
 	this.templateMarkerPoint={x:-this.boardSetting.gridWidth,y:-this.boardSetting.gridWidth};
@@ -91,8 +91,7 @@ Board.Marker.prototype={
 
 	// markerType: TR/CR/SQ/MA
 	setMarker: function(coor,markerType){
-		var statusKey='x'+coor.x+'y'+coor.y;
-		var pointStatus=this.pointStatusMap[statusKey];
+		var pointStatus=this.pointStatusMatrix[coor.x][coor.y];
 		var stoneColor=null;
 		var marker=null;
 		if(pointStatus){
@@ -100,7 +99,7 @@ Board.Marker.prototype={
 			marker=pointStatus.marker;
 		}else{
 			pointStatus={};
-			this.pointStatusMap[statusKey]=pointStatus;
+			this.pointStatusMatrix[coor.x][coor.y]=pointStatus;
 		}
 
 		if(marker){
@@ -177,8 +176,7 @@ Board.Marker.prototype={
 
 
 	removeMarker: function(coor){
-		var statusKey='x'+coor.x+'y'+coor.y;
-		var pointStatus=this.pointStatusMap[statusKey];
+		var pointStatus=this.pointStatusMatrix[coor.x][coor.y];
 		if(!pointStatus||!pointStatus.marker){
 			yogo.logWarn('no marker at ('+coor.x+','+coor.y+')','removeMarker');
 			return;

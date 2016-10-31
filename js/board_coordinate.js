@@ -17,6 +17,7 @@ Board.Coordinate = function(board) {
 	this.yCoordinateLabels2 = [];
 
 	var coordinateManager = this;
+
 	this.onCircleCoordinateChange = function() {
 		var coor = this.data('coor');
 		var vbCoor = coordinateManager.boardCoorToViewBoxCoor(coor);
@@ -25,9 +26,35 @@ Board.Coordinate = function(board) {
 			cy : vbCoor.y
 		});
 	};
+
 	this.onLabelCoordinateChange = function() {
 		var coor = this.data('coor');
+
+		if(coordinateManager.boardSetting.labels.eraseBoardLine){
+			var lineOrStarElements=this.data('lineOrStarElements');
+			if(lineOrStarElements){
+				for(var i=0;i<lineOrStarElements.length;i++){
+					lineOrStarElements[i].show();
+				}
+				var newPhCoor = coordinateManager._transformCoor(coor,false);
+				lineOrStarElements = coordinateManager.board.lineOrStarMatrix[newPhCoor.x][newPhCoor.y];
+				for(var i=0;i<lineOrStarElements.length;i++){
+					lineOrStarElements[i].hide();
+				}
+				this.data('lineOrStarElements',lineOrStarElements);
+			}
+		}
+
 		var vbCoor = coordinateManager.boardCoorToViewBoxCoor(coor);
+		this.attr({
+			x : vbCoor.x,
+			y : vbCoor.y
+		});
+	};
+
+	this.onCoordLabelCoordinateChange = function() {
+		var coor = this.data('coor');
+		var vbCoor = coordinateManager._transformCoor(coor,true);
 		this.attr({
 			x : vbCoor.x,
 			y : vbCoor.y
@@ -122,7 +149,9 @@ Board.Coordinate.prototype = {
 			});
 			xlabelElement.data({
 				type : 'coordinate',
-				boardElement : true
+				boardElement : true,
+				coor: tc,
+				onCoordinateChange: this.onCoordLabelCoordinateChange
 			});
 			this.xCoordinateLabels1.push(xlabelElement);
 
@@ -134,7 +163,9 @@ Board.Coordinate.prototype = {
 				});
 				xlabelElement2.data({
 					type : 'coordinate',
-					boardElement : true
+					boardElement : true,
+					coor: tc2,
+					onCoordinateChange: this.onCoordLabelCoordinateChange
 				});
 				this.xCoordinateLabels2.push(xlabelElement2);
 			}
@@ -151,7 +182,9 @@ Board.Coordinate.prototype = {
 			});
 			ylabelElement.data({
 				type : 'coordinate',
-				boardElement : true
+				boardElement : true,
+				coor: tc,
+				onCoordinateChange: this.onCoordLabelCoordinateChange
 			});
 			this.yCoordinateLabels1.push(ylabelElement);
 
@@ -163,7 +196,9 @@ Board.Coordinate.prototype = {
 				});
 				ylabelElement2.data({
 					type : 'coordinate',
-					boardElement : true
+					boardElement : true,
+					coor: tc2,
+					onCoordinateChange: this.onCoordLabelCoordinateChange
 				});
 				this.yCoordinateLabels2.push(ylabelElement2);
 			}

@@ -43,18 +43,21 @@ Board.getDefaultBoardSetting = function(boardSize) {
 		baseCoor : boardPadding + coordinateWidth / 2
 	};
 	var strokes = {
-		outerBorderLine : gridWidth * 0.03,
+		outerBorderLine : gridWidth * 0.04,
 		borderLine : gridWidth * 0.025,
 		star : gridWidth * 0.045,
 		stone : gridWidth * 0.02,
 		stoneSpacing : gridWidth * 0.01
 	};
 	var labels = {
-		fontSize : gridWidth / 2 + 3
+		fontSize : gridWidth / 2 + 3,
+		eraseBoardLine : true,
+		eraseRadius : gridWidth*0.3
 	};
 	var moveNumbers = {
 		fontSize : gridWidth / 2 + 1
 	};
+
 	var starPoints = [];
 
 	if (boardSize % 2 == 1) {

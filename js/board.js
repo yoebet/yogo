@@ -22,7 +22,20 @@ function Board(boardContainer, boardSizeOrSetting, paper) {
 		// ...
 	}
 
-	this.pointStatusMap = {};
+	this.pointStatusMatrix = [];
+	this.lineOrStarMatrix = [];
+
+	for (var x = 0; x < this.boardSize; x++) {
+		this.pointStatusMatrix[x]=[];
+	}
+	if(boardSetting.labels.eraseBoardLine){
+		for (var x = 0; x < this.boardSize; x++) {
+			this.lineOrStarMatrix[x]=[];
+			for (var y = 0; y < this.boardSize; y++) {
+				this.lineOrStarMatrix[x][y]=[];
+			}
+		}
+	}
 
 	this.centralPoint;
 
@@ -75,7 +88,6 @@ Board.prototype = {
 		var boardOrigin = boardSetting.boardOrigin;
 		var gridWidth = boardSetting.gridWidth;
 		var boardOuterEdge = boardSetting.boardOuterEdge;
-		var strokes = boardSetting.strokes;
 
 		var ox = boardOrigin.x, oy = boardOrigin.y;
 
@@ -88,35 +100,11 @@ Board.prototype = {
 		boardEdgeRect.attr({
 			fill : '#DCB35C'
 		});// #DCB35C,#DEC090
-		var outerBorderLineRect = paper.rect(ox, oy, gridWidth
-				* (boardSize - 1), gridWidth * (boardSize - 1));
-		outerBorderLineRect.attr({
-			'stroke-width' : strokes.outerBorderLine
-		});
 
-		var hpath = '', vpath = '';
-		for (var i = 0; i < (boardSize - 2); i++) {
-			hpath += 'M' + ox + ' ' + ((oy + gridWidth) + gridWidth * i) + 'H'
-					+ (ox + gridWidth * (boardSize - 1));
-			vpath += 'M' + ((ox + gridWidth) + gridWidth * i) + ' ' + oy + 'V'
-					+ (oy + gridWidth * (boardSize - 1));
-		}
-
-		paper.path(hpath).attr({
-			'stroke-width' : strokes.borderLine
-		});
-		paper.path(vpath).attr({
-			'stroke-width' : strokes.borderLine
-		});
-
-		var starPoints = boardSetting.starPoints;
-		for (var i = 0; i < starPoints.length; i++) {
-			var point = starPoints[i];
-			var x = ox + gridWidth * point.x;
-			var y = oy + gridWidth * point.y;
-			paper.circle(x, y, strokes.star).attr({
-				fill : 'black'
-			});
+		if(boardSetting.labels.eraseBoardLine){
+			this._drawBoardLine();
+		}else{
+			this._drawBoardLineSimple();
 		}
 
 		var halfBoard = gridWidth * (boardSize - 1) / 2;
@@ -126,13 +114,17 @@ Board.prototype = {
 		};
 
 		this.drawCoordinate();
+		this._drawBoardStars();
 	},
 
 	clearBoard : function() {
-		for (statusKey in this.pointStatusMap) {
-			var pointStatus = this.pointStatusMap[statusKey];
-			if (pointStatus.color) {
-				this.removeStone(pointStatus.coor);
+		for (var x = 0; x < this.boardSize; x++) {
+			var pointStatusX=this.pointStatusMatrix[x];
+			for (y in pointStatusX) {
+				var pointStatus = pointStatusX[y];
+				if (pointStatus.color) {
+					this.removeStone(pointStatus.coor);
+				}
 			}
 		}
 		this.removeAllMarkers();
@@ -248,10 +240,12 @@ Board.prototype = {
 			if (elem.data('boardElement') === true) {
 				var onCoordinateChange = elem.data('onCoordinateChange');
 				if (typeof (onCoordinateChange) === 'function') {
-					// stone,label,moveNumber,marker
+					// stone,label,coordinate,moveNumber,marker
 					onCoordinateChange.call(elem);
 					return;
 				}
+				
+				yogo.logWarn('do transform', '_transform');
 
 				var tr = '';
 				var rotateX = this.centralPoint.x;

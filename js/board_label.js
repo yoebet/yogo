@@ -2,8 +2,9 @@ Board.Label = function(board) {
 	this.board = board;
 	this.boardSetting = board.boardSetting;
 	this.paper = board.paper;
-	this.pointStatusMap = board.pointStatusMap;
+	this.pointStatusMatrix = board.pointStatusMatrix;
 	this.coordinateManager = board.coordinateManager;
+	this.lineOrStarMatrix = board.lineOrStarMatrix;
 	this.branchPointOnclickHandler;
 
 	this.labelPoints = [];
@@ -28,8 +29,7 @@ Board.Label.prototype = {
 				return;
 			}
 		}
-		var statusKey = 'x' + coor.x + 'y' + coor.y;
-		var pointStatus = this.pointStatusMap[statusKey];
+		var pointStatus = this.pointStatusMatrix[coor.x][coor.y];
 		var stoneColor = null;
 		var label = null;
 		if (pointStatus) {
@@ -37,7 +37,7 @@ Board.Label.prototype = {
 			label = pointStatus.label;
 		} else {
 			pointStatus = {};
-			this.pointStatusMap[statusKey] = pointStatus;
+			this.pointStatusMatrix[coor.x][coor.y] = pointStatus;
 		}
 
 		if (label) {
@@ -87,14 +87,23 @@ Board.Label.prototype = {
 				cursor : 'pointer'
 			});
 			labelElement.data('branch', labelChar);
-			var onclickHandler = this.branchPointOnclickHandler;
+			var labelManager=this;
 			labelElement.click(function(event) {
-				if (typeof (onclickHandler) === 'function') {
-					onclickHandler(this.data('branch'));
+				if (typeof (labelManager.branchPointOnclickHandler) === 'function') {
+					labelManager.branchPointOnclickHandler(this.data('branch'));
 				}
 			});
 		} else {
 			this.labelPoints.push(coor);
+		}
+
+		if(!stoneColor && labelSetting.eraseBoardLine){
+			var phCoor = this.coordinateManager._transformCoor(coor,false);
+			var lineOrStarElements=this.lineOrStarMatrix[phCoor.x][phCoor.y];
+			for(var i=0;i<lineOrStarElements.length;i++){
+				lineOrStarElements[i].hide();
+			}
+			labelElement.data('lineOrStarElements',lineOrStarElements);
 		}
 	},
 
@@ -106,12 +115,17 @@ Board.Label.prototype = {
 	},
 
 	removeLabel : function(coor) {
-		var statusKey = 'x' + coor.x + 'y' + coor.y;
-		var pointStatus = this.pointStatusMap[statusKey];
+		var pointStatus = this.pointStatusMatrix[coor.x][coor.y];
 		if (!pointStatus || !pointStatus.label) {
 			// yogo.logWarn('no label at
 			// ('+coor.x+','+coor.y+')','removeLabel');
 			return;
+		}
+		var lineOrStarElements=pointStatus.labelElement.data('lineOrStarElements');
+		if(lineOrStarElements){
+			for(var i=0;i<lineOrStarElements.length;i++){
+				lineOrStarElements[i].show();
+			}
 		}
 		pointStatus.labelElement.remove();
 		pointStatus.labelElement = null;

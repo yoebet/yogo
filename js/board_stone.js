@@ -3,7 +3,7 @@ Board.Stone = function(board) {
 	this.boardSize = board.boardSize;
 	this.boardSetting = board.boardSetting;
 	this.paper = board.paper;
-	this.pointStatusMap = board.pointStatusMap;
+	this.pointStatusMatrix = board.pointStatusMatrix;
 	this.coordinateManager = board.coordinateManager;
 
 	this.stoneTemplates = this.setupStoneTemplates();
@@ -42,8 +42,7 @@ Board.Stone.prototype = {
 			return;
 		}
 
-		var statusKey = 'x' + coor.x + 'y' + coor.y;
-		var pointStatus = this.pointStatusMap[statusKey];
+		var pointStatus = this.pointStatusMatrix[coor.x][coor.y];
 		if (pointStatus && pointStatus.color) {
 			yogo.logWarn('point occupied: (' + coor.x + ',' + coor.y
 					+ ',color:' + pointStatus.color + ')', 'place stone');
@@ -88,12 +87,11 @@ Board.Stone.prototype = {
 			cy : vbCoor.y
 		});
 		pointStatus['stone' + color] = thisColorStone;
-		this.pointStatusMap[statusKey] = pointStatus;
+		this.pointStatusMatrix[coor.x][coor.y] = pointStatus;
 	},
 
 	removeStone : function(coor) {
-		var statusKey = 'x' + coor.x + 'y' + coor.y;
-		var pointStatus = this.pointStatusMap[statusKey];
+		var pointStatus = this.pointStatusMatrix[coor.x][coor.y];
 		if (!pointStatus) {
 			yogo.logWarn('point empty: (' + coor.x + ',' + coor.y + ')',
 					'remove stone');
@@ -127,8 +125,7 @@ Board.Stone.prototype = {
 	},
 
 	showMoveNumber : function(mn) {
-		var statusKey = 'x' + mn.x + 'y' + mn.y;
-		var pointStatus = this.pointStatusMap[statusKey];
+		var pointStatus = this.pointStatusMatrix[mn.x][mn.y];
 		if (!pointStatus || !pointStatus.color) {
 			yogo.logWarn('point empty: (' + mn.x + ',' + mn.y + ')',
 					'show move number');
