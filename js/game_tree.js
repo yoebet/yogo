@@ -3,50 +3,57 @@ function GameTree($container, game) {
 	this.game = game;
 	this.gameModel = game.gameModel;
 
-	this.elementTemplates = {
-		gameTree : '<div class="game-tree"></div>',
-		nodeGroup : '<ul class="node-group"></ul>',
-		nodeGroupHeader : '<li class="node-group-head"></li>',
-		treeNodes : '<ul class="tree-nodes"></ul>',
-		treeNode : '<li class="tree-node"><span class="node-name"></span><span class="node-info"></span></li>',
-		variation : '<ul class="variation"></ul>',
-		variationHead : '<li class="variation-head"></li>'
-	};
+	this.elementTemplates = null;
+    this.elementTemplates = {
+        gameTree : $('<div class="game-tree"></div>'),
+        nodeGroup : $('<ul class="node-group"></ul>'),
+        nodeGroupHead : $('<li class="node-group-head"></li>'),
+        treeNodes : $('<ul class="tree-nodes"></ul>'),
+        treeNode : $('<li class="tree-node"><span class="node-name"></span><span class="node-info"></span></li>'),
+        variation : $('<ul class="variation"></ul>'),
+        variationHead : $('<li class="variation-head"></li>')
+    };
 
-	this.groupMoveCount = 50;
+	this.groupMoveCount = 20;
 }
 
 GameTree.prototype = {
 
 	setup : function() {
+		var gameTree=this;
 		var game = this.game;
+
 		$('.game-tree', this.$container).remove();
+
 		this.render();
 
-		this.$container
-				.on(
-						'click',
-						'ul.node-group>li.node-group-head, ul.variation>li.variation-head',
-						function() {
-							$(this).next().toggle(200);
-						});
-		this.$container.on('click', '.tree-node', function() {
-			game.gotoNode(this.id, 'tree-click');
+		$('li.node-group-head, li.variation-head',this.$container).click(function() {
+			var $treeNodes=$(this).next()
+			$treeNodes.toggle(200);
 		});
-		$('.collapse-nodes', this.$container).click(function() {
-			$('ul.tree-nodes', this.$container).hide(200);
+
+		$('li.tree-node', this.$container).click(function() {
+			game.gotoNode(this.id);
+		});
+
+		$('button.collapse-nodes', this.$container).click(function() {
+			$('ul.tree-nodes:visible', gameTree.$container).hide(200);
+		});
+
+		$('button.scroll-into-view', this.$container).click(function() {
+			gameTree.showNode(game.curNode.id, true);
 		});
 	},
 
 	render : function() {
 
 		var ets = this.elementTemplates;
-		$nodeGroupTmpl = $(ets.nodeGroup);
-		$nodeGroupHeaderTmpl = $(ets.nodeGroupHeader);
-		$treeNodesTmpl = $(ets.treeNodes);
-		$treeNodeTmpl = $(ets.treeNode);
+		$nodeGroupTmpl = ets.nodeGroup;
+		$nodeGroupHeadTmpl = ets.nodeGroupHead;
+		$treeNodesTmpl = ets.treeNodes;
+		$treeNodeTmpl = ets.treeNode;
 
-		var $gameTree = $(ets.gameTree).clone();
+		var $gameTree = ets.gameTree.clone();
 		$gameTree.attr('id', 't' + yogo.nextuid());
 
 		this.$container.append($gameTree);
@@ -72,7 +79,7 @@ GameTree.prototype = {
 						|| (moveNumber > 1 && moveNumber !== pmn && moveNumber
 								% treeModel.groupMoveCount == 1)) {
 					var $nodeGroup = $nodeGroupTmpl.clone();
-					$nodeGroup.append($nodeGroupHeaderTmpl.clone());
+					$nodeGroup.append($nodeGroupHeadTmpl.clone());
 					var $treeNodes = $treeNodesTmpl.clone();
 					$nodeGroup.append($treeNodes);
 					$gameTree.append($nodeGroup);
@@ -162,42 +169,44 @@ GameTree.prototype = {
 	createVariation : function(variation) {
 
 		var ets = this.elementTemplates;
-		$variationTmpl = $(ets.variation);
-		$variationHeadTmpl = $(ets.variationHead);
-		$treeNodesTmpl = $(ets.treeNodes);
+		$variationTmpl = ets.variation;
+		$variationHeadTmpl = ets.variationHead;
+		$treeNodesTmpl = ets.treeNodes;
 
-		$variation = $variationTmpl.clone().attr('id', variation.id);
+		$v = $variationTmpl.clone().attr('id', variation.id);
 		$variationHead = $variationHeadTmpl.clone();
 		var label = String.fromCharCode(65 + variation.index);
-		$variationHead.html('variation ' + label);
-		$variation.append($variationHead);
+		$variationHead.html(label);
+		$v.append($variationHead);
 		var $treeNodes = $treeNodesTmpl.clone();
-		$variation.append($treeNodes);
+		$v.append($treeNodes);
 
 		return {
-			$variation : $variation,
+			$variation : $v,
 			$treeNodes : $treeNodes
 		};
 	},
 
-	showNode : function(id, trigger) {
+	showNode : function(id, scrollIntoView) {
 		$node = $('#' + id, this.$container);
+		if($node.length==0){
+			return;
+		}
+
 		$('li.tree-node.current', this.$container).removeClass('current');
 		$node.addClass('current');
-		if (trigger !== 'tree-click') {
-			var collapsed = $node.parents('ul.tree-nodes:hidden');
-			if (collapsed.length == 0) {
-				return;
+
+		var collapsed = $node.parents('ul.tree-nodes:hidden');
+
+		$node.parents('ul.tree-nodes').show();
+
+		if (scrollIntoView && $node.length>0) {
+			var node=$node.get(0);
+			if(node.scrollIntoViewIfNeeded){
+				node.scrollIntoViewIfNeeded();
+			}else{
+				node.scrollIntoView();
 			}
-			$node.parents('ul.tree-nodes').show();
-			// var node=$node.get(0);
-			// if(node){
-			// if(node.scrollIntoViewIfNeeded){
-			// node.scrollIntoViewIfNeeded(false);
-			// }else{
-			// node.scrollIntoView(false);
-			// }
-			// }
 		}
 	}
 

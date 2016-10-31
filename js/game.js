@@ -74,8 +74,7 @@ Game.prototype = {
 		};
 	},
 
-	//trigger: board-click/tree-click/mousewheel/button/program
-	playNode : function(node,trigger) {
+	playNode : function(node) {
 		if (!node) {
 			return false;
 		}
@@ -115,7 +114,7 @@ Game.prototype = {
 		this.setCurrentNodeMarkers();
 		this.handleMoveNumbers(lastNode);
 		if (typeof (this.onPlayNode) === 'function') {
-			this.onPlayNode(trigger);
+			this.onPlayNode();
 		}
 		return success;
 	},

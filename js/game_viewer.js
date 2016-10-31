@@ -147,7 +147,7 @@ GameViewer.prototype = {
 
 	},
 
-	onPlayNode : function(trigger) {
+	onPlayNode : function() {
 		var $v = this.$v;
 		var $commentBox = $('.comment-box', $v);
 		$commentBox.text('');
@@ -185,7 +185,7 @@ GameViewer.prototype = {
 		}
 
 		if (this.gameTree) {
-			this.gameTree.showNode(curNode.id, trigger);
+			this.gameTree.showNode(curNode.id);
 		}
 	},
 
@@ -206,14 +206,9 @@ GameViewer.prototype = {
 
 		this.bindKeyAndWheelEvent();
 
-		// var triggerSource;
-
 		this.game.onPlayNode = this.onPlayNode.bind(this);
 
 		this.setupGameTree();
-
-		// trigger source: board click/mousewheel/tree click/button/programming
-		// tree collapse/synchronize
 	},
 
 	setupBoard : function() {
