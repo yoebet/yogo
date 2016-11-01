@@ -5,6 +5,7 @@ function GameModel() {
 	this.variationMap = {};
 	this.nodeMap = {};
 	this.nodesByMoveNumber = [];
+	this.pointMovesMatrix=[];
 	this.gameEndingNode = null;
 }
 
@@ -48,6 +49,21 @@ GameModel.prototype = {
 				context.push(node);
 			}
 		}, []);
+	},
+
+	findNode : function(predicate) {
+		var result=this.traverseNodes(null, function(node, context) {
+			var result=predicate.call(node, node);
+			if (result===null) {
+				return false;
+			}
+			if (result===true) {
+				context.push(node);
+				return false;
+			}
+		}, []);
+
+		return result[0]||null;
 	}
 };
 
@@ -77,12 +93,22 @@ Variation.prototype = {
 			nextVindex = variations.length - 1;
 		}
 		return variations[nextVindex];
+	},
+	realGameBaseNode : function() {
+		var variation=this;
+		while(variation&&!variation.realGame){
+			if(variation.parentVariation.realGame){
+				return variation.baseNode;
+			}
+			variation=variation.parentVariation;
+		}
 	}
 
 };
 
 Variation.prototype.traverseNodes = GameModel.prototype.traverseNodes;
 Variation.prototype.selectNodes = GameModel.prototype.selectNodes;
+Variation.prototype.findNode = GameModel.prototype.findNode;
 
 function Node(previousNode, belongingVariation) {
 	this.previousNode = previousNode;
@@ -94,4 +120,66 @@ function Node(previousNode, belongingVariation) {
 
 Node.prototype = {
 
+	findNodeInAncestors : function(predicate) {
+		var node = this;
+		while (true) {
+			node = node.previousNode;
+			if (!node) {
+				return null;
+			}
+			var result=predicate.call(node, node);
+			if (result===null) {
+				return null;
+			}
+			if (result===true) {
+				return node;
+			}
+		}
+	},
+
+	findNodeInMainline : function(predicate) {
+		var node = this;
+		while (true) {
+			if (node.nextNode) {
+				node = node.nextNode;
+			} else if (node.variations) {
+				node = node.variations[0].nodes[0];
+			} else {
+				return null;
+			}
+			var result=predicate.call(node, node);
+			if (result===null) {
+				return null;
+			}
+			if (result===true) {
+				return node;
+			}
+		}
+	},
+
+	findNodeInSuccessors : function(predicate) {
+		var node=this;
+		while (true) {
+			if (node.nextNode) {
+				node = node.nextNode;
+			} else if (node.variations) {
+				for(var vi=0;vi<node.variations.length;vi++){
+					var variation=node.variations[vi];
+					var foundNode=variation.findNode(predicate);
+					if(foundNode){
+						return foundNode;
+					}
+				}
+			} else {
+				return null;
+			}
+			var result=predicate.call(node, node);
+			if (result===null) {
+				return null;
+			}
+			if (result===true) {
+				return node;
+			}
+		}
+	}
 };

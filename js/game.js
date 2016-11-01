@@ -6,7 +6,13 @@ function Game(board, gameModel) {
 
 	this.curNode = gameModel.nodes[0];
 
+	// view
+	// find-move
+	// edit
+	this.mode = 'view';
+
 	this.onPlayNode = null;
+	this.board.pointClickHandler=this.onBoardClick.bind(this);
 
 	this.nodeNavigator = new Game.NodeNavigator(this);
 	yogo.exportFunctions.call(this, this.nodeNavigator, [ 'gotoNextX',
@@ -20,59 +26,11 @@ function Game(board, gameModel) {
 			'setMarkBranchPoints', 'markBranchPointsIfAny',
 			'setShowMoveNumber', 'hideMoveNumbers', 'handleMoveNumbers' ]);
 
-	this.board.setBranchPointOnclickHandler(this.goinBranch);
+	this.editManager = new Game.EditManager(this);
 }
 
 Game.prototype = {
 
-	diffPosition : function(fromPosition, toPosition) {
-
-		var stonesToRemove = [];
-		var stonesToAddW = [];
-		var stonesToAddB = [];
-		for (var x = 0; x < this.boardSize; x++) {
-			var fx = fromPosition[x];
-			var tx = toPosition[x];
-			if (fx === tx) {
-				continue;
-			}
-			for (var y = 0; y < this.boardSize; y++) {
-				var fromStatus = fx[y];
-				var toStatus = tx[y];
-				if (fromStatus === toStatus || (!fromStatus && !toStatus)) {
-					continue;
-				}
-				var toRemove = false, toAdd = false;
-				if (!toStatus) {
-					toRemove = true;
-				} else if (!fromStatus) {
-					toAdd = true;
-				} else if (fromStatus.color != toStatus.color) {
-					toRemove = true;
-					toAdd = true;
-				}
-				var point = {
-					x : x,
-					y : y
-				};
-				if (toRemove) {
-					stonesToRemove.push(point);
-				}
-				if (toAdd) {
-					if (toStatus.color == 'B') {
-						stonesToAddB.push(point);
-					} else {
-						stonesToAddW.push(point);
-					}
-				}
-			}
-		}
-		return {
-			stonesToRemove : stonesToRemove,
-			stonesToAddB : stonesToAddB,
-			stonesToAddW : stonesToAddW
-		};
-	},
 
 	playNode : function(node) {
 		if (!node) {
@@ -102,7 +60,7 @@ Game.prototype = {
 			} else {
 				var lastPosition = lastNode.position;
 				var position = curNode.position;
-				var diffStones = this.diffPosition(lastPosition, position);
+				var diffStones = yogo.diffPosition(lastPosition, position);
 				board.removeStones(diffStones.stonesToRemove);
 				board.addStones(diffStones.stonesToAddB, 'B');
 				board.addStones(diffStones.stonesToAddW, 'W');
@@ -128,13 +86,103 @@ Game.prototype = {
 				context.push(node);
 			}
 		};
-		var invalidatedMoves = [];
-		this.gameModel.traverseNodes(null, nodeCallback, invalidatedMoves);
-		return invalidatedMoves;
+		var invalidMoves = [];
+		this.gameModel.traverseNodes(null, nodeCallback, invalidMoves);
+		return invalidMoves;
 	},
 
 	inRealGame : function() {
 		return this.curNode.belongingVariation.realGame;
+	},
+
+	_boardClickViewMode : function(coor,elementType) {
+		var nextNode=this.curNode.nextNode;
+		if(nextNode&&nextNode.move.point){
+			var point=nextNode.move.point;
+			if(coor.x===point.x&&coor.y===point.y){
+				this.playNode(nextNode);
+			}
+		}else if(this.curNode.branchPoints){
+			for(var i=0;i<this.curNode.branchPoints.length;i++){
+				var point=this.curNode.branchPoints[i];
+				if(coor.x===point.x&&coor.y===point.y){
+					var variation=this.curNode.variations[i];
+					this.playNode(variation.nodes[0]);
+					return;
+				}
+			}
+		}
+	},
+
+	_boardClickFindMoveMode : function(coor,elementType) {
+		var nodeInRealGame;
+		var pointMoves=this.gameModel.pointMovesMatrix[coor.x][coor.y];
+		if(pointMoves){
+			nodeInRealGame=pointMoves[0];
+			for(var i=1;i<pointMoves.length;i++){
+				var node=pointMoves[i];
+				if(node.numbers.globalMoveNumber<=this.curNode.numbers.globalMoveNumber){
+					nodeInRealGame=node;
+				}else {
+					break;
+				}
+			}
+		}
+		if(this.inRealGame()) {
+			if(nodeInRealGame){
+				this.playNode(nodeInRealGame);
+			}
+			return;
+		}
+
+		var foundNode=this.curNode.findNodeInAncestors(function(node){
+			if(node.belongingVariation.realGame){
+				return false;
+			}
+			var status=node.position[coor.x][coor.y];
+			if(status){
+				return status.node===node;
+			}
+			return false;
+		});
+		if(foundNode){
+			this.game.playNode(foundNode);
+			return;
+		}
+		if(nodeInRealGame){
+			var rgbn=this.curNode.belongingVariation.realGameBaseNode();
+			if(nodeInRealGame.numbers.globalMoveNumber<=rgbn.numbers.globalMoveNumber){
+				this.playNode(nodeInRealGame);
+				return;
+			}
+		}
+
+		foundNode=this.curNode.findNodeInSuccessors(function(node){
+			var status=node.position[coor.x][coor.y];
+			if(status){
+				return status.node===node;
+			}
+			return false;
+		});
+		if(foundNode){
+			this.playNode(foundNode);
+		}
+	},
+
+	onBoardClick : function(coor,elementType) {
+		yogo.logInfo(elementType+' ('+coor.x+','+coor.y+') clicked');
+		if(this.mode==='view'){
+			this._boardClickViewMode(coor,elementType);
+			return;
+		}
+		if(this.mode==='find-move'){
+			this._boardClickFindMoveMode(coor,elementType);
+			return;
+		}
+		if(this.mode==='edit'){
+			this.editManager.boardClickHandler(coor,elementType);
+			return;
+		}
 	}
 
 };

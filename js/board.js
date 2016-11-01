@@ -28,7 +28,7 @@ function Board(boardContainer, boardSizeOrSetting, paper) {
 	for (var x = 0; x < this.boardSize; x++) {
 		this.pointStatusMatrix[x]=[];
 	}
-	if(boardSetting.labels.eraseBoardLine){
+	if(this.boardSetting.labels.eraseBoardLine){
 		for (var x = 0; x < this.boardSize; x++) {
 			this.lineOrStarMatrix[x]=[];
 			for (var y = 0; y < this.boardSize; y++) {
@@ -67,8 +67,8 @@ function Board(boardContainer, boardSizeOrSetting, paper) {
 
 	this.labelManager = new Board.Label(this);
 	yogo.exportFunctions.call(this, this.labelManager, [
-			'setBranchPointOnclickHandler', 'setLabel', 'setLabels',
-			'removeLabel', 'removeAllLabels', 'removeBranchPointLabels' ]);
+			'setLabel', 'setLabels', 'removeLabel', 'removeAllLabels',
+			'removeBranchPointLabels' ]);
 
 	var theBoard=this;
 	var coordinateManager=this.coordinateManager;
@@ -143,7 +143,7 @@ Board.prototype = {
 				var coor={x:x,y:y};
 				var vbCoor = this.coordinateManager.boardCoorToViewBoxCoor(coor);
 				var maskCircle=paper.circle(vbCoor.x, vbCoor.y, stoneRadius).attr({
-					'stroke-width' : 0 ,fill: 'white', 'fill-opacity': 0, cursor: 'pointer'});
+					'stroke-width' : 0 ,fill: 'white', 'fill-opacity': 0});
 				maskCircle.data('coor',coor);
 				maskCircle.click(this.boardMaskClickHandler);
 			}

@@ -199,6 +199,10 @@ SgfParser.prototype = {
 			var gameModel = gameCollection[gtIndex];
 			this.processGameInfo(gameModel);
 
+			for (var x = 0; x < gameModel.boardSize; x++) {
+				gameModel.pointMovesMatrix[x]=[];
+			}
+
 			var parser = this;
 
 			var nodeCallback = function(node, context) {
@@ -253,8 +257,19 @@ SgfParser.prototype = {
 				}
 
 				if (node.status.move) {
+					var point=(node.move['W'] || node.move['B']);
 					node.move.color = (node.move['B']) ? 'B' : 'W';
-					node.move.point = (node.move['W'] || node.move['B']);
+					node.move.point = point;
+
+					if(node.belongingVariation.realGame){
+						var pointMoves=gameModel.pointMovesMatrix[point.x][point.y];
+						if(pointMoves){
+							pointMoves.push(node);
+						}else{
+							pointMoves=[node];
+							gameModel.pointMovesMatrix[point.x][point.y]=pointMoves;
+						}
+					}
 				}
 
 			};
@@ -337,6 +352,7 @@ SgfParser.prototype = {
 					}
 				}
 			};
+
 
 			gameModel.traverseNodes(variationCallback, nodeCallback2, {});
 		}

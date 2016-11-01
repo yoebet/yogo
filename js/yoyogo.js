@@ -58,5 +58,55 @@ yogo = {
 			}
 		}
 		return rangePoints;
+	},
+	
+	diffPosition : function(fromPosition, toPosition) {
+
+		var stonesToRemove = [];
+		var stonesToAddW = [];
+		var stonesToAddB = [];
+		var boardSize = fromPosition.length;
+		for (var x = 0; x < boardSize; x++) {
+			var fx = fromPosition[x];
+			var tx = toPosition[x];
+			if (fx === tx) {
+				continue;
+			}
+			for (var y = 0; y < boardSize; y++) {
+				var fromStatus = fx[y];
+				var toStatus = tx[y];
+				if (fromStatus === toStatus || (!fromStatus && !toStatus)) {
+					continue;
+				}
+				var toRemove = false, toAdd = false;
+				if (!toStatus) {
+					toRemove = true;
+				} else if (!fromStatus) {
+					toAdd = true;
+				} else if (fromStatus.color != toStatus.color) {
+					toRemove = true;
+					toAdd = true;
+				}
+				var point = {
+					x : x,
+					y : y
+				};
+				if (toRemove) {
+					stonesToRemove.push(point);
+				}
+				if (toAdd) {
+					if (toStatus.color == 'B') {
+						stonesToAddB.push(point);
+					} else {
+						stonesToAddW.push(point);
+					}
+				}
+			}
+		}
+		return {
+			stonesToRemove : stonesToRemove,
+			stonesToAddB : stonesToAddB,
+			stonesToAddW : stonesToAddW
+		};
 	}
 };

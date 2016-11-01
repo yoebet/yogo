@@ -5,7 +5,6 @@ Board.Label = function(board) {
 	this.pointStatusMatrix = board.pointStatusMatrix;
 	this.coordinateManager = board.coordinateManager;
 	this.lineOrStarMatrix = board.lineOrStarMatrix;
-	this.branchPointOnclickHandler;
 
 	this.labelPoints = [];
 	this.branchPoints = [];
@@ -14,19 +13,9 @@ Board.Label = function(board) {
 	this.labelClickHandler=function(e){
 		theBoard.pointClickHandler(this.data('coor'),'label');
 	};
-	var labelManager=this;
-	this.branchPointClickHandler=function(e) {
-		if (typeof (labelManager.branchPointOnclickHandler) === 'function') {
-			labelManager.branchPointOnclickHandler(this.data('branch'));
-		}
-	}
 }
 
 Board.Label.prototype = {
-
-	setBranchPointOnclickHandler : function(handler) {
-		this.branchPointOnclickHandler = handler;
-	},
 
 	setLabel : function(coor, labelChar, type) {
 		if (!labelChar) {
@@ -94,15 +83,9 @@ Board.Label.prototype = {
 		pointStatus.label = labelChar;
 		if (type === 'branch_point') {
 			this.branchPoints.push(coor);
-			labelElement.attr({
-				cursor : 'pointer'
-			});
 			labelElement.data('branch', labelChar);
-			var labelManager=this;
-			labelElement.click(this.branchPointClickHandler);
 		} else {
 			this.labelPoints.push(coor);
-			labelElement.click(this.labelClickHandler);
 		}
 
 		if(!stoneColor && labelSetting.eraseBoardLine){
@@ -113,6 +96,8 @@ Board.Label.prototype = {
 			}
 			labelElement.data('lineOrStarElements',lineOrStarElements);
 		}
+
+		labelElement.click(this.labelClickHandler);
 	},
 
 	setLabels : function(coorLabels) {

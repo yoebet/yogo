@@ -81,34 +81,20 @@ Game.NodeNavigator.prototype = {
 
 	gotoNextX : function(predicate) {
 		var node = this.game.curNode;
-		while (true) {
-			if (node.nextNode) {
-				node = node.nextNode;
-			} else if (node.variations) {
-				node = node.variations[0].nodes[0];
-			} else {
-				return false;
-			}
-			if (!node) {
-				return false;
-			}
-			if (predicate.call(node, node)) {
-				return this.game.playNode(node);
-			}
+		var found=node.findNodeInMainline(predicate);
+		if(found){
+			return this.game.playNode(found);
 		}
+		return false;
 	},
 
 	gotoLastX : function(predicate) {
 		var node = this.game.curNode;
-		while (true) {
-			node = node.previousNode;
-			if (!node) {
-				return false;
-			}
-			if (predicate.call(node, node)) {
-				return this.game.playNode(node);
-			}
+		var found=node.findNodeInAncestors(predicate);
+		if(found){
+			return this.game.playNode(found);
 		}
+		return false;
 	},
 
 	gotoNode : function(obj) {
