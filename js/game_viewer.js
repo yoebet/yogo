@@ -54,6 +54,14 @@ GameViewer.prototype = {
 			fn.call(viewer.game);
 		});
 
+		$('input.game-op-mode', $v).click(function() {
+			if (!viewer.game) {
+				return;
+			}
+			var mode = $(this).val();
+			viewer.game.setMode(mode);
+		});
+
 		$('.goto-node', $v).click(function() {
 			if (!viewer.game) {
 				return;

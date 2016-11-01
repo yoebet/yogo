@@ -183,6 +183,10 @@ Game.prototype = {
 			this.editManager.boardClickHandler(coor,elementType);
 			return;
 		}
+	},
+
+	setMode : function(mode) {
+		this.mode=mode;
 	}
 
 };
