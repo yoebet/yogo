@@ -4,15 +4,15 @@ function GameTree($container, game) {
 	this.gameModel = game.gameModel;
 
 	this.elementTemplates = null;
-    this.elementTemplates = {
-        gameTree : $('<div class="game-tree"></div>'),
-        nodeGroup : $('<ul class="node-group"></ul>'),
-        nodeGroupHead : $('<li class="node-group-head"></li>'),
-        treeNodes : $('<ul class="tree-nodes"></ul>'),
-        treeNode : $('<li class="tree-node"><span class="node-name"></span><span class="node-info"></span></li>'),
-        variation : $('<ul class="variation"></ul>'),
-        variationHead : $('<li class="variation-head"></li>')
-    };
+	this.elementTemplates = {
+		gameTree : $('<div class="game-tree"></div>'),
+		nodeGroup : $('<ul class="node-group"></ul>'),
+		nodeGroupHead : $('<li class="node-group-head"></li>'),
+		treeNodes : $('<ul class="tree-nodes"></ul>'),
+		treeNode : $('<li class="tree-node"><span class="node-name"></span><span class="node-info"></span></li>'),
+		variation : $('<ul class="variation"></ul>'),
+		variationHead : $('<li class="variation-head"></li>')
+	};
 
 	this.groupMoveCount = 20;
 }
@@ -20,17 +20,18 @@ function GameTree($container, game) {
 GameTree.prototype = {
 
 	setup : function() {
-		var gameTree=this;
+		var gameTree = this;
 		var game = this.game;
 
 		$('.game-tree', this.$container).remove();
 
 		this.render();
 
-		$('li.node-group-head, li.variation-head',this.$container).click(function() {
-			var $treeNodes=$(this).next()
-			$treeNodes.toggle(200);
-		});
+		$('li.node-group-head, li.variation-head', this.$container).click(
+				function() {
+					var $treeNodes = $(this).next()
+					$treeNodes.toggle(200);
+				});
 
 		$('li.tree-node', this.$container).click(function() {
 			game.gotoNode(this.id);
@@ -189,7 +190,7 @@ GameTree.prototype = {
 
 	showNode : function(id, scrollIntoView) {
 		$node = $('#' + id, this.$container);
-		if($node.length==0){
+		if ($node.length == 0) {
 			return;
 		}
 
@@ -200,11 +201,11 @@ GameTree.prototype = {
 
 		$node.parents('ul.tree-nodes').show();
 
-		if (scrollIntoView && $node.length>0) {
-			var node=$node.get(0);
-			if(node.scrollIntoViewIfNeeded){
+		if (scrollIntoView && $node.length > 0) {
+			var node = $node.get(0);
+			if (node.scrollIntoViewIfNeeded) {
 				node.scrollIntoViewIfNeeded();
-			}else{
+			} else {
 				node.scrollIntoView();
 			}
 		}

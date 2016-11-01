@@ -59,7 +59,7 @@ yogo = {
 		}
 		return rangePoints;
 	},
-	
+
 	diffPosition : function(fromPosition, toPosition) {
 
 		var stonesToRemove = [];

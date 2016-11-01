@@ -52,7 +52,7 @@ Board.getDefaultBoardSetting = function(boardSize) {
 	var labels = {
 		fontSize : gridWidth / 2 + 3,
 		eraseBoardLine : true,
-		eraseRadius : gridWidth*0.3
+		eraseRadius : gridWidth * 0.3
 	};
 	var moveNumbers = {
 		fontSize : gridWidth / 2 + 1

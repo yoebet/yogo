@@ -18,27 +18,25 @@ function Board(boardContainer, boardSizeOrSetting, paper) {
 	} else if (typeof (boardSizeOrSetting) === 'object') {
 		this.boardSetting = boardSizeOrSetting;
 		this.boardSize = this.boardSetting.boardSize;
-	} else {
-		// ...
 	}
 
 	this.pointStatusMatrix = [];
 	this.lineOrStarMatrix = [];
 
 	for (var x = 0; x < this.boardSize; x++) {
-		this.pointStatusMatrix[x]=[];
+		this.pointStatusMatrix[x] = [];
 	}
-	if(this.boardSetting.labels.eraseBoardLine){
+	if (this.boardSetting.labels.eraseBoardLine) {
 		for (var x = 0; x < this.boardSize; x++) {
-			this.lineOrStarMatrix[x]=[];
+			this.lineOrStarMatrix[x] = [];
 			for (var y = 0; y < this.boardSize; y++) {
-				this.lineOrStarMatrix[x][y]=[];
+				this.lineOrStarMatrix[x][y] = [];
 			}
 		}
 	}
 
-	this.pointClickHandler=function(coor,elementType){
-		yogo.logInfo(elementType+' ('+coor.x+','+coor.y+') clicked');
+	this.pointClickHandler = function(coor, elementType) {
+		yogo.logInfo(elementType + ' (' + coor.x + ',' + coor.y + ') clicked');
 	};
 
 	this.centralPoint;
@@ -66,18 +64,18 @@ function Board(boardContainer, boardSizeOrSetting, paper) {
 					'markCurrentMove' ]);
 
 	this.labelManager = new Board.Label(this);
-	yogo.exportFunctions.call(this, this.labelManager, [
-			'setLabel', 'setLabels', 'removeLabel', 'removeAllLabels',
+	yogo.exportFunctions.call(this, this.labelManager, [ 'setLabel',
+			'setLabels', 'removeLabel', 'removeAllLabels',
 			'removeBranchPointLabels' ]);
 
-	var theBoard=this;
-	var coordinateManager=this.coordinateManager;
-	this.boardMaskClickHandler=function(e){
-		var oriCoor=this.data('coor');
-		if(theBoard.reversed||theBoard.rotate90>0){
-			oriCoor=coordinateManager._reverseTransformCoor(oriCoor,false);
+	var theBoard = this;
+	var coordinateManager = this.coordinateManager;
+	this.boardMaskClickHandler = function(e) {
+		var oriCoor = this.data('coor');
+		if (theBoard.reversed || theBoard.rotate90 > 0) {
+			oriCoor = coordinateManager._reverseTransformCoor(oriCoor, false);
 		}
-		theBoard.pointClickHandler(oriCoor,'mask');
+		theBoard.pointClickHandler(oriCoor, 'mask');
 	};
 
 }
@@ -104,7 +102,8 @@ Board.prototype = {
 
 		var ox = boardOrigin.x, oy = boardOrigin.y;
 
-		var boardEdgeWidth = gridWidth * (this.boardSize - 1) + boardOuterEdge * 2;
+		var boardEdgeWidth = gridWidth * (this.boardSize - 1) + boardOuterEdge
+				* 2;
 		var boardEdgeRect = paper.rect(ox - boardOuterEdge,
 				oy - boardOuterEdge, boardEdgeWidth, boardEdgeWidth);
 		boardEdgeRect.attr({
@@ -114,9 +113,9 @@ Board.prototype = {
 			fill : '#DCB35C'
 		});// #DCB35C,#DEC090
 
-		if(boardSetting.labels.eraseBoardLine){
+		if (boardSetting.labels.eraseBoardLine) {
 			this._drawBoardLine();
-		}else{
+		} else {
 			this._drawBoardLineSimple();
 		}
 
@@ -140,11 +139,19 @@ Board.prototype = {
 		var stoneRadius = gridWidth / 2;
 		for (var x = 0; x < this.boardSize; x++) {
 			for (var y = 0; y < this.boardSize; y++) {
-				var coor={x:x,y:y};
-				var vbCoor = this.coordinateManager.boardCoorToViewBoxCoor(coor);
-				var maskCircle=paper.circle(vbCoor.x, vbCoor.y, stoneRadius).attr({
-					'stroke-width' : 0 ,fill: 'white', 'fill-opacity': 0});
-				maskCircle.data('coor',coor);
+				var coor = {
+					x : x,
+					y : y
+				};
+				var vbCoor = this.coordinateManager
+						.boardCoorToViewBoxCoor(coor);
+				var maskCircle = paper.circle(vbCoor.x, vbCoor.y, stoneRadius)
+						.attr({
+							'stroke-width' : 0,
+							fill : 'white',
+							'fill-opacity' : 0
+						});
+				maskCircle.data('coor', coor);
 				maskCircle.click(this.boardMaskClickHandler);
 			}
 		}
@@ -152,7 +159,7 @@ Board.prototype = {
 
 	clearBoard : function() {
 		for (var x = 0; x < this.boardSize; x++) {
-			var pointStatusX=this.pointStatusMatrix[x];
+			var pointStatusX = this.pointStatusMatrix[x];
 			for (y in pointStatusX) {
 				var pointStatus = pointStatusX[y];
 				if (pointStatus.color) {
@@ -277,7 +284,7 @@ Board.prototype = {
 					onCoordinateChange.call(elem);
 					return;
 				}
-				
+
 				yogo.logWarn('do transform', '_transform');
 
 				var tr = '';

@@ -6,13 +6,11 @@ function Game(board, gameModel) {
 
 	this.curNode = gameModel.nodes[0];
 
-	// view
-	// find-move
-	// edit
+	// view/find-move/edit
 	this.mode = 'view';
 
 	this.onPlayNode = null;
-	this.board.pointClickHandler=this.onBoardClick.bind(this);
+	this.board.pointClickHandler = this.onBoardClick.bind(this);
 
 	this.nodeNavigator = new Game.NodeNavigator(this);
 	yogo.exportFunctions.call(this, this.nodeNavigator, [ 'gotoNextX',
@@ -30,7 +28,6 @@ function Game(board, gameModel) {
 }
 
 Game.prototype = {
-
 
 	playNode : function(node) {
 		if (!node) {
@@ -95,18 +92,18 @@ Game.prototype = {
 		return this.curNode.belongingVariation.realGame;
 	},
 
-	_boardClickViewMode : function(coor,elementType) {
-		var nextNode=this.curNode.nextNode;
-		if(nextNode&&nextNode.move.point){
-			var point=nextNode.move.point;
-			if(coor.x===point.x&&coor.y===point.y){
+	_boardClickViewMode : function(coor, elementType) {
+		var nextNode = this.curNode.nextNode;
+		if (nextNode && nextNode.move.point) {
+			var point = nextNode.move.point;
+			if (coor.x === point.x && coor.y === point.y) {
 				this.playNode(nextNode);
 			}
-		}else if(this.curNode.branchPoints){
-			for(var i=0;i<this.curNode.branchPoints.length;i++){
-				var point=this.curNode.branchPoints[i];
-				if(coor.x===point.x&&coor.y===point.y){
-					var variation=this.curNode.variations[i];
+		} else if (this.curNode.branchPoints) {
+			for (var i = 0; i < this.curNode.branchPoints.length; i++) {
+				var point = this.curNode.branchPoints[i];
+				if (coor.x === point.x && coor.y === point.y) {
+					var variation = this.curNode.variations[i];
 					this.playNode(variation.nodes[0]);
 					return;
 				}
@@ -114,79 +111,79 @@ Game.prototype = {
 		}
 	},
 
-	_boardClickFindMoveMode : function(coor,elementType) {
+	_boardClickFindMoveMode : function(coor, elementType) {
 		var nodeInRealGame;
-		var pointMoves=this.gameModel.pointMovesMatrix[coor.x][coor.y];
-		if(pointMoves){
-			nodeInRealGame=pointMoves[0];
-			for(var i=1;i<pointMoves.length;i++){
-				var node=pointMoves[i];
-				if(node.numbers.globalMoveNumber<=this.curNode.numbers.globalMoveNumber){
-					nodeInRealGame=node;
-				}else {
+		var pointMoves = this.gameModel.pointMovesMatrix[coor.x][coor.y];
+		if (pointMoves) {
+			nodeInRealGame = pointMoves[0];
+			for (var i = 1; i < pointMoves.length; i++) {
+				var node = pointMoves[i];
+				if (node.numbers.globalMoveNumber <= this.curNode.numbers.globalMoveNumber) {
+					nodeInRealGame = node;
+				} else {
 					break;
 				}
 			}
 		}
-		if(this.inRealGame()) {
-			if(nodeInRealGame){
+		if (this.inRealGame()) {
+			if (nodeInRealGame) {
 				this.playNode(nodeInRealGame);
 			}
 			return;
 		}
 
-		var foundNode=this.curNode.findNodeInAncestors(function(node){
-			if(node.belongingVariation.realGame){
+		var foundNode = this.curNode.findNodeInAncestors(function(node) {
+			if (node.belongingVariation.realGame) {
 				return false;
 			}
-			var status=node.position[coor.x][coor.y];
-			if(status){
-				return status.node===node;
+			var status = node.position[coor.x][coor.y];
+			if (status) {
+				return status.node === node;
 			}
 			return false;
 		});
-		if(foundNode){
+		if (foundNode) {
 			this.game.playNode(foundNode);
 			return;
 		}
-		if(nodeInRealGame){
-			var rgbn=this.curNode.belongingVariation.realGameBaseNode();
-			if(nodeInRealGame.numbers.globalMoveNumber<=rgbn.numbers.globalMoveNumber){
+		if (nodeInRealGame) {
+			var rgbn = this.curNode.belongingVariation.realGameBaseNode();
+			if (nodeInRealGame.numbers.globalMoveNumber <= rgbn.numbers.globalMoveNumber) {
 				this.playNode(nodeInRealGame);
 				return;
 			}
 		}
 
-		foundNode=this.curNode.findNodeInSuccessors(function(node){
-			var status=node.position[coor.x][coor.y];
-			if(status){
-				return status.node===node;
+		foundNode = this.curNode.findNodeInSuccessors(function(node) {
+			var status = node.position[coor.x][coor.y];
+			if (status) {
+				return status.node === node;
 			}
 			return false;
 		});
-		if(foundNode){
+		if (foundNode) {
 			this.playNode(foundNode);
 		}
 	},
 
-	onBoardClick : function(coor,elementType) {
-		yogo.logInfo(elementType+' ('+coor.x+','+coor.y+') clicked');
-		if(this.mode==='view'){
-			this._boardClickViewMode(coor,elementType);
+	onBoardClick : function(coor, elementType) {
+		yogo.logInfo(elementType + ' (' + coor.x + ',' + coor.y + ') clicked');
+		if (this.mode === 'view') {
+			this._boardClickViewMode(coor, elementType);
 			return;
 		}
-		if(this.mode==='find-move'){
-			this._boardClickFindMoveMode(coor,elementType);
+		if (this.mode === 'find-move') {
+			this._boardClickFindMoveMode(coor, elementType);
 			return;
 		}
-		if(this.mode==='edit'){
-			this.editManager.boardClickHandler(coor,elementType);
+		if (this.mode === 'edit') {
+			this.editManager.boardClickHandler(coor, elementType);
 			return;
 		}
 	},
 
 	setMode : function(mode) {
-		this.mode=mode;
+		this.mode = mode;
 	}
 
 };

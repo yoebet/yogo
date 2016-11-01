@@ -30,18 +30,18 @@ Board.Coordinate = function(board) {
 	this.onLabelCoordinateChange = function() {
 		var coor = this.data('coor');
 
-		if(coordinateManager.boardSetting.labels.eraseBoardLine){
-			var lineOrStarElements=this.data('lineOrStarElements');
-			if(lineOrStarElements){
-				for(var i=0;i<lineOrStarElements.length;i++){
+		if (coordinateManager.boardSetting.labels.eraseBoardLine) {
+			var lineOrStarElements = this.data('lineOrStarElements');
+			if (lineOrStarElements) {
+				for (var i = 0; i < lineOrStarElements.length; i++) {
 					lineOrStarElements[i].show();
 				}
-				var newPhCoor = coordinateManager._transformCoor(coor,false);
+				var newPhCoor = coordinateManager._transformCoor(coor, false);
 				lineOrStarElements = coordinateManager.board.lineOrStarMatrix[newPhCoor.x][newPhCoor.y];
-				for(var i=0;i<lineOrStarElements.length;i++){
+				for (var i = 0; i < lineOrStarElements.length; i++) {
 					lineOrStarElements[i].hide();
 				}
-				this.data('lineOrStarElements',lineOrStarElements);
+				this.data('lineOrStarElements', lineOrStarElements);
 			}
 		}
 
@@ -54,7 +54,7 @@ Board.Coordinate = function(board) {
 
 	this.onCoordLabelCoordinateChange = function() {
 		var coor = this.data('coor');
-		var vbCoor = coordinateManager._transformCoor(coor,true);
+		var vbCoor = coordinateManager._transformCoor(coor, true);
 		this.attr({
 			x : vbCoor.x,
 			y : vbCoor.y
@@ -90,7 +90,7 @@ Board.Coordinate.prototype = {
 				: (this.boardSize - 1);
 
 		var x = coor.x, y = coor.y;
-		var rotate90 = (4-this.board.rotate90)%4;
+		var rotate90 = (4 - this.board.rotate90) % 4;
 		while (rotate90 > 0) {
 			var tmp = y;
 			y = x;
@@ -98,7 +98,7 @@ Board.Coordinate.prototype = {
 			rotate90--;
 		}
 		if (this.board.reversed) {
-			var tmp=x;
+			var tmp = x;
 			x = y;
 			y = tmp;
 		}
@@ -165,7 +165,10 @@ Board.Coordinate.prototype = {
 			var oriX = boardOrigin.x + gridWidth * coor;
 			var oriY = this.setting.baseCoor;
 
-			var tc=this._transformCoor({x:oriX,y:oriY},true);
+			var tc = this._transformCoor({
+				x : oriX,
+				y : oriY
+			}, true);
 			var xlabel = this.generateCoordinateLabel(coor, this.xType);
 			var xlabelElement = this.paper.text(tc.x, tc.y, xlabel).attr({
 				'font-size' : this.setting.fontSize
@@ -173,13 +176,16 @@ Board.Coordinate.prototype = {
 			xlabelElement.data({
 				type : 'coordinate',
 				boardElement : true,
-				coor: tc,
-				onCoordinateChange: this.onCoordLabelCoordinateChange
+				coor : tc,
+				onCoordinateChange : this.onCoordLabelCoordinateChange
 			});
 			this.xCoordinateLabels1.push(xlabelElement);
 
 			if (this.fullCoordinate) {
-				var tc2=this._transformCoor({x:oriX,y:viewBoxSize-oriY},true);
+				var tc2 = this._transformCoor({
+					x : oriX,
+					y : viewBoxSize - oriY
+				}, true);
 				var xlabelElement2 = xlabelElement.clone().attr({
 					x : tc2.x,
 					y : tc2.y
@@ -187,8 +193,8 @@ Board.Coordinate.prototype = {
 				xlabelElement2.data({
 					type : 'coordinate',
 					boardElement : true,
-					coor: tc2,
-					onCoordinateChange: this.onCoordLabelCoordinateChange
+					coor : tc2,
+					onCoordinateChange : this.onCoordLabelCoordinateChange
 				});
 				this.xCoordinateLabels2.push(xlabelElement2);
 			}
@@ -198,7 +204,10 @@ Board.Coordinate.prototype = {
 			var oriX = this.setting.baseCoor;
 			var oriY = boardOrigin.y + gridWidth * coor;
 
-			var tc=this._transformCoor({x:oriX,y:oriY},true);
+			var tc = this._transformCoor({
+				x : oriX,
+				y : oriY
+			}, true);
 			var ylabel = this.generateCoordinateLabel(coor, this.yType);
 			var ylabelElement = this.paper.text(tc.x, tc.y, ylabel).attr({
 				'font-size' : this.setting.fontSize
@@ -206,13 +215,16 @@ Board.Coordinate.prototype = {
 			ylabelElement.data({
 				type : 'coordinate',
 				boardElement : true,
-				coor: tc,
-				onCoordinateChange: this.onCoordLabelCoordinateChange
+				coor : tc,
+				onCoordinateChange : this.onCoordLabelCoordinateChange
 			});
 			this.yCoordinateLabels1.push(ylabelElement);
 
 			if (this.fullCoordinate) {
-				var tc2=this._transformCoor({x:viewBoxSize-oriX,y:oriY},true);
+				var tc2 = this._transformCoor({
+					x : viewBoxSize - oriX,
+					y : oriY
+				}, true);
 				var ylabelElement2 = ylabelElement.clone().attr({
 					x : tc2.x,
 					y : tc2.y
@@ -220,8 +232,8 @@ Board.Coordinate.prototype = {
 				ylabelElement2.data({
 					type : 'coordinate',
 					boardElement : true,
-					coor: tc2,
-					onCoordinateChange: this.onCoordLabelCoordinateChange
+					coor : tc2,
+					onCoordinateChange : this.onCoordLabelCoordinateChange
 				});
 				this.yCoordinateLabels2.push(ylabelElement2);
 			}

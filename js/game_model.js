@@ -5,7 +5,7 @@ function GameModel() {
 	this.variationMap = {};
 	this.nodeMap = {};
 	this.nodesByMoveNumber = [];
-	this.pointMovesMatrix=[];
+	this.pointMovesMatrix = [];
 	this.gameEndingNode = null;
 }
 
@@ -52,18 +52,18 @@ GameModel.prototype = {
 	},
 
 	findNode : function(predicate) {
-		var result=this.traverseNodes(null, function(node, context) {
-			var result=predicate.call(node, node);
-			if (result===null) {
+		var result = this.traverseNodes(null, function(node, context) {
+			var result = predicate.call(node, node);
+			if (result === null) {
 				return false;
 			}
-			if (result===true) {
+			if (result === true) {
 				context.push(node);
 				return false;
 			}
 		}, []);
 
-		return result[0]||null;
+		return result[0] || null;
 	}
 };
 
@@ -85,6 +85,7 @@ Variation.prototype = {
 		}
 		return variations[nextVindex];
 	},
+	
 	previousVariation : function() {
 		var variations = this.baseNode.variations;
 		var nextVindex = (this.index - 1 + variations.length)
@@ -94,13 +95,14 @@ Variation.prototype = {
 		}
 		return variations[nextVindex];
 	},
+	
 	realGameBaseNode : function() {
-		var variation=this;
-		while(variation&&!variation.realGame){
-			if(variation.parentVariation.realGame){
+		var variation = this;
+		while (variation && !variation.realGame) {
+			if (variation.parentVariation.realGame) {
 				return variation.baseNode;
 			}
-			variation=variation.parentVariation;
+			variation = variation.parentVariation;
 		}
 	}
 
@@ -127,11 +129,11 @@ Node.prototype = {
 			if (!node) {
 				return null;
 			}
-			var result=predicate.call(node, node);
-			if (result===null) {
+			var result = predicate.call(node, node);
+			if (result === null) {
 				return null;
 			}
-			if (result===true) {
+			if (result === true) {
 				return node;
 			}
 		}
@@ -147,37 +149,37 @@ Node.prototype = {
 			} else {
 				return null;
 			}
-			var result=predicate.call(node, node);
-			if (result===null) {
+			var result = predicate.call(node, node);
+			if (result === null) {
 				return null;
 			}
-			if (result===true) {
+			if (result === true) {
 				return node;
 			}
 		}
 	},
 
 	findNodeInSuccessors : function(predicate) {
-		var node=this;
+		var node = this;
 		while (true) {
 			if (node.nextNode) {
 				node = node.nextNode;
 			} else if (node.variations) {
-				for(var vi=0;vi<node.variations.length;vi++){
-					var variation=node.variations[vi];
-					var foundNode=variation.findNode(predicate);
-					if(foundNode){
+				for (var vi = 0; vi < node.variations.length; vi++) {
+					var variation = node.variations[vi];
+					var foundNode = variation.findNode(predicate);
+					if (foundNode) {
 						return foundNode;
 					}
 				}
 			} else {
 				return null;
 			}
-			var result=predicate.call(node, node);
-			if (result===null) {
+			var result = predicate.call(node, node);
+			if (result === null) {
 				return null;
 			}
-			if (result===true) {
+			if (result === true) {
 				return node;
 			}
 		}

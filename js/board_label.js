@@ -9,9 +9,9 @@ Board.Label = function(board) {
 	this.labelPoints = [];
 	this.branchPoints = [];
 
-	var theBoard=this.board;
-	this.labelClickHandler=function(e){
-		theBoard.pointClickHandler(this.data('coor'),'label');
+	var theBoard = this.board;
+	this.labelClickHandler = function(e) {
+		theBoard.pointClickHandler(this.data('coor'), 'label');
 	};
 }
 
@@ -24,7 +24,7 @@ Board.Label.prototype = {
 			return;
 		}
 		if (labelChar.length > 2) {
-			if(!(/^\d+$/.test(labelChar)&&labelChar.length==3)){
+			if (!(/^\d+$/.test(labelChar) && labelChar.length == 3)) {
 				yogo.logError('label too long: ' + labelChar, 'setLabel');
 				return;
 			}
@@ -61,7 +61,7 @@ Board.Label.prototype = {
 		var fontSize = labelSetting.fontSize;
 		if (labelChar.length == 2) {
 			fontSize -= 1;
-		}else if (labelChar.length >= 3) {
+		} else if (labelChar.length >= 3) {
 			fontSize -= 2;
 		}
 		var vbCoor = this.coordinateManager.boardCoorToViewBoxCoor(coor);
@@ -88,13 +88,13 @@ Board.Label.prototype = {
 			this.labelPoints.push(coor);
 		}
 
-		if(!stoneColor && labelSetting.eraseBoardLine){
-			var phCoor = this.coordinateManager._transformCoor(coor,false);
-			var lineOrStarElements=this.lineOrStarMatrix[phCoor.x][phCoor.y];
-			for(var i=0;i<lineOrStarElements.length;i++){
+		if (!stoneColor && labelSetting.eraseBoardLine) {
+			var phCoor = this.coordinateManager._transformCoor(coor, false);
+			var lineOrStarElements = this.lineOrStarMatrix[phCoor.x][phCoor.y];
+			for (var i = 0; i < lineOrStarElements.length; i++) {
 				lineOrStarElements[i].hide();
 			}
-			labelElement.data('lineOrStarElements',lineOrStarElements);
+			labelElement.data('lineOrStarElements', lineOrStarElements);
 		}
 
 		labelElement.click(this.labelClickHandler);
@@ -114,9 +114,10 @@ Board.Label.prototype = {
 			// ('+coor.x+','+coor.y+')','removeLabel');
 			return;
 		}
-		var lineOrStarElements=pointStatus.labelElement.data('lineOrStarElements');
-		if(lineOrStarElements){
-			for(var i=0;i<lineOrStarElements.length;i++){
+		var lineOrStarElements = pointStatus.labelElement
+				.data('lineOrStarElements');
+		if (lineOrStarElements) {
+			for (var i = 0; i < lineOrStarElements.length; i++) {
 				lineOrStarElements[i].show();
 			}
 		}

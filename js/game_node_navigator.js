@@ -81,8 +81,8 @@ Game.NodeNavigator.prototype = {
 
 	gotoNextX : function(predicate) {
 		var node = this.game.curNode;
-		var found=node.findNodeInMainline(predicate);
-		if(found){
+		var found = node.findNodeInMainline(predicate);
+		if (found) {
 			return this.game.playNode(found);
 		}
 		return false;
@@ -90,8 +90,8 @@ Game.NodeNavigator.prototype = {
 
 	gotoLastX : function(predicate) {
 		var node = this.game.curNode;
-		var found=node.findNodeInAncestors(predicate);
-		if(found){
+		var found = node.findNodeInAncestors(predicate);
+		if (found) {
 			return this.game.playNode(found);
 		}
 		return false;

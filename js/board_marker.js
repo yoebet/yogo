@@ -1,18 +1,21 @@
-Board.Marker=function(board){
-	this.board=board;
-	this.boardSetting=board.boardSetting;
-	this.paper=board.paper;
-	this.pointStatusMatrix=board.pointStatusMatrix;
-	this.coordinateManager=board.coordinateManager;
+Board.Marker = function(board) {
+	this.board = board;
+	this.boardSetting = board.boardSetting;
+	this.paper = board.paper;
+	this.pointStatusMatrix = board.pointStatusMatrix;
+	this.coordinateManager = board.coordinateManager;
 
-	this.templateMarkerPoint={x:-this.boardSetting.gridWidth,y:-this.boardSetting.gridWidth};
-	this.currentMoveMarker=null;
-	this.markerPoints=[];
-	this.markerTemplates=this.setupMarkerTemplates();
+	this.templateMarkerPoint = {
+		x : -this.boardSetting.gridWidth,
+		y : -this.boardSetting.gridWidth
+	};
+	this.currentMoveMarker = null;
+	this.markerPoints = [];
+	this.markerTemplates = this.setupMarkerTemplates();
 
-	var theBoard=this.board;
-	this.markerClickHandler=function(e){
-		theBoard.pointClickHandler(this.data('coor'),'marker');
+	var theBoard = this.board;
+	this.markerClickHandler = function(e) {
+		theBoard.pointClickHandler(this.data('coor'), 'marker');
 	};
 }
 
@@ -32,10 +35,8 @@ Board.Marker.prototype={
 		var sqMarkerB=paper.rect(mp.x, mp.y, sqSide, sqSide).attr({'stroke-width':0,fill:'white'});
 		var sqMarkerW=sqMarkerB.clone().attr({fill:'black'});
 
-
 		var twMarker=paper.circle(mp.x, mp.y, gridWidth*0.13).attr({'stroke-width':gridWidth*0.04,fill:'white'});
 		var tbMarker=twMarker.clone().attr({fill:'black'});
-
 
 		var maSide=gridWidth*0.32;
 		var maStroke=gridWidth*0.1;
@@ -88,7 +89,9 @@ Board.Marker.prototype={
 		}
 		if(coor){
 			var vbCoor=this.coordinateManager.boardCoorToViewBoxCoor(coor);
-			this.currentMoveMarker=this.paper.circle(vbCoor.x, vbCoor.y, gridWidth*0.15).attr({'stroke-width':0,fill:'red'});
+			var radius=gridWidth*0.15;
+			var color='red';
+			this.currentMoveMarker=this.paper.circle(vbCoor.x, vbCoor.y, radius).attr({'stroke-width':0,fill:color});
 			this.currentMoveMarker.data({type: 'marker', boardElement: true, marker: 'currentMoveMarker',
 					coor: {x:coor.x,y:coor.y}, onCoordinateChange: this.coordinateManager.onCircleCoordinateChange});
 			this.currentMoveMarker.click(this.markerClickHandler);
@@ -181,7 +184,6 @@ Board.Marker.prototype={
 		}
 	},
 
-
 	removeMarker: function(coor){
 		var pointStatus=this.pointStatusMatrix[coor.x][coor.y];
 		if(!pointStatus||!pointStatus.marker){
@@ -192,7 +194,6 @@ Board.Marker.prototype={
 		pointStatus.markerElement.remove();
 		pointStatus.markerElement=null;
 	},
-
 
 	removeAllMarkers: function(){
 		while(this.markerPoints.length>0){

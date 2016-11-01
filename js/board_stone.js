@@ -10,12 +10,12 @@ Board.Stone = function(board) {
 	this.moveNumberElements = [];
 	this.currentMoveNumberElement = null;
 
-	var theBoard=this.board;
-	this.stoneClickHandler=function(e){
-		theBoard.pointClickHandler(this.data('coor'),'stone');
+	var theBoard = this.board;
+	this.stoneClickHandler = function(e) {
+		theBoard.pointClickHandler(this.data('coor'), 'stone');
 	};
-	this.moveNumberClickHandler=function(e){
-		theBoard.pointClickHandler(this.data('coor'),'moveNumber');
+	this.moveNumberClickHandler = function(e) {
+		theBoard.pointClickHandler(this.data('coor'), 'moveNumber');
 	};
 }
 
