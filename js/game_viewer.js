@@ -62,6 +62,15 @@ GameViewer.prototype = {
 			viewer.game.setMode(mode);
 		});
 
+		$('input.game-edit-mode', $v).click(function() {
+			if (!viewer.game) {
+				return;
+			}
+			var mode = $(this).val();
+			var param = $(this).data('param');
+			viewer.game.setEditMode(mode,param);
+		});
+
 		$('.goto-node', $v).click(function() {
 			if (!viewer.game) {
 				return;

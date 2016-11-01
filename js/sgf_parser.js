@@ -207,11 +207,6 @@ SgfParser.prototype = {
 
 			var nodeCallback = function(node, context) {
 
-				if (!node.basic)
-					node.basic = {};
-				if (!node.move)
-					node.move = {};
-
 				var props = node.props;
 				for (name in props) {
 					var group = parser.nodePropNameToGroup[name];
@@ -233,8 +228,9 @@ SgfParser.prototype = {
 					propValue = parser.propertyTypeConvert(propValue, type,
 							gameModel.boardSize);
 
-					if (!node[group])
+					if (!node[group]){
 						node[group] = {};
+					}
 					node[group][name] = propValue;
 				}
 
@@ -246,8 +242,13 @@ SgfParser.prototype = {
 				node.status.remark = !!node.remark;
 				node.status.mark = !!node.marks;
 
+
 				if (!node.nextNode && !node.variations) {
 					node.status.variationLastNode = true;
+					var realGame = node.belongingVariation.realGame;
+					if (realGame) {
+						gameModel.gameEndingNode = node;
+					}
 				}
 
 				if (node.move['W'] && node.move['B']) {
@@ -260,100 +261,25 @@ SgfParser.prototype = {
 					var point = (node.move['W'] || node.move['B']);
 					node.move.color = (node.move['B']) ? 'B' : 'W';
 					node.move.point = point;
-
-					if (node.belongingVariation.realGame) {
-						var pointMoves = gameModel.pointMovesMatrix[point.x][point.y];
-						if (pointMoves) {
-							pointMoves.push(node);
-						} else {
-							pointMoves = [ node ];
-							gameModel.pointMovesMatrix[point.x][point.y] = pointMoves;
-						}
-					}
 				}
 
 			};
 
-			gameModel.traverseNodes(null, nodeCallback, {});
-
-			var variationCallback = function(variation, context) {
-				variation.id = 'v' + yogo.nextuid();
-				gameModel.variationMap[variation.id] = variation;
-			};
+			gameModel.traverseNodes(null, nodeCallback, null);
 
 			var nodeCallback2 = function(node, context) {
 
-				var realGame = node.belongingVariation.realGame;
-				var lastMoveNode = node.previousNode;
-				var mns;
-				if (lastMoveNode) {
-					var lastNumbers = lastMoveNode.numbers;
-					if (node.status.move || node.status.pass) {
-						mns = [ lastNumbers.globalMoveNumber + 1,
-								lastNumbers.displayMoveNumber + 1,
-								lastNumbers.variationMoveNumber + 1 ];
-					} else {
-						mns = [ lastNumbers.globalMoveNumber,
-								lastNumbers.displayMoveNumber,
-								lastNumbers.variationMoveNumber ];
-					}
-				} else {
-					if (node.status.move || node.status.pass) {
-						mns = [ 1, 1, 1 ];
-					} else {
-						mns = [ 0, 0, 0 ];
-					}
-				}
-				node.numbers = {
-					globalMoveNumber : mns[0],
-					displayMoveNumber : mns[1],
-					variationMoveNumber : mns[2]
-				};
-				if (node.status.variationFirstNode) {
-					if (node.status.move || node.status.pass) {
-						node.numbers.variationMoveNumber = 1;
-						if (!realGame) {
-							node.numbers.displayMoveNumber = 1;
-						}
-					} else {
-						node.numbers.variationMoveNumber = 0;
-						if (!realGame) {
-							node.numbers.displayMoveNumber = 0;
-						}
-					}
-				}
+				node.setMoveNumber();
 				if (node.move['MN']) {
 					node.numbers.displayMoveNumber = node.move['MN'];
 				}
 
-				if (node.variations) {
-					var variations = node.variations;
-					var branchPoints = [];
-					for (var vIndex = 0; vIndex < variations.length; vIndex++) {
-						var variation = variations[vIndex];
-						var node0 = variation.nodes[0];
-						if (node0.status.move) {
-							var coordinate = node0.move['B'] || node0.move['W'];
-							branchPoints.push(coordinate);
-						}
-					}
-					node.branchPoints = branchPoints;
-				}
+				node.setBranchPoints();
 
-				node.id = 'n' + yogo.nextuid();
-				gameModel.nodeMap[node.id] = node;
-				if (realGame) {
-					var mn = node.numbers.globalMoveNumber;
-					if (mn && !gameModel.nodesByMoveNumber[mn]) {
-						gameModel.nodesByMoveNumber[mn] = node;
-					}
-					if (!node.nextNode && !node.variations) {
-						gameModel.gameEndingNode = node;
-					}
-				}
+				gameModel.indexNode(node);
 			};
 
-			gameModel.traverseNodes(variationCallback, nodeCallback2, {});
+			gameModel.traverseNodes(null, nodeCallback2, null);
 		}
 	},
 

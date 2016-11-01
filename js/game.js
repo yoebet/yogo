@@ -25,6 +25,8 @@ function Game(board, gameModel) {
 			'setShowMoveNumber', 'hideMoveNumbers', 'handleMoveNumbers' ]);
 
 	this.editManager = new Game.EditManager(this);
+	yogo.exportFunctions.call(this, this.editManager, [
+			'setEditMode' ]);
 }
 
 Game.prototype = {
@@ -81,6 +83,7 @@ Game.prototype = {
 			var success = positionBuilder.buildPosition();
 			if (success === false) {
 				context.push(node);
+				yogo.logWarn('invalid, node '+node.id,'buildPosition');
 			}
 		};
 		var invalidMoves = [];
@@ -93,21 +96,9 @@ Game.prototype = {
 	},
 
 	_boardClickViewMode : function(coor, elementType) {
-		var nextNode = this.curNode.nextNode;
-		if (nextNode && nextNode.move.point) {
-			var point = nextNode.move.point;
-			if (coor.x === point.x && coor.y === point.y) {
-				this.playNode(nextNode);
-			}
-		} else if (this.curNode.branchPoints) {
-			for (var i = 0; i < this.curNode.branchPoints.length; i++) {
-				var point = this.curNode.branchPoints[i];
-				if (coor.x === point.x && coor.y === point.y) {
-					var variation = this.curNode.variations[i];
-					this.playNode(variation.nodes[0]);
-					return;
-				}
-			}
+		var nextNode = this.curNode.nextNodeAt(coor);
+		if(nextNode){
+			this.playNode(nextNode);
 		}
 	},
 
@@ -177,7 +168,7 @@ Game.prototype = {
 			return;
 		}
 		if (this.mode === 'edit') {
-			this.editManager.boardClickHandler(coor, elementType);
+			this.editManager.onBoardClick(coor, elementType);
 			return;
 		}
 	},

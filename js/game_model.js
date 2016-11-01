@@ -1,5 +1,6 @@
 function GameModel() {
 	this.realGame = true;
+	this.boardSize = null;
 	this.nodes = [];
 	this.gameInfo = {};
 	this.variationMap = {};
@@ -10,6 +11,27 @@ function GameModel() {
 }
 
 GameModel.prototype = {
+
+	indexNode : function(node){
+		this.nodeMap[node.id] = node;
+		if (node.status.move) {
+			var realGame = node.belongingVariation.realGame;
+			if (realGame) {
+				var point=node.move.point;
+				var pointMovesX=this.pointMovesMatrix[point.x];
+				var pointMoves = pointMovesX[point.y];
+				if (pointMoves) {
+					pointMoves.push(node);
+				} else {
+					pointMoves = [ node ];
+					pointMovesX[point.y] = pointMoves;
+				}
+
+				var mn = node.numbers.globalMoveNumber;
+				this.nodesByMoveNumber[mn] = node;
+			}
+		}
+	},
 
 	traverseNodes : function(variationCallback, nodeCallback, context) {
 
@@ -73,7 +95,7 @@ function Variation(baseNode, parentVariation) {
 	this.realGame = false;
 	this.nodes = [];
 	this.index = 0;
-	this.id = null;
+	this.id = 'v' + yogo.nextuid();
 }
 
 Variation.prototype = {
@@ -115,9 +137,13 @@ Variation.prototype.findNode = GameModel.prototype.findNode;
 function Node(previousNode, belongingVariation) {
 	this.previousNode = previousNode;
 	this.belongingVariation = belongingVariation;
+	this.nextNode = null;
 	this.props = {};
+	this.basic = {};
+	this.move = {};
 	this.status = {};
-	this.id = null;
+	this.id = 'n' + yogo.nextuid();
+	this.position = null;
 }
 
 Node.prototype = {
@@ -183,5 +209,104 @@ Node.prototype = {
 				return node;
 			}
 		}
+	},
+
+	nextNodeAt : function(coor) {
+		var nextNode = this.nextNode;
+		if (nextNode&&nextNode.move.point) {
+			var point = nextNode.move.point;
+			if (coor.x === point.x && coor.y === point.y) {
+				return nextNode;
+			}
+			return null;
+		}
+		if (this.branchPoints) {
+			for (var i = 0; i < this.branchPoints.length; i++) {
+				var point = this.branchPoints[i];
+				if (coor.x === point.x && coor.y === point.y) {
+					var variation = this.variations[i];
+					return variation.nodes[0];
+				}
+			}
+		}
+		return null;
+	},
+
+	newMoveColor : function() {
+		var color;
+		if(this.move['PL']){
+			color=this.move['PL'];
+		}else if(this.move.color){
+			color=this.move.color;
+			color=(color==='B')? 'W':'B';
+		}else if(this.status.pass){
+			var pn=this.previousNode;
+			if(pn&&pn.move.color){
+				color=this.move.color;
+			}
+		}
+		if(!color){
+			color='B';
+		}
+		return color;
+	},
+
+	setMoveNumber : function() {
+		var realGame = this.belongingVariation.realGame;
+		var lastMoveNode = this.previousNode;
+		var mns;
+		if (lastMoveNode) {
+			var lastNumbers = lastMoveNode.numbers;
+			if (this.status.move || this.status.pass) {
+				mns = [ lastNumbers.globalMoveNumber + 1,
+						lastNumbers.displayMoveNumber + 1,
+						lastNumbers.variationMoveNumber + 1 ];
+			} else {
+				mns = [ lastNumbers.globalMoveNumber,
+						lastNumbers.displayMoveNumber,
+						lastNumbers.variationMoveNumber ];
+			}
+		} else {
+			if (this.status.move || this.status.pass) {
+				mns = [ 1, 1, 1 ];
+			} else {
+				mns = [ 0, 0, 0 ];
+			}
+		}
+		this.numbers = {
+			globalMoveNumber : mns[0],
+			displayMoveNumber : mns[1],
+			variationMoveNumber : mns[2]
+		};
+		if (this.status.variationFirstNode) {
+			if (this.status.move || this.status.pass) {
+				this.numbers.variationMoveNumber = 1;
+				if (!realGame) {
+					this.numbers.displayMoveNumber = 1;
+				}
+			} else {
+				this.numbers.variationMoveNumber = 0;
+				if (!realGame) {
+					this.numbers.displayMoveNumber = 0;
+				}
+			}
+		}
+	},
+
+	setBranchPoints : function() {
+		if (!this.variations) {
+			return;
+		}
+		var variations = this.variations;
+		var branchPoints = [];
+		for (var i = 0; i < variations.length; i++) {
+			var variation = variations[i];
+			var node0 = variation.nodes[0];
+			if (node0.status.move) {
+				var coordinate = node0.move.point;
+				branchPoints.push(coordinate);
+			}
+		}
+		this.branchPoints = branchPoints;
 	}
 };
