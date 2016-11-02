@@ -65,7 +65,7 @@ Game.prototype = {
 				board.addStones(diffStones.stonesToAddW, 'W');
 			}
 		} else {
-			var positionBuilder = new Game.PositionBuilder(this, curNode);
+			var positionBuilder = new PositionBuilder(this, curNode);
 			success = positionBuilder.buildPosition();
 		}
 		this.setCurrentNodeMarkers();
@@ -79,7 +79,7 @@ Game.prototype = {
 	buildAllPositions : function() {
 		var game = this;
 		var nodeCallback = function(node, context) {
-			var positionBuilder = new Game.PositionBuilder(game, node, true);
+			var positionBuilder = new PositionBuilder(game, node, true);
 			var success = positionBuilder.buildPosition();
 			if (success === false) {
 				context.push(node);
@@ -175,6 +175,10 @@ Game.prototype = {
 
 	onBoardMouseup : function(coor, mousekey) {
 		yogo.logInfo('(' + coor.x + ',' + coor.y + ') mouseup, mousekey: '+mousekey, 'board');
+		if (this.mode === 'edit') {
+			this.editManager.onBoardMouseup(coor, mousekey);
+			return;
+		}
 	},
 
 	setMode : function(mode) {

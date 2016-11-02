@@ -108,7 +108,16 @@ GameTree.prototype = {
 
 		$treeNode.attr('id', node.id);
 
+		var realGame=node.belongingVariation.realGame;
 		var displayMoveNumber = node.numbers.displayMoveNumber;
+		var nodeName = ''+displayMoveNumber;
+		if(displayMoveNumber === 0){
+			if(realGame){
+				nodeName='game info';
+			}else{
+				nodeName='';
+			}
+		}
 		var move = '';
 		if (node.status.move) {
 			// move=node.props['B']||node.props['W'];
@@ -116,12 +125,10 @@ GameTree.prototype = {
 		} else if (node.status.pass) {
 			move = 'pass';
 		} else if (node.status.setup) {
-			move = 'add stones';
+			move = 'setup';
 		}
-		var nodeName = (displayMoveNumber === 0) ? 'game info'
-				: displayMoveNumber;
 		if (move != '') {
-			nodeName += ' [' + move + ']';
+			nodeName +=  move;
 		}
 		if (node.basic['N']) {
 			nodeName += ' ' + node.basic['N'];
@@ -138,6 +145,9 @@ GameTree.prototype = {
 		}
 		if (node.status.comment) {
 			nodeInfo += ' comment';
+		}
+		if(nodeName.charAt(0)==' '){
+			nodeName=nodeName.substr(1);
 		}
 		$treeNode.find('.node-info').html(nodeInfo);
 	},

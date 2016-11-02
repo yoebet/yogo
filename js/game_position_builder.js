@@ -1,4 +1,4 @@
-Game.PositionBuilder = function(game, node, buildPositionOnly) {
+PositionBuilder = function(game, node, buildPositionOnly) {
 	this.game = game;
 	this.board = game.board;
 	this.gameModel = game.gameModel;
@@ -10,7 +10,7 @@ Game.PositionBuilder = function(game, node, buildPositionOnly) {
 	this.position = [];
 }
 
-Game.PositionBuilder.prototype = {
+PositionBuilder.prototype = {
 
 	getPointColor : function(x, y) {
 		var status = (this.position[x] || this.basePosition[x])[y];
@@ -319,7 +319,7 @@ Game.PositionBuilder.prototype = {
 		var previousNode = curNode.previousNode;
 		if (previousNode) {
 			if (!previousNode.status.positionBuilt) {
-				var positionBuilder = new Game.PositionBuilder(this.game,
+				var positionBuilder = new PositionBuilder(this.game,
 						previousNode);
 				positionBuilder.buildPosition();
 			}
@@ -382,4 +382,49 @@ Game.PositionBuilder.prototype = {
 		curNode.status.positionBuilt = true;
 		return success;
 	}
+};
+
+PositionBuilder.amendAddStone=function(game,node,point,color){
+
+	var position=node.position;
+	var x=point.x,y=point.y;
+	if(position[x][y]){
+		yogo.logWarn('the point is not empty','amend');
+		return;
+	}
+
+	var positionX=position[x];
+	var newPositionX=[];
+	for (var yi = 0; yi < positionX.length; yi++) {
+		newPositionX[yi] = positionX[yi];
+	}
+	newPositionX[y] = {
+			color : color,
+			node : node
+		};
+	position[x]=newPositionX;
+
+	var board = game.board;
+	board.placeStone(point, color);
+};
+
+PositionBuilder.amendRemoveStone=function(game,node,point){
+
+	var position=node.position;
+	var x=point.x,y=point.y;
+	if(!position[x][y]){
+		yogo.logWarn('the point is empty','amend');
+		return;
+	}
+
+	var positionX=position[x];
+	var newPositionX=[];
+	for (var yi = 0; yi < positionX.length; yi++) {
+		newPositionX[yi] = positionX[yi];
+	}
+	newPositionX[y] = null;
+	position[x]=newPositionX;
+
+	var board = game.board;
+	board.removeStone(point);
 };

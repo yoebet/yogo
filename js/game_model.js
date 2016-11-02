@@ -307,6 +307,8 @@ Node.prototype = {
 			if (node0.status.move) {
 				var coordinate = node0.move.point;
 				branchPoints.push(coordinate);
+			}else{
+				branchPoints.push({x:52,y:52});
 			}
 		}
 		this.branchPoints = branchPoints;

@@ -58,6 +58,28 @@ yogo = {
 			}
 		}
 		return rangePoints;
+	},
+
+	findCoordinate : function(coorArray,coor){
+		for(var i=0;i<coorArray.length;i++){
+			var c=coorArray[i];
+			if(c.x===coor.x&&c.y===coor.y){
+				return i;
+			}
+		}
+		return -1;
+	},
+
+	removeCoordinate : function(coorArray,coor){
+		if(!coorArray){
+			return false;
+		}
+		var index=yogo.findCoordinate(coorArray,coor);
+		if(index>=0){
+			coorArray.splice(index,1);
+			return true;
+		}
+		return false;
 	}
 
 };

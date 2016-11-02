@@ -92,6 +92,9 @@ Game.Markers.prototype = {
 					continue;
 				}
 				var point = branchPoints[i];
+				if(point.x>51){
+					continue;
+				}
 				var label = String.fromCharCode(65 + i);
 				this.board.setLabel(point, label, 'branch_point');
 			}
