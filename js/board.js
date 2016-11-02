@@ -35,10 +35,6 @@ function Board(boardContainer, boardSizeOrSetting, paper) {
 		}
 	}
 
-	this.pointClickHandler = function(coor, elementType) {
-		yogo.logInfo(elementType + ' (' + coor.x + ',' + coor.y + ') clicked');
-	};
-
 	this.centralPoint;
 
 	this.zoomMode = null;// TL/TR/BL/BR
@@ -68,16 +64,25 @@ function Board(boardContainer, boardSizeOrSetting, paper) {
 			'setLabels', 'removeLabel', 'removeAllLabels',
 			'removeBranchPointLabels' ]);
 
-	var theBoard = this;
-	var coordinateManager = this.coordinateManager;
-	this.boardMaskClickHandler = function(e) {
-		var oriCoor = this.data('coor');
-		if (theBoard.reversed || theBoard.rotate90 > 0) {
-			oriCoor = coordinateManager._reverseTransformCoor(oriCoor, false);
-		}
-		theBoard.pointClickHandler(oriCoor, 'mask');
+
+	this.pointClickHandler = function(coor, elementType) {
+		yogo.logWarn('pointClickHandler not set', 'board');
 	};
 
+	this.pointMouseupHandler = function(coor, mousekey) {
+		yogo.logWarn('pointMouseupHandler not set', 'board');
+	};
+
+	var theBoard=this;
+	this._pointClickHandler = function(e) {
+		theBoard.pointClickHandler(this.data('coor'));
+	};
+	this._pointMouseupHandler = function(e) {
+		if(e.which===1){
+			return false;
+		}
+		theBoard.pointMouseupHandler(this.data('coor'), e.which);
+	};
 }
 
 Board.prototype = {
@@ -102,14 +107,18 @@ Board.prototype = {
 
 		var ox = boardOrigin.x, oy = boardOrigin.y;
 
+		var halfBoard = gridWidth * (this.boardSize - 1) / 2;
+		this.centralPoint = {
+			x : ox + halfBoard,
+			y : oy + halfBoard
+		};
+
 		var boardEdgeWidth = gridWidth * (this.boardSize - 1) + boardOuterEdge
 				* 2;
 		var boardEdgeRect = paper.rect(ox - boardOuterEdge,
 				oy - boardOuterEdge, boardEdgeWidth, boardEdgeWidth);
 		boardEdgeRect.attr({
-			'stroke-width' : 0
-		});
-		boardEdgeRect.attr({
+			'stroke-width' : 0,
 			fill : '#DCB35C'
 		});// #DCB35C,#DEC090
 
@@ -118,12 +127,6 @@ Board.prototype = {
 		} else {
 			this._drawBoardLineSimple();
 		}
-
-		var halfBoard = gridWidth * (this.boardSize - 1) / 2;
-		this.centralPoint = {
-			x : ox + halfBoard,
-			y : oy + halfBoard
-		};
 
 		this.drawCoordinate();
 		this._drawBoardStars();
@@ -135,6 +138,26 @@ Board.prototype = {
 		var boardSetting = this.boardSetting;
 		var paper = this.paper;
 		var gridWidth = boardSetting.gridWidth;
+		var board = this;
+
+		var coordinateManager = this.coordinateManager;
+		var maskClickHandler = function(e) {
+			var oriCoor = this.data('coor');
+			if (board.reversed || board.rotate90 > 0) {
+				oriCoor = coordinateManager._reverseTransformCoor(oriCoor, false);
+			}
+			if(e.which===1){
+				board.pointClickHandler(oriCoor);
+			}else{
+				board.pointMouseupHandler(oriCoor, e.which);
+			}
+		};
+		var maskMouseupHandler=function(e){
+			if(e.which===1){
+				return false;
+			}
+			maskClickHandler.call(this,e);
+		};
 
 		var stoneRadius = gridWidth / 2;
 		for (var x = 0; x < this.boardSize; x++) {
@@ -152,7 +175,8 @@ Board.prototype = {
 							'fill-opacity' : 0
 						});
 				maskCircle.data('coor', coor);
-				maskCircle.click(this.boardMaskClickHandler);
+				maskCircle.click(maskClickHandler);
+				maskCircle.mouseup(maskMouseupHandler);
 			}
 		}
 	},

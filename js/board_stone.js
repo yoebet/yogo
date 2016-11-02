@@ -9,14 +9,6 @@ Board.Stone = function(board) {
 	this.stoneTemplates = this.setupStoneTemplates();
 	this.moveNumberElements = [];
 	this.currentMoveNumberElement = null;
-
-	var theBoard = this.board;
-	this.stoneClickHandler = function(e) {
-		theBoard.pointClickHandler(this.data('coor'), 'stone');
-	};
-	this.moveNumberClickHandler = function(e) {
-		theBoard.pointClickHandler(this.data('coor'), 'moveNumber');
-	};
 }
 
 Board.Stone.prototype = {
@@ -98,7 +90,8 @@ Board.Stone.prototype = {
 					onCoordinateChange : this.coordinateManager.onCircleCoordinateChange
 				});
 
-		thisColorStone.click(this.stoneClickHandler);
+		thisColorStone.click(this.board._pointClickHandler);
+		thisColorStone.mouseup(this.board._pointMouseupHandler);
 	},
 
 	removeStone : function(coor) {
@@ -202,7 +195,8 @@ Board.Stone.prototype = {
 			this.currentMoveNumberElement = mnElement;
 		}
 
-		mnElement.click(this.moveNumberClickHandler);
+		mnElement.click(this.board._pointClickHandler);
+		mnElement.mouseup(this.board._pointMouseupHandler);
 	},
 
 	unmarkCurrentMoveNumber : function() {

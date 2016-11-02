@@ -171,7 +171,7 @@ Game.Markers.prototype = {
 				}
 			}
 			if (!variation.realGame
-					&& (node.status.variationFirstNode || node.belongingVariation !== variation)) {
+					&& (node.status.variationFirstNode && node.belongingVariation.index>0)) {
 				break;
 			}
 			node = node.previousNode;

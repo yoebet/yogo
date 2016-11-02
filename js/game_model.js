@@ -252,7 +252,6 @@ Node.prototype = {
 	},
 
 	setMoveNumber : function() {
-		var realGame = this.belongingVariation.realGame;
 		var lastMoveNode = this.previousNode;
 		var mns;
 		if (lastMoveNode) {
@@ -278,15 +277,18 @@ Node.prototype = {
 			displayMoveNumber : mns[1],
 			variationMoveNumber : mns[2]
 		};
+
+		var thisVariation = this.belongingVariation;
+		var realGame = thisVariation.realGame;
 		if (this.status.variationFirstNode) {
 			if (this.status.move || this.status.pass) {
 				this.numbers.variationMoveNumber = 1;
-				if (!realGame) {
+				if (!realGame&thisVariation.index>0) {
 					this.numbers.displayMoveNumber = 1;
 				}
 			} else {
 				this.numbers.variationMoveNumber = 0;
-				if (!realGame) {
+				if (!realGame&thisVariation.index>0) {
 					this.numbers.displayMoveNumber = 0;
 				}
 			}
@@ -308,5 +310,56 @@ Node.prototype = {
 			}
 		}
 		this.branchPoints = branchPoints;
+	},
+
+	diffPosition : function(fromNode) {
+		var fromPosition = fromNode.position;
+		var toPosition=this.position;
+		var stonesToRemove = [];
+		var stonesToAddW = [];
+		var stonesToAddB = [];
+		var boardSize = fromPosition.length;
+		for (var x = 0; x < boardSize; x++) {
+			var fx = fromPosition[x];
+			var tx = toPosition[x];
+			if (fx === tx) {
+				continue;
+			}
+			for (var y = 0; y < boardSize; y++) {
+				var fromStatus = fx[y];
+				var toStatus = tx[y];
+				if (fromStatus === toStatus || (!fromStatus && !toStatus)) {
+					continue;
+				}
+				var toRemove = false, toAdd = false;
+				if (!toStatus) {
+					toRemove = true;
+				} else if (!fromStatus) {
+					toAdd = true;
+				} else if (fromStatus.color != toStatus.color) {
+					toRemove = true;
+					toAdd = true;
+				}
+				var point = {
+					x : x,
+					y : y
+				};
+				if (toRemove) {
+					stonesToRemove.push(point);
+				}
+				if (toAdd) {
+					if (toStatus.color == 'B') {
+						stonesToAddB.push(point);
+					} else {
+						stonesToAddW.push(point);
+					}
+				}
+			}
+		}
+		return {
+			stonesToRemove : stonesToRemove,
+			stonesToAddB : stonesToAddB,
+			stonesToAddW : stonesToAddW
+		};
 	}
 };

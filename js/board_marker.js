@@ -12,11 +12,6 @@ Board.Marker = function(board) {
 	this.currentMoveMarker = null;
 	this.markerPoints = [];
 	this.markerTemplates = this.setupMarkerTemplates();
-
-	var theBoard = this.board;
-	this.markerClickHandler = function(e) {
-		theBoard.pointClickHandler(this.data('coor'), 'marker');
-	};
 }
 
 Board.Marker.prototype={
@@ -94,7 +89,8 @@ Board.Marker.prototype={
 			this.currentMoveMarker=this.paper.circle(vbCoor.x, vbCoor.y, radius).attr({'stroke-width':0,fill:color});
 			this.currentMoveMarker.data({type: 'marker', boardElement: true, marker: 'currentMoveMarker',
 					coor: {x:coor.x,y:coor.y}, onCoordinateChange: this.coordinateManager.onCircleCoordinateChange});
-			this.currentMoveMarker.click(this.markerClickHandler);
+			this.currentMoveMarker.click(this.board._pointClickHandler);
+			this.currentMoveMarker.mouseup(this.board._pointMouseupHandler);
 		}
 	},
 
@@ -146,7 +142,8 @@ Board.Marker.prototype={
 			markerElement=markerTemplate.clone();
 		}
 		markerElement.data({type: 'marker', boardElement: true, marker: markerType, coor: {x:coor.x,y:coor.y}});
-		markerElement.click(this.markerClickHandler);
+		markerElement.click(this.board._pointClickHandler);
+		markerElement.mouseup(this.board._pointMouseupHandler);
 		// yogo.logInfo('marker '+markerKey+' from template','setMarker');
 
 		if(markerType=='CR'||markerType=='TW'||markerType=='TB'){

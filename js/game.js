@@ -11,6 +11,7 @@ function Game(board, gameModel) {
 
 	this.onPlayNode = null;
 	this.board.pointClickHandler = this.onBoardClick.bind(this);
+	this.board.pointMouseupHandler = this.onBoardMouseup.bind(this);
 
 	this.nodeNavigator = new Game.NodeNavigator(this);
 	yogo.exportFunctions.call(this, this.nodeNavigator, [ 'gotoNextX',
@@ -57,9 +58,7 @@ Game.prototype = {
 					board.removeStone(movePoint);
 				}
 			} else {
-				var lastPosition = lastNode.position;
-				var position = curNode.position;
-				var diffStones = yogo.diffPosition(lastPosition, position);
+				var diffStones = curNode.diffPosition(lastNode);
 				board.removeStones(diffStones.stonesToRemove);
 				board.addStones(diffStones.stonesToAddB, 'B');
 				board.addStones(diffStones.stonesToAddW, 'W');
@@ -95,14 +94,14 @@ Game.prototype = {
 		return this.curNode.belongingVariation.realGame;
 	},
 
-	_boardClickViewMode : function(coor, elementType) {
+	_boardClickViewMode : function(coor) {
 		var nextNode = this.curNode.nextNodeAt(coor);
 		if(nextNode){
 			this.playNode(nextNode);
 		}
 	},
 
-	_boardClickFindMoveMode : function(coor, elementType) {
+	_boardClickFindMoveMode : function(coor) {
 		var nodeInRealGame;
 		var pointMoves = this.gameModel.pointMovesMatrix[coor.x][coor.y];
 		if (pointMoves) {
@@ -158,19 +157,23 @@ Game.prototype = {
 	},
 
 	onBoardClick : function(coor, elementType) {
-		yogo.logInfo(elementType + ' (' + coor.x + ',' + coor.y + ') clicked');
+		yogo.logInfo('(' + coor.x + ',' + coor.y + ') clicked', 'board');
 		if (this.mode === 'view') {
-			this._boardClickViewMode(coor, elementType);
+			this._boardClickViewMode(coor);
 			return;
 		}
 		if (this.mode === 'find-move') {
-			this._boardClickFindMoveMode(coor, elementType);
+			this._boardClickFindMoveMode(coor);
 			return;
 		}
 		if (this.mode === 'edit') {
-			this.editManager.onBoardClick(coor, elementType);
+			this.editManager.onBoardClick(coor);
 			return;
 		}
+	},
+
+	onBoardMouseup : function(coor, mousekey) {
+		yogo.logInfo('(' + coor.x + ',' + coor.y + ') mouseup, mousekey: '+mousekey, 'board');
 	},
 
 	setMode : function(mode) {

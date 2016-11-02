@@ -14,7 +14,7 @@ function GameTree($container, game) {
 		variationHead : $('<li class="variation-head"></li>')
 	};
 
-	this.groupMoveCount = 20;
+	this.groupMoveCount = 10;
 }
 
 GameTree.prototype = {
@@ -100,7 +100,11 @@ GameTree.prototype = {
 			if (belongingVariation.realGame) {
 				$nodeContainer = $realGameNodeContainer;
 			} else {
-				$nodeContainer = variationNodeContainerMap[belongingVariation.id];
+				var cv=belongingVariation;
+				while(!cv.parentVariation.realGame&&cv.index===0){
+					cv=cv.parentVariation;
+				}
+				$nodeContainer = variationNodeContainerMap[cv.id];
 			}
 
 			var $treeNode = $treeNodeTmpl.clone();
@@ -108,8 +112,7 @@ GameTree.prototype = {
 			$nodeContainer.append($treeNode);
 
 			if (node.variations) {
-				var indexFrom = belongingVariation.realGame ? 1 : 0;
-				for (var vi = indexFrom; vi < node.variations.length; vi++) {
+				for (var vi = 1; vi < node.variations.length; vi++) {
 					var subVariation = node.variations[vi];
 					var nv = treeModel.createVariation(subVariation);
 					var $subVariation = nv.$variation;

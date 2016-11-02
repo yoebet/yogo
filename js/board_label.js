@@ -8,11 +8,6 @@ Board.Label = function(board) {
 
 	this.labelPoints = [];
 	this.branchPoints = [];
-
-	var theBoard = this.board;
-	this.labelClickHandler = function(e) {
-		theBoard.pointClickHandler(this.data('coor'), 'label');
-	};
 }
 
 Board.Label.prototype = {
@@ -97,7 +92,8 @@ Board.Label.prototype = {
 			labelElement.data('lineOrStarElements', lineOrStarElements);
 		}
 
-		labelElement.click(this.labelClickHandler);
+		labelElement.click(this.board._pointClickHandler);
+		labelElement.mouseup(this.board._pointMouseupHandler);
 	},
 
 	setLabels : function(coorLabels) {

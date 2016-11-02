@@ -22,28 +22,28 @@ Game.EditManager.prototype={
 		this.modeParam = param;
 	},
 
-	onBoardClick : function(coor,elementType) {
+	onBoardClick : function(coor) {
 
 		yogo.logInfo('edit mode: '+this.editMode);
 		if(this.editMode==='play'){
-			this.playMove(coor,elementType);
+			this.playMove(coor);
 			return;
 		}
 		if(this.editMode==='setup'){
-			this.setup(coor,elementType);
+			this.setup(coor);
 			return;
 		}
 		if(this.editMode==='label'){
-			this.addLabel(coor,elementType);
+			this.addLabel(coor);
 			return;
 		}
 		if(this.editMode==='mark'){
-			this.addMarker(coor,elementType);
+			this.addMarker(coor);
 			return;
 		}
 	},
 
-	playMove : function(coor,elementType) {
+	playMove : function(coor) {
 		var curNode=this.game.curNode;
 
 		var enn = curNode.nextNodeAt(coor);
@@ -124,15 +124,15 @@ Game.EditManager.prototype={
 		this.game.playNode(newNode);
 	},
 
-	setup : function(coor,elementType) {
+	setup : function(coor) {
 
 	},
 
-	addLabel : function(coor,elementType) {
+	addLabel : function(coor) {
 
 	},
 
-	addMarker : function(coor,elementType) {
+	addMarker : function(coor) {
 
 	}
 };

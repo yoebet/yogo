@@ -13,6 +13,7 @@ function GameViewer(selector) {
 	this.gameModel = null;
 	this.game = null;
 	this.gameTree = null;
+	this._lastWheelTS;
 }
 
 GameViewer.prototype = {
@@ -176,6 +177,7 @@ GameViewer.prototype = {
 		$(".black-capture", $v).text(captures['B']);
 		$(".white-capture", $v).text(captures['W']);
 
+		$('.branch-select', $v).hide().find('button.branch').hide();
 		if (curNode.variations) {
 			var indexFrom = curNode.belongingVariation.realGame ? 1 : 0;
 			for (var vi = indexFrom; vi < curNode.variations.length; vi++) {
@@ -192,8 +194,6 @@ GameViewer.prototype = {
 				}
 			}
 			$('.branch-select', $v).show();
-		} else {
-			$('.branch-select', $v).hide().find('button.branch').hide();
 		}
 		if (curNode.belongingVariation.realGame) {
 			$('.in-branch', $v).hide();
@@ -237,7 +237,11 @@ GameViewer.prototype = {
 
 		var existedPaper = this.game && this.game.board.paper;
 
-		this.board = new Board($(".board-container", $v).get(0),
+		var $boardContainer=$(".board-container", $v);
+	    $boardContainer.bind('contextmenu',function(){
+	        return false;
+	    });
+		this.board = new Board($boardContainer.get(0),
 				this.gameModel.boardSize, existedPaper);
 
 		this.board.drawBoard();
@@ -357,6 +361,17 @@ GameViewer.prototype = {
 	},
 
 	mousewheelHandler : function(event) {
+		event.preventDefault();
+		if(!this._lastWheelTS){
+			this._lastWheelTS=new Date().getTime();
+		}else{
+			var now=new Date().getTime();
+			var msDiff=now-this._lastWheelTS;
+			if(msDiff<100){
+				return false;
+			}
+			this._lastWheelTS=now;
+		}
 		var game = this.game;
 		if (!event.wheelDelta && event.originalEvent) {
 			event = event.originalEvent;
@@ -372,7 +387,6 @@ GameViewer.prototype = {
 		} else {
 			game.nextNode();
 		}
-		event.preventDefault();
 		return false;
 	}
 }
