@@ -149,7 +149,7 @@ GameViewer.prototype = {
 			} else if (value === 'false') {
 				value = false;
 			}
-			this.game.setMarkCurrentMove(value);
+			viewer.game.setMarkCurrentMove(value);
 		});
 
 		$('button.zoom', $v).click(function() {
@@ -163,6 +163,30 @@ GameViewer.prototype = {
 			viewer.board.zoomBoard(zoom);
 		});
 
+
+		var $treeContainer=$('.game-tree-container', $v);
+		$treeContainer.on('click', 'li.node-group-head, li.variation-head',
+			function() {
+				var $treeNodes = $(this).next();
+				$treeNodes.toggle(200);
+			}).on('click','li.tree-node',
+			function() {
+				viewer.game.gotoNode(this.id);
+			});
+
+		$('button.collapse-nodes', $treeContainer).click(function() {
+			if (!viewer.gameTree) {
+				return;
+			}
+			$('ul.tree-nodes:visible', viewer.gameTree.$container).hide(200);
+		});
+
+		$('button.scroll-into-view', $treeContainer).click(function() {
+			if (!viewer.gameTree||!viewer.game) {
+				return;
+			}
+			viewer.gameTree.showNode(viewer.game.curNode.id, true);
+		});
 	},
 
 	onPlayNode : function() {
@@ -223,9 +247,11 @@ GameViewer.prototype = {
 
 		this.bindKeyAndWheelEvent();
 
+		this.setupGameTree();
+
 		this.game.onPlayNode = this.onPlayNode.bind(this);
 
-		this.setupGameTree();
+		this.game.onNodeCreated = this.onNodeCreated.bind(this);
 	},
 
 	setupBoard : function() {
@@ -388,5 +414,11 @@ GameViewer.prototype = {
 			game.nextNode();
 		}
 		return false;
+	},
+
+	onNodeCreated : function(newNode) {
+		if (this.gameTree) {
+			this.gameTree.addNode(newNode);
+		}
 	}
 }

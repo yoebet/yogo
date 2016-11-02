@@ -9,9 +9,10 @@ function Game(board, gameModel) {
 	// view/find-move/edit
 	this.mode = 'view';
 
-	this.onPlayNode = null;
 	this.board.pointClickHandler = this.onBoardClick.bind(this);
 	this.board.pointMouseupHandler = this.onBoardMouseup.bind(this);
+	this.onPlayNode = null;
+	this.onNodeCreated = null;
 
 	this.nodeNavigator = new Game.NodeNavigator(this);
 	yogo.exportFunctions.call(this, this.nodeNavigator, [ 'gotoNextX',
@@ -94,14 +95,14 @@ Game.prototype = {
 		return this.curNode.belongingVariation.realGame;
 	},
 
-	_boardClickViewMode : function(coor) {
+	_boardClickView : function(coor) {
 		var nextNode = this.curNode.nextNodeAt(coor);
 		if(nextNode){
 			this.playNode(nextNode);
 		}
 	},
 
-	_boardClickFindMoveMode : function(coor) {
+	_boardClickFindAMove : function(coor) {
 		var nodeInRealGame;
 		var pointMoves = this.gameModel.pointMovesMatrix[coor.x][coor.y];
 		if (pointMoves) {
@@ -159,11 +160,11 @@ Game.prototype = {
 	onBoardClick : function(coor, elementType) {
 		yogo.logInfo('(' + coor.x + ',' + coor.y + ') clicked', 'board');
 		if (this.mode === 'view') {
-			this._boardClickViewMode(coor);
+			this._boardClickView(coor);
 			return;
 		}
 		if (this.mode === 'find-move') {
-			this._boardClickFindMoveMode(coor);
+			this._boardClickFindAMove(coor);
 			return;
 		}
 		if (this.mode === 'edit') {

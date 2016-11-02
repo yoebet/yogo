@@ -122,6 +122,10 @@ Game.EditManager.prototype={
 		newNode.alter={type:'new-node'};
 
 		this.game.playNode(newNode);
+
+		if(this.game.onNodeCreated){
+			this.game.onNodeCreated(newNode);
+		}
 	},
 
 	setup : function(coor) {
