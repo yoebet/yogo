@@ -13,7 +13,8 @@ Game.EditManager=function (game) {
 	this.editMode = 'play';
 
 	this.modeParam = null;
-	this._last
+	this._lastLabel = null;
+	this._lastLabelNode = null;
 };
 
 Game.EditManager.prototype={
@@ -21,6 +22,10 @@ Game.EditManager.prototype={
 	setEditMode : function(mode,param) {
 		this.editMode = mode;
 		this.modeParam = param;
+		if(this.editMode==='label'){
+			this._lastLabel=null;
+			this._lastLabelNode = null;
+		}
 	},
 
 	onBoardClick : function(coor) {
@@ -51,14 +56,20 @@ Game.EditManager.prototype={
 			this.setup(coor,(mousekey===3));
 			return;
 		}
-		if(this.editMode==='label'){
-			this.addLabel(coor);
-			return;
-		}
-		if(this.editMode==='mark'){
-			this.addMarker(coor);
-			return;
-		}
+		// if(this.editMode==='label'){
+		// 	this.addLabel(coor);
+		// 	return;
+		// }
+		// if(this.editMode==='mark'){
+		// 	this.addMarker(coor);
+		// 	return;
+		// }
+	},
+
+	stillNewGame : function(){
+		var curNode=this.game.curNode;
+		var beginingNode=this.gameModel.nodes[0];
+		return (curNode===beginingNode&&!curNode.status.move&&curNode.status.variationLastNode);
 	},
 
 	playMove : function(coor) {
@@ -76,14 +87,26 @@ Game.EditManager.prototype={
 		}
 
 		var color=curNode.newMoveColor();
+		var useCurrentNode=this.stillNewGame()&&!curNode.status.setup;
+		if(!useCurrentNode){
+			createNewNode=true;
+			curNode=new Node(curNode);
+		}
+		curNode.move.color=color;
+		curNode.move[color]={x:coor.x,y:coor.y};
+		curNode.move.point=curNode.move[color];
+		curNode.status.move=true;
 
-		var newNode=new Node(curNode);
-		newNode.move.color=color;
-		newNode.move[color]={x:coor.x,y:coor.y};
-		newNode.move.point=newNode.move[color];
-		newNode.status.move=true;
-
-		return this._addNewNode(newNode);
+		if(useCurrentNode){
+			PositionBuilder.amendAddStone(this.game,curNode,coor,color);
+			curNode.setMoveNumber();
+			this.game.setCurrentNodeMarkers();
+			if(this.game.onNodeChanged){
+				this.game.onNodeChanged(curNode);
+			}
+		}else{
+			return this._addNewNode(curNode);
+		}
 	},
 
 	setup : function(coor,reverse) {
@@ -94,9 +117,9 @@ Game.EditManager.prototype={
 				var positionBuilder = new PositionBuilder(this.game,
 						curNode);
 				var reverseColor='W';
-				var removed=yogo.removeCoordinate(curNode.setup['AB'],coor);
+				var removed=yogo.removePoint(curNode.setup['AB'],coor);
 				if(!removed){
-					removed=yogo.removeCoordinate(curNode.setup['AW'],coor);
+					removed=yogo.removePoint(curNode.setup['AW'],coor);
 					reverseColor='B';
 				}
 				if(removed){
@@ -123,8 +146,13 @@ Game.EditManager.prototype={
 			color=(color=='B')? 'W':'B';
 		}
 		var createNewNode=false;
-		if(curNode.status.alter&&curNode.status.setup){
+		var isSetup=curNode.status.setup;
+		if((curNode.status.alter&&isSetup)||this.stillNewGame()){
 			PositionBuilder.amendAddStone(this.game,curNode,coor,color);
+			curNode.status.setup=true;
+			if(!isSetup&&this.game.onNodeChanged){
+				this.game.onNodeChanged(curNode);
+			}
 		}else{
 			curNode=new Node(curNode);
 			curNode.status.setup=true;
@@ -148,11 +176,71 @@ Game.EditManager.prototype={
 	},
 
 	addLabel : function(coor) {
+		var curNode=this.game.curNode;
+		if(this._lastLabelNode !== curNode){
+			this._lastLabel=null;
+		}
+		var label;
+		if(this._lastLabel){
+			label=String.fromCharCode(this._lastLabel.charCodeAt(0) + 1);
+		}else{
+			label=this.modeParam;
+		}
 
+		var labels=curNode.marks&&curNode.marks['LB'];
+		var removed=false;
+		if(labels){
+			removed=yogo.removePoint(labels,coor);
+		}
+		if(removed){
+			this.board.removeLabel(coor);
+			//curNode.status.mark,
+		}else{
+			if(!curNode.marks){
+				curNode.marks={};
+				curNode.status.mark=true;
+			}
+			if(!curNode.marks['LB']){
+				labels=curNode.marks['LB']=[];
+			}
+			labels.push({x:coor.x,y:coor.y,label:label});
+			this.board.setLabel(coor,label);
+			this._lastLabel=label;
+			this._lastLabelNode = curNode;
+		}
+		curNode.status.alter=true;
+		if(!curNode.alter){
+			curNode.alter={type:'prop-changed'};
+		}
 	},
 
 	addMarker : function(coor) {
+		var curNode=this.game.curNode;
+		var marker=this.modeParam;
 
+		var markers=curNode.marks&&curNode.marks[marker];
+		var removed=false;
+		if(markers){
+			removed=yogo.removePoint(markers,coor);
+		}
+		if(removed){
+			this.board.removeMarker(coor);
+			//curNode.status.mark,
+		}else{
+			if(!curNode.marks){
+				curNode.marks={};
+				curNode.status.mark=true;
+			}
+			if(!curNode.marks[marker]){
+				markers=curNode.marks[marker]=[];
+			}
+			markers.push({x:coor.x,y:coor.y});
+			this.board.setMarker(coor,marker);
+		}
+		curNode.status.alter=true;
+		if(!curNode.alter){
+			curNode.alter={type:'prop-changed'};
+		}
 	},
 
 	_addNewNode : function(newNode) {

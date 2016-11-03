@@ -92,8 +92,7 @@ Board.Label.prototype = {
 			labelElement.data('lineOrStarElements', lineOrStarElements);
 		}
 
-		labelElement.click(this.board._pointClickHandler);
-		labelElement.mouseup(this.board._pointMouseupHandler);
+		this.board._setElementEventHandler(labelElement);
 	},
 
 	setLabels : function(coorLabels) {

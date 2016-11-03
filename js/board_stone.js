@@ -43,7 +43,10 @@ Board.Stone.prototype = {
 		}
 
 		var pointStatus = this.pointStatusMatrix[coor.x][coor.y];
-		if (pointStatus && pointStatus.color) {
+		if (!pointStatus) {
+			pointStatus = {};
+		}
+		if (pointStatus.color) {
 			yogo.logWarn('point occupied: (' + coor.x + ',' + coor.y
 					+ ',color:' + pointStatus.color + ')', 'place stone');
 			if (color == pointStatus.color) {
@@ -54,11 +57,6 @@ Board.Stone.prototype = {
 			if (altColorStone) {
 				altColorStone.hide();
 			}
-		}
-		if (!pointStatus) {
-			pointStatus = {
-				coor : coor
-			};
 		}
 		pointStatus.color = color;
 
@@ -90,8 +88,7 @@ Board.Stone.prototype = {
 					onCoordinateChange : this.coordinateManager.onCircleCoordinateChange
 				});
 
-		thisColorStone.click(this.board._pointClickHandler);
-		thisColorStone.mouseup(this.board._pointMouseupHandler);
+		this.board._setElementEventHandler(thisColorStone);
 	},
 
 	removeStone : function(coor) {
@@ -195,8 +192,7 @@ Board.Stone.prototype = {
 			this.currentMoveNumberElement = mnElement;
 		}
 
-		mnElement.click(this.board._pointClickHandler);
-		mnElement.mouseup(this.board._pointMouseupHandler);
+		this.board._setElementEventHandler(mnElement);
 	},
 
 	unmarkCurrentMoveNumber : function() {

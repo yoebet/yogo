@@ -13,7 +13,8 @@ function GameViewer(selector) {
 	this.gameModel = null;
 	this.game = null;
 	this.gameTree = null;
-	this._lastWheelTS;
+
+	this._lastWheelTS = null;
 }
 
 GameViewer.prototype = {
@@ -24,13 +25,19 @@ GameViewer.prototype = {
 		var $v = this.$v;
 
 		$('button.parse-sgf', $v).click(function() {
-
 			var sgfText = $('textarea.sgf-text', $v).val();
 			if (!sgfText.trim()) {
 				return;
 			}
+			//TODO: save current
 
-			viewer.loadGame(sgfText);
+			viewer.loadGameFromSgfText(sgfText);
+		});
+
+		$('button.new-game', $v).click(function() {
+			//TODO: save current
+
+			viewer.newGame();
 		});
 
 		$('button.perspective', $v).click(function() {
@@ -132,8 +139,6 @@ GameViewer.prototype = {
 				game.setShowMoveNumber(true);
 			} else if (value === false || value === 'false') {
 				game.setShowMoveNumber(false);
-			} else if (value == 'all') {
-				game.setShowMoveNumber(1000);
 			} else {
 				game.setShowMoveNumber(value);
 			}
@@ -230,16 +235,7 @@ GameViewer.prototype = {
 		}
 	},
 
-	loadGame : function(sgfText) {
-
-		var gameCollection = SgfParser.parse(sgfText);
-
-		this.gameModel = gameCollection[0];
-		if (!this.gameModel) {
-			return;
-		}
-
-		this.setupBoard();
+	_initGame : function() {
 
 		this.setupGameInfo();
 
@@ -252,12 +248,48 @@ GameViewer.prototype = {
 		this.game.onPlayNode = this.onPlayNode.bind(this);
 
 		this.game.onNodeCreated = this.onNodeCreated.bind(this);
+
+		this.game.onNodeChanged = this.onNodeChanged.bind(this);
+	},
+
+	newGame : function() {
+		var gameModel=this.gameModel=GameModel.newModel(13);
+
+		this.setupBoard();
+		this._initGame();
+
+		if (this.gameTree) {
+			this.gameTree.showNode(gameModel.nodes[0].id);
+		}
+
+		$('input.game-op-mode[value=edit]',this.$v).click();
+	},
+
+	loadGameFromSgfText : function(sgfText) {
+
+		var gameCollection = SgfParser.parse(sgfText);
+
+		this.gameModel = gameCollection[0];
+		if (!this.gameModel) {
+			return;
+		}
+
+		this.setupBoard();
+
+		this._initGame();
+
+		$('input.game-op-mode[value=view]',this.$v).click();
 	},
 
 	setupBoard : function() {
 
 		var $v = this.$v;
 		if (!this.gameModel) {
+			return;
+		}
+
+		if(this.board&&this.board.boardSize===this.gameModel.boardSize){
+			this.board.clearBoard();
 			return;
 		}
 
@@ -321,104 +353,17 @@ GameViewer.prototype = {
 
 		$('.board-container').bind('mousewheel DOMMouseScroll',
 				mousewheelHandler);
-
-	},
-
-	keydownHandler : function(event) {
-		var game = this.game;
-		var ctrlKey = event.ctrlKey || event.metaKey;
-		switch (event.keyCode) {
-		case 37:// ArrowLeft
-			if (ctrlKey) {
-				game.previousCommentOrBranch();
-			} else {
-				game.previousNode();
-			}
-			break;
-		case 39:// ArrowRight
-			if (ctrlKey) {
-				game.nextCommentOrBranch();
-			} else {
-				game.nextNode();
-			}
-			break;
-		case 38:// ArrowUp
-			var curNode = game.curNode;
-			if (game.inRealGame()) {
-				if (curNode.variations) {
-					var variation = curNode.variations[curNode.variations.length - 1];
-					var node = variation.nodes[0];
-					game.gotoNode(node);
-				}
-			} else {
-				if (curNode.status.variationFirstNode) {
-					var variation = curNode.belongingVariation;
-					var previousVariation = variation.previousVariation();
-					var pvNode = previousVariation.nodes[0];
-					game.gotoNode(pvNode);
-				} else {
-					game.gotoVariationBegin();
-				}
-			}
-			break;
-		case 40:// ArrowDown
-			var curNode = game.curNode;
-			if (game.inRealGame()) {
-				if (curNode.variations) {
-					var variation = curNode.variations[1];
-					var node = variation.nodes[0];
-					game.gotoNode(node);
-				}
-			} else {
-				if (curNode.status.variationLastNode) {
-					var variation = curNode.belongingVariation;
-					var nextVariation = variation.nextVariation();
-					var nvNode = nextVariation.nodes[0];
-					game.gotoNode(nvNode);
-				} else {
-					game.gotoVariationEnd();
-				}
-			}
-			break;
-		default:
-			;
-		}
-		return true;
-	},
-
-	mousewheelHandler : function(event) {
-		event.preventDefault();
-		if(!this._lastWheelTS){
-			this._lastWheelTS=new Date().getTime();
-		}else{
-			var now=new Date().getTime();
-			var msDiff=now-this._lastWheelTS;
-			if(msDiff<100){
-				return false;
-			}
-			this._lastWheelTS=now;
-		}
-		var game = this.game;
-		if (!event.wheelDelta && event.originalEvent) {
-			event = event.originalEvent;
-		}
-		var scrollUp = false;
-		if (typeof (event.wheelDelta) === 'number') {
-			scrollUp = event.wheelDelta > 0;
-		} else {
-			scrollUp = event.detail < 0;
-		}
-		if (scrollUp) {
-			game.previousNode();
-		} else {
-			game.nextNode();
-		}
-		return false;
 	},
 
 	onNodeCreated : function(newNode) {
 		if (this.gameTree) {
 			this.gameTree.addNode(newNode);
+		}
+	},
+
+	onNodeChanged : function(node) {
+		if (this.gameTree) {
+			this.gameTree.changeNodeInfo(node);
 		}
 	}
 }

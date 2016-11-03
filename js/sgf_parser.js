@@ -270,9 +270,6 @@ SgfParser.prototype = {
 			var nodeCallback2 = function(node, context) {
 
 				node.setMoveNumber();
-				if (node.move['MN']) {
-					node.numbers.displayMoveNumber = node.move['MN'];
-				}
 
 				node.setBranchPoints();
 

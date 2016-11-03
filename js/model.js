@@ -10,6 +10,21 @@ function GameModel() {
 	this.gameEndingNode = null;
 }
 
+GameModel.newModel=function(boardSize){
+
+	var gameModel=new GameModel();
+	gameModel.boardSize=boardSize||19;
+	for (var x = 0; x < gameModel.boardSize; x++) {
+		gameModel.pointMovesMatrix[x] = [];
+	}
+
+	var firstNode=new Node(null,gameModel);
+	gameModel.indexNode(firstNode);
+	gameModel.nodes[0]=firstNode;
+	gameModel.gameEndingNode=firstNode;
+	return gameModel;
+}
+
 GameModel.prototype = {
 
 	indexNode : function(node){
@@ -27,7 +42,7 @@ GameModel.prototype = {
 					pointMovesX[point.y] = pointMoves;
 				}
 
-				var mn = node.numbers.globalMoveNumber;
+				var mn = node.numbers.variationMoveNumber;
 				this.nodesByMoveNumber[mn] = node;
 			}
 		}
@@ -141,9 +156,14 @@ function Node(previousNode, belongingVariation) {
 	this.props = {};
 	this.basic = {};
 	this.move = {};
-	this.status = {};
+	this.status = {variationLastNode:true};
 	this.id = 'n' + yogo.nextuid();
 	this.position = null;
+
+	if(!previousNode){
+		this.status.variationFirstNode=true;
+		this.setMoveNumber();
+	}
 }
 
 Node.prototype = {
@@ -245,6 +265,7 @@ Node.prototype = {
 				color=this.move.color;
 			}
 		}
+		//TODO: handicap
 		if(!color){
 			color='B';
 		}
@@ -253,45 +274,46 @@ Node.prototype = {
 
 	setMoveNumber : function() {
 		var lastMoveNode = this.previousNode;
+		var playOrPass=this.status.move || this.status.pass;
 		var mns;
 		if (lastMoveNode) {
 			var lastNumbers = lastMoveNode.numbers;
-			if (this.status.move || this.status.pass) {
-				mns = [ lastNumbers.globalMoveNumber + 1,
-						lastNumbers.displayMoveNumber + 1,
+			if (playOrPass) {
+				mns = [ lastNumbers.displayMoveNumber + 1,
 						lastNumbers.variationMoveNumber + 1 ];
 			} else {
-				mns = [ lastNumbers.globalMoveNumber,
-						lastNumbers.displayMoveNumber,
+				mns = [ lastNumbers.displayMoveNumber,
 						lastNumbers.variationMoveNumber ];
 			}
 		} else {
-			if (this.status.move || this.status.pass) {
-				mns = [ 1, 1, 1 ];
+			if (playOrPass) {
+				mns = [ 1, 1 ];
 			} else {
-				mns = [ 0, 0, 0 ];
+				mns = [ 0, 0 ];
 			}
 		}
-		this.numbers = {
-			globalMoveNumber : mns[0],
-			displayMoveNumber : mns[1],
-			variationMoveNumber : mns[2]
+		var numbers=this.numbers = {
+			displayMoveNumber : mns[0],
+			variationMoveNumber : mns[1]
 		};
 
 		var thisVariation = this.belongingVariation;
 		var realGame = thisVariation.realGame;
 		if (this.status.variationFirstNode) {
-			if (this.status.move || this.status.pass) {
-				this.numbers.variationMoveNumber = 1;
+			if (playOrPass) {
 				if (!realGame&thisVariation.index>0) {
-					this.numbers.displayMoveNumber = 1;
+					numbers.displayMoveNumber = 1;
+					numbers.variationMoveNumber = 1;
 				}
 			} else {
-				this.numbers.variationMoveNumber = 0;
 				if (!realGame&thisVariation.index>0) {
-					this.numbers.displayMoveNumber = 0;
+					numbers.displayMoveNumber = 0;
+					numbers.variationMoveNumber = 0;
 				}
 			}
+		}
+		if (this.move['MN']) {
+			numbers.displayMoveNumber = node.move['MN'];
 		}
 	},
 

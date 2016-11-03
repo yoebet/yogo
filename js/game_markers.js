@@ -13,7 +13,6 @@ Game.Markers = function(game) {
 	this.moveNumberMod = false;
 
 	this.hideMoveNumberTemporarily = false;
-
 };
 
 Game.Markers.prototype = {
@@ -46,6 +45,7 @@ Game.Markers.prototype = {
 		if (this.markBranchPoints) {
 			this.markBranchPointsIfAny();
 		}
+		this.handleMoveNumbers();
 	},
 
 	setMarkers : function(points, marker, processRange) {
@@ -111,7 +111,12 @@ Game.Markers.prototype = {
 			this.moveNumberMod = false;
 			this.showMoveNumberCount = show;
 			this.showMoveNumber = show > 0;
+		} else if (show === 'all') {
+			var bz=this.board.boardSize;
+			this.showMoveNumberCount = bz*bz+100;
+			this.showMoveNumber = true;
 		} else if (typeof (show) === 'string') {
+
 			if (show.charAt(0) == '%') {
 				this.moveNumberMod = true;
 				show = show.substr(1);
@@ -131,8 +136,8 @@ Game.Markers.prototype = {
 	},
 
 	resetMoveNumbers : function() {
-		this.board.hideMoveNumbers();
 		if (!this.showMoveNumber) {
+			this.board.hideMoveNumbers();
 			return;
 		}
 
@@ -182,6 +187,7 @@ Game.Markers.prototype = {
 				break;
 			}
 		}
+		this.board.hideMoveNumbers();
 		this.board.showMoveNumbers(moveNumbers);
 	},
 
@@ -189,7 +195,7 @@ Game.Markers.prototype = {
 		this.board.hideMoveNumbers();
 	},
 
-	handleMoveNumbers : function(lastNode) {
+	handleMoveNumbers : function() {
 		var board = this.board;
 		var curNode = this.game.curNode;
 		if (curNode.status.mark) {
@@ -199,56 +205,8 @@ Game.Markers.prototype = {
 		}
 		if (this.hideMoveNumberTemporarily) {
 			this.hideMoveNumberTemporarily = false;
-			this.resetMoveNumbers();
-			return;
 		}
 
-		var moveNumberSet = false;
-		if (this.showMoveNumberCount !== 0 && !this.showMoveNumberCount) {
-			if (curNode.label)
-				if (lastNode.nextNode == curNode) {
-					var variation = curNode.belongingVariation;
-					if (variation.realGame
-							|| variation == lastNode.belongingVariation) {
-						var point = curNode.move.point;
-						if (point) {
-							var moveNumber = curNode.numbers.displayMoveNumber;
-							var mn = {
-								x : point.x,
-								y : point.y,
-								color : curNode.move.color,
-								moveNumber : moveNumber,
-								current : true
-							};
-							board.showMoveNumber(mn);
-						} else {
-							board.unmarkCurrentMoveNumber();
-						}
-						moveNumberSet = true;
-					}
-				}
-			if (lastNode.previousNode == curNode) {
-				var variation = lastNode.belongingVariation;
-				if (variation.realGame
-						|| variation == curNode.belongingVariation) {
-					var point = curNode.move.point;
-					if (point) {
-						var moveNumber = curNode.numbers.displayMoveNumber;
-						var mn = {
-							x : point.x,
-							y : point.y,
-							color : curNode.move.color,
-							moveNumber : moveNumber,
-							current : true
-						};
-						board.showMoveNumber(mn);
-					}
-					moveNumberSet = true;
-				}
-			}
-		}
-		if (!moveNumberSet) {
-			this.resetMoveNumbers();
-		}
+		this.resetMoveNumbers();
 	}
 };

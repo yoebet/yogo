@@ -43,7 +43,7 @@ Board.getDefaultBoardSetting = function(boardSize) {
 		baseCoor : boardPadding + coordinateWidth / 2
 	};
 	var strokes = {
-		outerBorderLine : gridWidth * 0.035,
+		outerBorderLine : gridWidth * 0.030,
 		borderLine : gridWidth * 0.025,
 		star : gridWidth * 0.045,
 		stone : gridWidth * 0.02,

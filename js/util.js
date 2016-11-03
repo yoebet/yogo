@@ -60,7 +60,7 @@ yogo = {
 		return rangePoints;
 	},
 
-	findCoordinate : function(coorArray,coor){
+	findPoint : function(coorArray,coor){
 		for(var i=0;i<coorArray.length;i++){
 			var c=coorArray[i];
 			if(c.x===coor.x&&c.y===coor.y){
@@ -70,11 +70,11 @@ yogo = {
 		return -1;
 	},
 
-	removeCoordinate : function(coorArray,coor){
+	removePoint : function(coorArray,coor){
 		if(!coorArray){
 			return false;
 		}
-		var index=yogo.findCoordinate(coorArray,coor);
+		var index=yogo.findPoint(coorArray,coor);
 		if(index>=0){
 			coorArray.splice(index,1);
 			return true;

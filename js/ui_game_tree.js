@@ -52,9 +52,9 @@ GameTree.prototype = {
 			var belongingVariation = node.belongingVariation;
 
 			if (belongingVariation.realGame) {
-				var moveNumber = node.numbers.globalMoveNumber;
+				var moveNumber = node.numbers.variationMoveNumber;
 				var pn = node.previousNode;
-				var pmn = pn && pn.numbers.globalMoveNumber;
+				var pmn = pn && pn.numbers.variationMoveNumber;
 				if (!$realGameNodeContainer
 						|| (moveNumber > 1 && moveNumber !== pmn && moveNumber
 								% gameTree.groupMoveCount == 1)) {
@@ -99,23 +99,26 @@ GameTree.prototype = {
 		this.gameModel.traverseNodes(null, nodeCallback, null);
 
 		if ($currentNodeGroup) {
-			var lastMoveNumber = this.gameModel.gameEndingNode.numbers.globalMoveNumber;
+			var lastMoveNumber = this.gameModel.gameEndingNode.numbers.variationMoveNumber;
 			this.setNodeGroupHead($currentNodeGroup,groupMoveNumberFrom,lastMoveNumber);
 		}
 	},
 
 	setNodeInfo : function(node, $treeNode) {
 
-		$treeNode.attr('id', node.id);
-
 		var realGame=node.belongingVariation.realGame;
-		var displayMoveNumber = node.numbers.displayMoveNumber;
-		var nodeName = ''+displayMoveNumber;
-		if(displayMoveNumber === 0){
-			if(realGame){
-				nodeName='game info';
-			}else{
-				nodeName='';
+		var moveNumber = node.numbers.variationMoveNumber;
+		var nodeName;
+		if(!node.status.move&&node.status.setup){
+			nodeName = '';
+		}else{
+			nodeName = ''+moveNumber;
+			if(moveNumber === 0){
+				if(realGame){
+					nodeName='game info';
+				}else{
+					nodeName='';
+				}
 			}
 		}
 		var move = '';
@@ -156,6 +159,7 @@ GameTree.prototype = {
 		var ets = this.elementTemplates;
 		var $treeNodeTmpl = ets.treeNode;
 		var $treeNode = $treeNodeTmpl.clone();
+		$treeNode.attr('id', node.id);
 		this.setNodeInfo(node, $treeNode);
 		return $treeNode;
 	},
@@ -196,6 +200,7 @@ GameTree.prototype = {
 	},
 
 	setNodeGroupHead : function($nodeGroup,moveNumberFrom,moveNumberTo) {
+		moveNumberTo=moveNumberTo||1;
 		var groupName = moveNumberFrom + '-' + moveNumberTo;
 		$nodeGroup.find('> .node-group-head').text(
 				groupName);
@@ -229,7 +234,7 @@ GameTree.prototype = {
 
 		var variation=newNode.belongingVariation;
 		if(variation.realGame){
-			var moveNumber = newNode.numbers.globalMoveNumber;
+			var moveNumber = newNode.numbers.variationMoveNumber;
 			if(moveNumber===0){
 				moveNumber=1;
 			}
@@ -279,6 +284,15 @@ GameTree.prototype = {
 		}
 
 		this.showNode(newNode.id);
+	},
+
+	changeNodeInfo : function(node) {
+		$node = $('#' + node.id, this.$container);
+		if ($node.length == 0) {
+			return;
+		}
+
+		this.setNodeInfo(node,$node);
 	}
 
 };

@@ -159,7 +159,7 @@ Board.prototype = {
 			maskClickHandler.call(this,e);
 		};
 
-		var stoneRadius = gridWidth / 2;
+		var maskRadius = gridWidth / 2;
 		for (var x = 0; x < this.boardSize; x++) {
 			for (var y = 0; y < this.boardSize; y++) {
 				var coor = {
@@ -168,31 +168,34 @@ Board.prototype = {
 				};
 				var vbCoor = this.coordinateManager
 						.boardCoorToViewBoxCoor(coor);
-				var maskCircle = paper.circle(vbCoor.x, vbCoor.y, stoneRadius)
-						.attr({
-							'stroke-width' : 0,
-							fill : 'white',
-							'fill-opacity' : 0
-						});
-				maskCircle.data('coor', coor);
-				maskCircle.click(maskClickHandler);
-				maskCircle.mouseup(maskMouseupHandler);
+				var mask = paper.rect(vbCoor.x-maskRadius, vbCoor.y-maskRadius,
+				 gridWidth, gridWidth).attr({'stroke-width':0,fill : 'white','fill-opacity' : 0})
+				mask.data('coor', coor);
+				mask.click(maskClickHandler);
+				mask.mouseup(maskMouseupHandler);
 			}
 		}
 	},
 
+	_setElementEventHandler : function(element) {
+		element.click(this._pointClickHandler);
+		element.mouseup(this._pointMouseupHandler);
+	},
+
 	clearBoard : function() {
-		for (var x = 0; x < this.boardSize; x++) {
+		for (var x = 0; x < this.pointStatusMatrix.length; x++) {
 			var pointStatusX = this.pointStatusMatrix[x];
-			for (y in pointStatusX) {
+			for (var y=0;y<pointStatusX.length;y++) {
 				var pointStatus = pointStatusX[y];
-				if (pointStatus.color) {
-					this.removeStone(pointStatus.coor);
+				if (pointStatus&&pointStatus.color) {
+					this.removeStone({x:x,y:y});
 				}
 			}
 		}
 		this.removeAllMarkers();
 		this.removeAllLabels();
+		this.removeBranchPointLabels();
+		this.hideMoveNumbers();
 		this.markCurrentMove(null);
 	},
 

@@ -13,6 +13,7 @@ function Game(board, gameModel) {
 	this.board.pointMouseupHandler = this.onBoardMouseup.bind(this);
 	this.onPlayNode = null;
 	this.onNodeCreated = null;
+	this.onNodeChanged = null;
 
 	this.nodeNavigator = new Game.NodeNavigator(this);
 	yogo.exportFunctions.call(this, this.nodeNavigator, [ 'gotoNextX',
@@ -69,7 +70,6 @@ Game.prototype = {
 			success = positionBuilder.buildPosition();
 		}
 		this.setCurrentNodeMarkers();
-		this.handleMoveNumbers(lastNode);
 		if (typeof (this.onPlayNode) === 'function') {
 			this.onPlayNode();
 		}

@@ -5,12 +5,13 @@ Board.Marker = function(board) {
 	this.pointStatusMatrix = board.pointStatusMatrix;
 	this.coordinateManager = board.coordinateManager;
 
-	this.templateMarkerPoint = {
+	this.currentMoveMarker = null;
+	this.markerPoints = [];
+	
+	this._templateMarkerPoint = {
 		x : -this.boardSetting.gridWidth,
 		y : -this.boardSetting.gridWidth
 	};
-	this.currentMoveMarker = null;
-	this.markerPoints = [];
 	this.markerTemplates = this.setupMarkerTemplates();
 }
 
@@ -21,7 +22,7 @@ Board.Marker.prototype={
 		var paper=this.paper;
 		var gridWidth=this.boardSetting.gridWidth;
 		var strokes=this.boardSetting.strokes;
-		var mp=this.templateMarkerPoint;
+		var mp=this._templateMarkerPoint;
 
 		var crMarkerW=paper.circle(mp.x, mp.y, gridWidth*0.23).attr({'stroke-width':gridWidth*0.1});
 		var crMarkerB=crMarkerW.clone().attr({stroke:'white'});
@@ -42,7 +43,7 @@ Board.Marker.prototype={
 			if(stoneColor==='W'||stoneColor==='E'){
 				return maMarker;
 			}
-			return maMarker.attr({color:'white'});
+			return maMarker.attr({stroke:'white'});
 		}
 
 		var trSide=gridWidth*0.5;
@@ -89,8 +90,8 @@ Board.Marker.prototype={
 			this.currentMoveMarker=this.paper.circle(vbCoor.x, vbCoor.y, radius).attr({'stroke-width':0,fill:color});
 			this.currentMoveMarker.data({type: 'marker', boardElement: true, marker: 'currentMoveMarker',
 					coor: {x:coor.x,y:coor.y}, onCoordinateChange: this.coordinateManager.onCircleCoordinateChange});
-			this.currentMoveMarker.click(this.board._pointClickHandler);
-			this.currentMoveMarker.mouseup(this.board._pointMouseupHandler);
+
+			this.board._setElementEventHandler(this.currentMoveMarker);
 		}
 	},
 
@@ -142,8 +143,8 @@ Board.Marker.prototype={
 			markerElement=markerTemplate.clone();
 		}
 		markerElement.data({type: 'marker', boardElement: true, marker: markerType, coor: {x:coor.x,y:coor.y}});
-		markerElement.click(this.board._pointClickHandler);
-		markerElement.mouseup(this.board._pointMouseupHandler);
+
+		this.board._setElementEventHandler(markerElement);
 		// yogo.logInfo('marker '+markerKey+' from template','setMarker');
 
 		if(markerType=='CR'||markerType=='TW'||markerType=='TB'){
@@ -165,7 +166,7 @@ Board.Marker.prototype={
 			;
 		}else{
 			yogo.logWarn('do translate','setMarker');
-			markerElement.translate(vbCoor.x-this.templateMarkerPoint.x,vbCoor.y-this.templateMarkerPoint.y);
+			markerElement.translate(vbCoor.x-this._templateMarkerPoint.x,vbCoor.y-this._templateMarkerPoint.y);
 		}
 		markerElement.show();
 		pointStatus.marker=markerType;
