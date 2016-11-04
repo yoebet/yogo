@@ -52,6 +52,10 @@ Game.EditManager.prototype={
 	onBoardMouseup : function(coor, mousekey) {
 		yogo.logInfo('edit mode: '+this.editMode+' '+(this.modeParam||''));
 
+		if(this.editMode==='play'&&mousekey===3){
+			this.removeLastNode(coor);
+			return;
+		}
 		if(this.editMode==='setup'){
 			this.setup(coor,(mousekey===3));
 			return;
@@ -101,11 +105,115 @@ Game.EditManager.prototype={
 			PositionBuilder.amendAddStone(this.game,curNode,coor,color);
 			curNode.setMoveNumber();
 			this.game.setCurrentNodeMarkers();
+			this.gameModel.indexNode(curNode);
 			if(this.game.onNodeChanged){
 				this.game.onNodeChanged(curNode);
 			}
 		}else{
 			return this._addNewNode(curNode);
+		}
+	},
+
+	removeLastNode : function(coor) {
+		var curNode=this.game.curNode;
+		if(!curNode.status.variationLastNode){
+			return false;
+		}
+
+		var baseNode=curNode.previousNode;
+		var variation=curNode.belongingVariation;
+
+		var removed=true,changed=false;
+		var newVariation0=null;
+		if(!curNode.status.variationFirstNode){
+			baseNode.nextNode=null;
+			baseNode.status.variationLastNode=true;
+			if(variation.realGame){
+				this.game.gameEndingNode=baseNode;
+			}
+		}else{// variation first node
+			var beginingNode=this.gameModel.nodes[0];
+			if(curNode===beginingNode){
+				if(curNode.variations){
+					//TODO:
+				}else if(curNode.status.move){
+					PositionBuilder.amendRemoveStone(this.game,curNode);
+					curNode.status.move=false;
+					curNode.move.point=null;
+					curNode.move.color=null;
+					this.board.markCurrentMove(null);
+					changed=true;
+				}
+				removed=false;
+			}else{
+				var variationToRemove=variation;
+				var variations=baseNode.variations;
+				var pVariation=baseNode.belongingVariation;
+				var removeFirst=(variationToRemove.index==0);
+				if(removeFirst){
+					newVariation0=variations[1];
+				}
+				if(variations.length==2){
+					var remainVariation=variations[removeFirst? 1:0];
+					baseNode.nextNode=remainVariation.nodes[0];
+					baseNode.nextNode.status.variationFirstNode=false;
+					baseNode.variations=null;
+					baseNode.branchPoints=null;
+				}else {// variations.length>2
+					variations.splice(variationToRemove.index,1);
+					baseNode.setBranchPoints();
+				}
+
+				if(removeFirst){
+					var gameModel=this.gameModel;
+					var setNodeMN=function(node){
+						node.setMoveNumber();
+						if(node.belongingVariation.realGame){
+							var mn = node.numbers.variationMoveNumber;
+							gameModel.nodesByMoveNumber[mn] = node;
+							if(node.variationLastNode){
+								gameModel.gameEndingNode=node;
+							}
+						}
+					};
+
+					var node=newVariation0.nodes[0];
+					while(node){
+						setNodeMN.call(node,node);
+						if(node.variations){
+							for(var vi=0;vi<node.variations.length;vi++){
+								var tv=node.variations[vi];
+								tv.parentVariation=pVariation;
+
+								var variationCallback=null;
+								if(vi==0&&pVariation.realGame){
+									variationCallback=function(v){
+										if(v.index==0&&v.parentVariation.realGame){
+											v.realGame=true;
+										}
+									};
+								}
+								tv.traverseNodes(variationCallback,setNodeMN,null);
+							}
+							break;
+						}
+						node=node.nextNode;
+					}
+				}
+			}
+		}
+
+		if(removed){
+			this.gameModel.unindexNode(curNode);
+			this.game.playNode(baseNode);
+
+			if(this.game.onNodeRemoved){
+				this.game.onNodeRemoved(curNode,newVariation0);
+			}
+		}else if(changed){
+			if(this.game.onNodeChanged){
+				this.game.onNodeChanged(curNode);
+			}
 		}
 	},
 
@@ -268,6 +376,7 @@ Game.EditManager.prototype={
 			curNode.variations.push(newVariation);
 
 			newNode.belongingVariation=newVariation;
+			newNode.status.variationFirstNode=true;
 			newVariation.nodes.push(newNode);
 
 			curNode.setBranchPoints();
@@ -276,17 +385,13 @@ Game.EditManager.prototype={
 			curNode.variations=[];
 
 			var newVariation1=new Variation(curNode,variation);
-			newVariation1.index=0;
 			newVariation1.realGame=variation.realGame;
 			curNode.variations.push(newVariation1);
 			nextNode.belongingVariation=newVariation1;
-			if (!variation.realGame) {
-				nextNode.status.variationFirstNode=true;
-			}
+			nextNode.status.variationFirstNode=true;
 			newVariation1.nodes.push(nextNode);
 
 			var newVariation2=new Variation(curNode,variation);
-			newVariation2.index=1;
 			curNode.variations.push(newVariation2);
 			newNode.belongingVariation=newVariation2;
 			newNode.status.variationFirstNode=true;
@@ -294,8 +399,6 @@ Game.EditManager.prototype={
 
 			curNode.setBranchPoints();
 		}
-
-		newNode.status.variationLastNode=true;
 
 		newNode.setMoveNumber();
 		this.gameModel.indexNode(newNode);

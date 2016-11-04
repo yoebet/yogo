@@ -411,6 +411,7 @@ PositionBuilder.amendAddStone=function(game,node,point,color){
 PositionBuilder.amendRemoveStone=function(game,node,point){
 
 	var position=node.position;
+	point=point||node.move.point;
 	var x=point.x,y=point.y;
 	if(!position[x][y]){
 		yogo.logWarn('the point is empty','amend');

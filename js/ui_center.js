@@ -250,10 +250,12 @@ GameViewer.prototype = {
 		this.game.onNodeCreated = this.onNodeCreated.bind(this);
 
 		this.game.onNodeChanged = this.onNodeChanged.bind(this);
+
+		this.game.onNodeRemoved = this.onNodeRemoved.bind(this);
 	},
 
 	newGame : function() {
-		var gameModel=this.gameModel=GameModel.newModel(13);
+		var gameModel=this.gameModel=GameModel.newModel();
 
 		this.setupBoard();
 		this._initGame();
@@ -364,6 +366,12 @@ GameViewer.prototype = {
 	onNodeChanged : function(node) {
 		if (this.gameTree) {
 			this.gameTree.changeNodeInfo(node);
+		}
+	},
+
+	onNodeRemoved : function(node,newVariation0) {
+		if (this.gameTree) {
+			this.gameTree.removeNode(node,newVariation0);
 		}
 	}
 }

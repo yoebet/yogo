@@ -14,6 +14,7 @@ function Game(board, gameModel) {
 	this.onPlayNode = null;
 	this.onNodeCreated = null;
 	this.onNodeChanged = null;
+	this.onNodeRemoved = null;
 
 	this.nodeNavigator = new Game.NodeNavigator(this);
 	yogo.exportFunctions.call(this, this.nodeNavigator, [ 'gotoNextX',

@@ -48,6 +48,27 @@ GameModel.prototype = {
 		}
 	},
 
+	unindexNode : function(node){
+		this.nodeMap[node.id] = null;
+		if (node.status.move) {
+			var realGame = node.belongingVariation.realGame;
+			if (realGame) {
+				var point=node.move.point;
+				var pointMovesX=this.pointMovesMatrix[point.x];
+				var pointMoves = pointMovesX[point.y];
+				if (pointMoves) {
+					var index=pointMoves.indexOf(node);
+					if(index>=0){
+						pointMoves.splice(index,1);
+					}
+				}
+
+				var mn = node.numbers.variationMoveNumber;
+				this.nodesByMoveNumber[mn] = null;
+			}
+		}
+	},
+
 	traverseNodes : function(variationCallback, nodeCallback, context) {
 
 		var nodes = this.nodes;
@@ -231,6 +252,29 @@ Node.prototype = {
 		}
 	},
 
+	traverseSuccessorNodes : function(action) {
+		var node = this;
+		while (true) {
+			if (node.nextNode) {
+				node = node.nextNode;
+			} else if (node.variations) {
+				for (var vi = 0; vi < node.variations.length; vi++) {
+					var variation = node.variations[vi];
+					var goon = variation.traverseNodes(null,action,null);
+					if (goon === false) {
+						return false;
+					}
+				}
+			} else {
+				return true;
+			}
+			var goon = action.call(node, node);
+			if (goon === false) {
+				return false;
+			}
+		}
+	},
+
 	nextNodeAt : function(coor) {
 		var nextNode = this.nextNode;
 		if (nextNode&&nextNode.move.point) {
@@ -273,24 +317,14 @@ Node.prototype = {
 	},
 
 	setMoveNumber : function() {
-		var lastMoveNode = this.previousNode;
 		var playOrPass=this.status.move || this.status.pass;
 		var mns;
-		if (lastMoveNode) {
-			var lastNumbers = lastMoveNode.numbers;
-			if (playOrPass) {
-				mns = [ lastNumbers.displayMoveNumber + 1,
-						lastNumbers.variationMoveNumber + 1 ];
-			} else {
-				mns = [ lastNumbers.displayMoveNumber,
-						lastNumbers.variationMoveNumber ];
-			}
+		if (this.previousNode) {
+			var lastNumbers = this.previousNode.numbers;
+			mns = [ lastNumbers.displayMoveNumber + (playOrPass? 1:0),
+					lastNumbers.variationMoveNumber + (playOrPass? 1:0) ];
 		} else {
-			if (playOrPass) {
-				mns = [ 1, 1 ];
-			} else {
-				mns = [ 0, 0 ];
-			}
+			mns = playOrPass? [ 1, 1 ] : [ 0, 0 ];
 		}
 		var numbers=this.numbers = {
 			displayMoveNumber : mns[0],
@@ -299,18 +333,9 @@ Node.prototype = {
 
 		var thisVariation = this.belongingVariation;
 		var realGame = thisVariation.realGame;
-		if (this.status.variationFirstNode) {
-			if (playOrPass) {
-				if (!realGame&thisVariation.index>0) {
-					numbers.displayMoveNumber = 1;
-					numbers.variationMoveNumber = 1;
-				}
-			} else {
-				if (!realGame&thisVariation.index>0) {
-					numbers.displayMoveNumber = 0;
-					numbers.variationMoveNumber = 0;
-				}
-			}
+		if (this.status.variationFirstNode&&!realGame&&thisVariation.index>0) {
+			numbers.displayMoveNumber = playOrPass? 1:0;
+			numbers.variationMoveNumber = playOrPass? 1:0;
 		}
 		if (this.move['MN']) {
 			numbers.displayMoveNumber = node.move['MN'];
@@ -325,6 +350,7 @@ Node.prototype = {
 		var branchPoints = [];
 		for (var i = 0; i < variations.length; i++) {
 			var variation = variations[i];
+			variation.index=i;
 			var node0 = variation.nodes[0];
 			if (node0.status.move) {
 				var coordinate = node0.move.point;

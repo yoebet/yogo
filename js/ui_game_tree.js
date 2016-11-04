@@ -160,6 +160,8 @@ GameTree.prototype = {
 		var $treeNodeTmpl = ets.treeNode;
 		var $treeNode = $treeNodeTmpl.clone();
 		$treeNode.attr('id', node.id);
+		var moveNumber = node.numbers.variationMoveNumber;
+		$treeNode.data('mn', moveNumber);
 		this.setNodeInfo(node, $treeNode);
 		return $treeNode;
 	},
@@ -172,9 +174,8 @@ GameTree.prototype = {
 
 		$v = $variationTmpl.clone().attr('id', variation.id);
 		$variationHead = $variationHeadTmpl.clone();
-		var label = String.fromCharCode(65 + variation.index);
-		$variationHead.html(label);
 		$v.append($variationHead);
+		this.setVariationHead(variation,$variationHead);
 		var $treeNodes = $treeNodesTmpl.clone();
 		$v.append($treeNodes);
 
@@ -182,6 +183,15 @@ GameTree.prototype = {
 			$variation : $v,
 			$treeNodes : $treeNodes
 		};
+	},
+
+	setVariationHead : function(variation,$variationHead) {
+		if(!$variationHead){
+			var $variation=$('#'+variation.id,this.$container);
+			$variationHead=$variation.find('> .variation-head');
+		}
+		var label = String.fromCharCode(65 + variation.index);
+		$variationHead.html(label);
 	},
 
 	createNodeGroup : function(moveNumberFrom){
@@ -229,29 +239,32 @@ GameTree.prototype = {
 		}
 	},
 
+	_appendRealGameNode : function($treeNode) {
+		var moveNumber = $treeNode.data('mn');
+		if(moveNumber===0){
+			moveNumber=1;
+		}
+		var $treeNodes;
+		var groupStart=moveNumber-(moveNumber-1)%this.groupMoveCount;
+		var $nodeGroup=$('#node-group-'+groupStart,this.$container);
+		if($nodeGroup.length==0){
+			var $tree=$('.game-tree',this.$container);
+			var ng=this.createNodeGroup(groupStart);
+			$tree.append(ng.$nodeGroup);
+			$treeNodes = ng.$treeNodes;
+		}else{
+			$treeNodes=$('> .tree-nodes',$nodeGroup);
+		}
+		$treeNodes.append($treeNode);
+		this.setNodeGroupHead($nodeGroup,groupStart,moveNumber);
+	},
+
 	addNode : function(newNode) {
 		var $treeNode = this.createNode(newNode);
 
 		var variation=newNode.belongingVariation;
 		if(variation.realGame){
-			var moveNumber = newNode.numbers.variationMoveNumber;
-			if(moveNumber===0){
-				moveNumber=1;
-			}
-			var $treeNodes;
-			var groupStart=moveNumber-(moveNumber-1)%this.groupMoveCount;
-			var $nodeGroup=$('#'+'node-group-'+groupStart,this.$container);
-			if($nodeGroup.length==0){
-				var $tree=$('.game-tree',this.$container);
-				var ng=this.createNodeGroup(groupStart);
-				$tree.append(ng.$nodeGroup);
-				$treeNodes = ng.$treeNodes;
-			}else{
-				$treeNodes=$('> .tree-nodes',$nodeGroup);
-			}
-			$treeNodes.append($treeNode);
-			this.setNodeGroupHead($nodeGroup,groupStart,moveNumber);
-
+			this._appendRealGameNode($treeNode);
 			this.showNode(newNode.id);
 			return;
 		}
@@ -286,8 +299,78 @@ GameTree.prototype = {
 		this.showNode(newNode.id);
 	},
 
+	removeNode : function(node,newVariation0) {
+		if(!node.status.variationLastNode){
+			return false;
+		}
+
+		if(!node.status.variationFirstNode){
+			var $node = $('#' + node.id, this.$container);
+			$node.remove();
+			return;
+		}
+
+		var baseNode=node.previousNode;
+		var variation=node.belongingVariation;
+		if(variation.index==0){
+			var $node = $('#' + node.id, this.$container);
+			$node.remove();
+		}else{
+			var $variation=$('#'+variation.id,this.$container);
+			$variation.remove();
+		}
+
+		if(baseNode.variations){
+			for(var i=0;i<baseNode.variations.length;i++){
+				var v=baseNode.variations[i];
+				this.setVariationHead(v);
+			}
+		}
+
+		if(!newVariation0){
+			return;
+		}
+
+		var $newVariation0=$('#'+newVariation0.id,this.$container);
+		var $remainVariationNodes=$newVariation0.find('> .tree-nodes > li');
+		$newVariation0.detach();
+
+		var gameTree=this;
+		var gameModel=this.gameModel;
+		var node0=newVariation0.nodes[0];
+		if(node0.belongingVariation.realGame){
+			var gt=this;
+			var $lastNode;
+			$remainVariationNodes.each(function(){
+				var $li=$(this);
+				if($li.is('.tree-node')){
+					gt._appendRealGameNode($li);
+					$lastNode=$li;
+					var node=gameModel.nodeMap[this.id];
+					gameTree.setNodeInfo(node, $li);
+				}else{//.variation
+					$lastNode.after($li);
+				}
+			});
+		}else{
+			var cv=baseNode.belongingVariation;
+			while(cv.index===0){
+				cv=cv.parentVariation;
+			}
+			var $container=$('#'+cv.id+ '> .tree-nodes',this.$container);
+			$container.append($remainVariationNodes);
+			$remainVariationNodes.each(function(){
+				var $li=$(this);
+				if($li.is('.tree-node')){
+					var node=gameModel.nodeMap[this.id];
+					gameTree.setNodeInfo(node, $li);
+				}
+			});
+		}
+	},
+
 	changeNodeInfo : function(node) {
-		$node = $('#' + node.id, this.$container);
+		var $node = $('#' + node.id, this.$container);
 		if ($node.length == 0) {
 			return;
 		}
