@@ -64,7 +64,6 @@ function Board(boardContainer, boardSizeOrSetting, paper) {
 			'setLabels', 'removeLabel', 'removeAllLabels',
 			'removeBranchPointLabels' ]);
 
-
 	this.pointClickHandler = function(coor, elementType) {
 		yogo.logWarn('pointClickHandler not set', 'board');
 	};
@@ -73,12 +72,12 @@ function Board(boardContainer, boardSizeOrSetting, paper) {
 		yogo.logWarn('pointMouseupHandler not set', 'board');
 	};
 
-	var theBoard=this;
+	var theBoard = this;
 	this._pointClickHandler = function(e) {
 		theBoard.pointClickHandler(this.data('coor'));
 	};
 	this._pointMouseupHandler = function(e) {
-		if(e.which===1){
+		if (e.which === 1) {
 			return false;
 		}
 		theBoard.pointMouseupHandler(this.data('coor'), e.which);
@@ -144,19 +143,20 @@ Board.prototype = {
 		var maskClickHandler = function(e) {
 			var oriCoor = this.data('coor');
 			if (board.reversed || board.rotate90 > 0) {
-				oriCoor = coordinateManager._reverseTransformCoor(oriCoor, false);
+				oriCoor = coordinateManager._reverseTransformCoor(oriCoor,
+						false);
 			}
-			if(e.which===1){
+			if (e.which === 1) {
 				board.pointClickHandler(oriCoor);
-			}else{
+			} else {
 				board.pointMouseupHandler(oriCoor, e.which);
 			}
 		};
-		var maskMouseupHandler=function(e){
-			if(e.which===1){
+		var maskMouseupHandler = function(e) {
+			if (e.which === 1) {
 				return false;
 			}
-			maskClickHandler.call(this,e);
+			maskClickHandler.call(this, e);
 		};
 
 		var maskRadius = gridWidth / 2;
@@ -168,8 +168,12 @@ Board.prototype = {
 				};
 				var vbCoor = this.coordinateManager
 						.boardCoorToViewBoxCoor(coor);
-				var mask = paper.rect(vbCoor.x-maskRadius, vbCoor.y-maskRadius,
-				 gridWidth, gridWidth).attr({'stroke-width':0,fill : 'white','fill-opacity' : 0})
+				var mask = paper.rect(vbCoor.x - maskRadius,
+						vbCoor.y - maskRadius, gridWidth, gridWidth).attr({
+					'stroke-width' : 0,
+					fill : 'white',
+					'fill-opacity' : 0
+				})
 				mask.data('coor', coor);
 				mask.click(maskClickHandler);
 				mask.mouseup(maskMouseupHandler);
@@ -185,10 +189,13 @@ Board.prototype = {
 	clearBoard : function() {
 		for (var x = 0; x < this.pointStatusMatrix.length; x++) {
 			var pointStatusX = this.pointStatusMatrix[x];
-			for (var y=0;y<pointStatusX.length;y++) {
+			for (var y = 0; y < pointStatusX.length; y++) {
 				var pointStatus = pointStatusX[y];
-				if (pointStatus&&pointStatus.color) {
-					this.removeStone({x:x,y:y});
+				if (pointStatus && pointStatus.color) {
+					this.removeStone({
+						x : x,
+						y : y
+					});
 				}
 			}
 		}

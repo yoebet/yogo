@@ -148,10 +148,6 @@ SgfParser.prototype = {
 						&& previousNode.belongingVariation === curVariation) {
 					previousNode.nextNode = curNode;
 				}
-				if (!previousNode
-						|| previousNode.belongingVariation !== curVariation) {
-					curNode.status.variationFirstNode = true;
-				}
 				curVariation.nodes.push(curNode);
 				tokenState = 'inProp';
 			} else if (token == '[') {
@@ -228,7 +224,7 @@ SgfParser.prototype = {
 					propValue = parser.propertyTypeConvert(propValue, type,
 							gameModel.boardSize);
 
-					if (!node[group]){
+					if (!node[group]) {
 						node[group] = {};
 					}
 					node[group][name] = propValue;
@@ -237,14 +233,8 @@ SgfParser.prototype = {
 				node.status.move = !!(node.move['W'] || node.move['B']);
 				node.status.pass = node.move['W'] === null
 						|| node.move === null;
-				node.status.setup = !!node.setup;
-				node.status.comment = !!(node.basic && node.basic['C']);
-				node.status.remark = !!node.remark;
-				node.status.mark = !!node.marks;
 
-
-				if (!node.nextNode && !node.variations) {
-					node.status.variationLastNode = true;
+				if (node.isVariationLastNode()) {
 					var realGame = node.belongingVariation.realGame;
 					if (realGame) {
 						gameModel.gameEndingNode = node;

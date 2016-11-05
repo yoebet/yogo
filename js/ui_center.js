@@ -29,13 +29,13 @@ GameViewer.prototype = {
 			if (!sgfText.trim()) {
 				return;
 			}
-			//TODO: save current
+			// TODO: save current
 
 			viewer.loadGameFromSgfText(sgfText);
 		});
 
 		$('button.new-game', $v).click(function() {
-			//TODO: save current
+			// TODO: save current
 
 			viewer.newGame();
 		});
@@ -76,7 +76,7 @@ GameViewer.prototype = {
 			}
 			var mode = $(this).val();
 			var param = $(this).data('param');
-			viewer.game.setEditMode(mode,param);
+			viewer.game.setEditMode(mode, param);
 		});
 
 		$('.goto-node', $v).click(function() {
@@ -168,16 +168,14 @@ GameViewer.prototype = {
 			viewer.board.zoomBoard(zoom);
 		});
 
-
-		var $treeContainer=$('.game-tree-container', $v);
+		var $treeContainer = $('.game-tree-container', $v);
 		$treeContainer.on('click', 'li.node-group-head, li.variation-head',
-			function() {
-				var $treeNodes = $(this).next();
-				$treeNodes.toggle(200);
-			}).on('click','li.tree-node',
-			function() {
-				viewer.game.gotoNode(this.id);
-			});
+				function() {
+					var $treeNodes = $(this).next();
+					$treeNodes.toggle(200);
+				}).on('click', 'li.tree-node', function() {
+			viewer.game.gotoNode(this.id);
+		});
 
 		$('button.collapse-nodes', $treeContainer).click(function() {
 			if (!viewer.gameTree) {
@@ -187,7 +185,7 @@ GameViewer.prototype = {
 		});
 
 		$('button.scroll-into-view', $treeContainer).click(function() {
-			if (!viewer.gameTree||!viewer.game) {
+			if (!viewer.gameTree || !viewer.game) {
 				return;
 			}
 			viewer.gameTree.showNode(viewer.game.curNode.id, true);
@@ -255,7 +253,7 @@ GameViewer.prototype = {
 	},
 
 	newGame : function() {
-		var gameModel=this.gameModel=GameModel.newModel();
+		var gameModel = this.gameModel = GameModel.newModel();
 
 		this.setupBoard();
 		this._initGame();
@@ -264,7 +262,7 @@ GameViewer.prototype = {
 			this.gameTree.showNode(gameModel.nodes[0].id);
 		}
 
-		$('input.game-op-mode[value=edit]',this.$v).click();
+		$('input.game-op-mode[value=edit]', this.$v).click();
 	},
 
 	loadGameFromSgfText : function(sgfText) {
@@ -280,7 +278,7 @@ GameViewer.prototype = {
 
 		this._initGame();
 
-		$('input.game-op-mode[value=view]',this.$v).click();
+		$('input.game-op-mode[value=view]', this.$v).click();
 	},
 
 	setupBoard : function() {
@@ -290,17 +288,17 @@ GameViewer.prototype = {
 			return;
 		}
 
-		if(this.board&&this.board.boardSize===this.gameModel.boardSize){
+		if (this.board && this.board.boardSize === this.gameModel.boardSize) {
 			this.board.clearBoard();
 			return;
 		}
 
 		var existedPaper = this.game && this.game.board.paper;
 
-		var $boardContainer=$(".board-container", $v);
-	    $boardContainer.bind('contextmenu',function(){
-	        return false;
-	    });
+		var $boardContainer = $(".board-container", $v);
+		$boardContainer.bind('contextmenu', function() {
+			return false;
+		});
 		this.board = new Board($boardContainer.get(0),
 				this.gameModel.boardSize, existedPaper);
 
@@ -369,9 +367,9 @@ GameViewer.prototype = {
 		}
 	},
 
-	onNodeRemoved : function(node,newVariation0) {
+	onNodeRemoved : function(node, newVariation0) {
 		if (this.gameTree) {
-			this.gameTree.removeLastNode(node,newVariation0);
+			this.gameTree.removeLastNode(node, newVariation0);
 		}
 	}
 }

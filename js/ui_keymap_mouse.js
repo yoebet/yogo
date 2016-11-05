@@ -1,4 +1,4 @@
-GameViewer.prototype.keydownHandler=function(event) {
+GameViewer.prototype.keydownHandler = function(event) {
 	var game = this.game;
 	var ctrlKey = event.ctrlKey || event.metaKey;
 	switch (event.keyCode) {
@@ -25,7 +25,7 @@ GameViewer.prototype.keydownHandler=function(event) {
 				game.gotoNode(node);
 			}
 		} else {
-			if (curNode.status.variationFirstNode) {
+			if (curNode.isVariationFirstNode()) {
 				var variation = curNode.belongingVariation;
 				var previousVariation = variation.previousVariation();
 				var pvNode = previousVariation.nodes[0];
@@ -44,7 +44,7 @@ GameViewer.prototype.keydownHandler=function(event) {
 				game.gotoNode(node);
 			}
 		} else {
-			if (curNode.status.variationLastNode) {
+			if (curNode.isVariationLastNode()) {
 				var variation = curNode.belongingVariation;
 				var nextVariation = variation.nextVariation();
 				var nvNode = nextVariation.nodes[0];
@@ -60,17 +60,17 @@ GameViewer.prototype.keydownHandler=function(event) {
 	return true;
 };
 
-GameViewer.prototype.mousewheelHandler=function(event) {
+GameViewer.prototype.mousewheelHandler = function(event) {
 	event.preventDefault();
-	if(!this._lastWheelTS){
-		this._lastWheelTS=new Date().getTime();
-	}else{
-		var now=new Date().getTime();
-		var msDiff=now-this._lastWheelTS;
-		if(msDiff<100){
+	if (!this._lastWheelTS) {
+		this._lastWheelTS = new Date().getTime();
+	} else {
+		var now = new Date().getTime();
+		var msDiff = now - this._lastWheelTS;
+		if (msDiff < 100) {
 			return false;
 		}
-		this._lastWheelTS=now;
+		this._lastWheelTS = now;
 	}
 	var game = this.game;
 	if (!event.wheelDelta && event.originalEvent) {

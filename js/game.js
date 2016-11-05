@@ -29,8 +29,7 @@ function Game(board, gameModel) {
 			'setShowMoveNumber', 'hideMoveNumbers', 'handleMoveNumbers' ]);
 
 	this.editManager = new Game.EditManager(this);
-	yogo.exportFunctions.call(this, this.editManager, [
-			'setEditMode' ]);
+	yogo.exportFunctions.call(this, this.editManager, [ 'setEditMode' ]);
 }
 
 Game.prototype = {
@@ -49,13 +48,13 @@ Game.prototype = {
 				return false;
 			}
 			if (lastNode.nextNode == curNode && !curNode.status.capture
-					&& !curNode.status.setup) {
+					&& !curNode.isSetup()) {
 				var movePoint = curNode.move.point;
 				if (movePoint) {
 					board.placeStone(movePoint, curNode.move.color);
 				}
 			} else if (lastNode.previousNode == curNode
-					&& !lastNode.status.capture && !lastNode.status.setup) {
+					&& !lastNode.status.capture && !lastNode.isSetup()) {
 				var movePoint = lastNode.move.point;
 				if (movePoint) {
 					board.removeStone(movePoint);
@@ -84,7 +83,7 @@ Game.prototype = {
 			var success = positionBuilder.buildPosition();
 			if (success === false) {
 				context.push(node);
-				yogo.logWarn('invalid, node '+node.id,'buildPosition');
+				yogo.logWarn('invalid, node ' + node.id, 'buildPosition');
 			}
 		};
 		var invalidMoves = [];
@@ -98,7 +97,7 @@ Game.prototype = {
 
 	_boardClickView : function(coor) {
 		var nextNode = this.curNode.nextNodeAt(coor);
-		if(nextNode){
+		if (nextNode) {
 			this.playNode(nextNode);
 		}
 	},
@@ -110,7 +109,7 @@ Game.prototype = {
 			nodeInRealGame = pointMoves[0];
 			for (var i = 1; i < pointMoves.length; i++) {
 				var node = pointMoves[i];
-				if (node.numbers.globalMoveNumber <= this.curNode.numbers.globalMoveNumber) {
+				if (node.move.globalMoveNumber <= this.curNode.move.globalMoveNumber) {
 					nodeInRealGame = node;
 				} else {
 					break;
@@ -140,7 +139,7 @@ Game.prototype = {
 		}
 		if (nodeInRealGame) {
 			var rgbn = this.curNode.belongingVariation.realGameBaseNode();
-			if (nodeInRealGame.numbers.globalMoveNumber <= rgbn.numbers.globalMoveNumber) {
+			if (nodeInRealGame.move.globalMoveNumber <= rgbn.move.globalMoveNumber) {
 				this.playNode(nodeInRealGame);
 				return;
 			}
@@ -175,7 +174,8 @@ Game.prototype = {
 	},
 
 	onBoardMouseup : function(coor, mousekey) {
-		yogo.logInfo('(' + coor.x + ',' + coor.y + ') mouseup, mousekey: '+mousekey, 'board');
+		yogo.logInfo('(' + coor.x + ',' + coor.y + ') mouseup, mousekey: '
+				+ mousekey, 'board');
 		if (this.mode === 'edit') {
 			this.editManager.onBoardMouseup(coor, mousekey);
 			return;

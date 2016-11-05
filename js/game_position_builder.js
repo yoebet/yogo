@@ -340,7 +340,7 @@ PositionBuilder.prototype = {
 		if (curNode.status.move) {
 			success = this.evaluateMove();
 		}
-		if (curNode.status.setup) {
+		if (curNode.isSetup()) {
 			if (curNode.setup['AB']) {
 				this.addStones(curNode.setup['AB'], 'B', true);
 			}
@@ -384,47 +384,47 @@ PositionBuilder.prototype = {
 	}
 };
 
-PositionBuilder.amendAddStone=function(game,node,point,color){
+PositionBuilder.amendAddStone = function(game, node, point, color) {
 
-	var position=node.position;
-	var x=point.x,y=point.y;
-	if(position[x][y]){
-		yogo.logWarn('the point is not empty','amend');
+	var position = node.position;
+	var x = point.x, y = point.y;
+	if (position[x][y]) {
+		yogo.logWarn('the point is not empty', 'amend');
 		return;
 	}
 
-	var positionX=position[x];
-	var newPositionX=[];
+	var positionX = position[x];
+	var newPositionX = [];
 	for (var yi = 0; yi < positionX.length; yi++) {
 		newPositionX[yi] = positionX[yi];
 	}
 	newPositionX[y] = {
-			color : color,
-			node : node
-		};
-	position[x]=newPositionX;
+		color : color,
+		node : node
+	};
+	position[x] = newPositionX;
 
 	var board = game.board;
 	board.placeStone(point, color);
 };
 
-PositionBuilder.amendRemoveStone=function(game,node,point){
+PositionBuilder.amendRemoveStone = function(game, node, point) {
 
-	var position=node.position;
-	point=point||node.move.point;
-	var x=point.x,y=point.y;
-	if(!position[x][y]){
-		yogo.logWarn('the point is empty','amend');
+	var position = node.position;
+	point = point || node.move.point;
+	var x = point.x, y = point.y;
+	if (!position[x][y]) {
+		yogo.logWarn('the point is empty', 'amend');
 		return;
 	}
 
-	var positionX=position[x];
-	var newPositionX=[];
+	var positionX = position[x];
+	var newPositionX = [];
 	for (var yi = 0; yi < positionX.length; yi++) {
 		newPositionX[yi] = positionX[yi];
 	}
 	newPositionX[y] = null;
-	position[x]=newPositionX;
+	position[x] = newPositionX;
 
 	var board = game.board;
 	board.removeStone(point);

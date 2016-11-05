@@ -60,23 +60,23 @@ yogo = {
 		return rangePoints;
 	},
 
-	findPoint : function(coorArray,coor){
-		for(var i=0;i<coorArray.length;i++){
-			var c=coorArray[i];
-			if(c.x===coor.x&&c.y===coor.y){
+	findPoint : function(coorArray, coor) {
+		for (var i = 0; i < coorArray.length; i++) {
+			var c = coorArray[i];
+			if (c.x === coor.x && c.y === coor.y) {
 				return i;
 			}
 		}
 		return -1;
 	},
 
-	removePoint : function(coorArray,coor){
-		if(!coorArray){
+	removePoint : function(coorArray, coor) {
+		if (!coorArray) {
 			return false;
 		}
-		var index=yogo.findPoint(coorArray,coor);
-		if(index>=0){
-			coorArray.splice(index,1);
+		var index = yogo.findPoint(coorArray, coor);
+		if (index >= 0) {
+			coorArray.splice(index, 1);
 			return true;
 		}
 		return false;

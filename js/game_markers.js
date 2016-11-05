@@ -30,7 +30,7 @@ Game.Markers.prototype = {
 			board.markCurrentMove(null);
 		}
 
-		if (curNode.status.mark) {
+		if (curNode.hasMarks()) {
 			if (curNode.marks['LB']) {
 				board.setLabels(curNode.marks['LB']);
 			}
@@ -92,7 +92,7 @@ Game.Markers.prototype = {
 					continue;
 				}
 				var point = branchPoints[i];
-				if(point.x>51){
+				if (point.x > 51) {
 					continue;
 				}
 				var label = String.fromCharCode(65 + i);
@@ -112,8 +112,8 @@ Game.Markers.prototype = {
 			this.showMoveNumberCount = show;
 			this.showMoveNumber = show > 0;
 		} else if (show === 'all') {
-			var bz=this.board.boardSize;
-			this.showMoveNumberCount = bz*bz+100;
+			var bz = this.board.boardSize;
+			this.showMoveNumberCount = bz * bz + 100;
 			this.showMoveNumber = true;
 		} else if (typeof (show) === 'string') {
 
@@ -146,7 +146,7 @@ Game.Markers.prototype = {
 		var mod;
 		if (this.moveNumberMod) {
 			mod = count;
-			count = this.game.curNode.numbers.displayMoveNumber % mod;
+			count = this.game.curNode.move.displayMoveNumber % mod;
 			if (count == 0) {
 				count = mod;
 			}
@@ -159,7 +159,7 @@ Game.Markers.prototype = {
 			if (point) {
 				var pointCurStatus = curPosition[point.x][point.y];
 				if (pointCurStatus && pointCurStatus.node === node) {
-					var moveNumber = node.numbers.displayMoveNumber;
+					var moveNumber = node.move.displayMoveNumber;
 					if (this.moveNumberMod) {
 						moveNumber = moveNumber % mod;
 						if (moveNumber == 0) {
@@ -179,7 +179,7 @@ Game.Markers.prototype = {
 				}
 			}
 			if (!variation.realGame
-					&& (node.status.variationFirstNode && node.belongingVariation.index>0)) {
+					&& (node.isVariationFirstNode() && node.belongingVariation.index > 0)) {
 				break;
 			}
 			node = node.previousNode;
@@ -198,7 +198,7 @@ Game.Markers.prototype = {
 	handleMoveNumbers : function() {
 		var board = this.board;
 		var curNode = this.game.curNode;
-		if (curNode.status.mark) {
+		if (curNode.hasMarks()) {
 			this.hideMoveNumberTemporarily = true;
 			this.hideMoveNumbers();
 			return;

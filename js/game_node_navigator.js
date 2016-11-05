@@ -8,17 +8,8 @@ Game.NodeNavigator = function(game) {
 	var hasVariation = function(node) {
 		return !!node.variations;
 	};
-	var hasComment = function(node) {
-		return node.status.comment;
-	};
 	var hasCommentOrVariation = function(node) {
-		return node.status.comment || !!node.variations;
-	};
-	var hasRemark = function(node) {
-		return node.status.remark;
-	};
-	var hasMarks = function(node) {
-		return node.status.mark;
+		return node.hasComment() || !!node.variations;
 	};
 	var isKo = function(node) {
 		var s = node.status;
@@ -39,16 +30,16 @@ Game.NodeNavigator = function(game) {
 		predicate : hasVariation
 	}, {
 		name : 'Comment',
-		predicate : hasComment
+		predicate : Node.prototype.hasComment
 	}, {
 		name : 'CommentOrBranch',
 		predicate : hasCommentOrVariation
 	}, {
 		name : 'Remark',
-		predicate : hasRemark
+		predicate : Node.prototype.hasRemark
 	}, {
 		name : 'Marks',
-		predicate : hasMarks
+		predicate : Node.prototype.hasMarks
 	}, {
 		name : 'Ko',
 		predicate : isKo
@@ -171,11 +162,11 @@ Game.NodeNavigator.prototype = {
 		if (this.game.inRealGame()) {
 			return false;
 		}
-		if (this.game.curNode.status.variationFirstNode) {
+		if (this.game.curNode.isVariationFirstNode()) {
 			return false;
 		}
 		return this.gotoLastX(function(node) {
-			return node.status.variationFirstNode;
+			return node.isVariationFirstNode();
 		});
 	},
 
@@ -183,11 +174,11 @@ Game.NodeNavigator.prototype = {
 		if (this.game.inRealGame()) {
 			return false;
 		}
-		if (this.game.curNode.status.variationLastNode) {
+		if (this.game.curNode.isVariationLastNode()) {
 			return false;
 		}
 		return this.gotoNextX(function(node) {
-			return node.status.variationLastNode;
+			return node.isVariationLastNode();
 		});
 	},
 

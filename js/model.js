@@ -10,30 +10,30 @@ function GameModel() {
 	this.gameEndingNode = null;
 }
 
-GameModel.newModel=function(boardSize){
+GameModel.newModel = function(boardSize) {
 
-	var gameModel=new GameModel();
-	gameModel.boardSize=boardSize||19;
+	var gameModel = new GameModel();
+	gameModel.boardSize = boardSize || 19;
 	for (var x = 0; x < gameModel.boardSize; x++) {
 		gameModel.pointMovesMatrix[x] = [];
 	}
 
-	var firstNode=new Node(null,gameModel);
+	var firstNode = new Node(null, gameModel);
 	gameModel.indexNode(firstNode);
-	gameModel.nodes[0]=firstNode;
-	gameModel.gameEndingNode=firstNode;
+	gameModel.nodes[0] = firstNode;
+	gameModel.gameEndingNode = firstNode;
 	return gameModel;
 }
 
 GameModel.prototype = {
 
-	indexNode : function(node){
+	indexNode : function(node) {
 		this.nodeMap[node.id] = node;
 		if (node.status.move) {
 			var realGame = node.belongingVariation.realGame;
 			if (realGame) {
-				var point=node.move.point;
-				var pointMovesX=this.pointMovesMatrix[point.x];
+				var point = node.move.point;
+				var pointMovesX = this.pointMovesMatrix[point.x];
 				var pointMoves = pointMovesX[point.y];
 				if (pointMoves) {
 					pointMoves.push(node);
@@ -42,28 +42,28 @@ GameModel.prototype = {
 					pointMovesX[point.y] = pointMoves;
 				}
 
-				var mn = node.numbers.variationMoveNumber;
+				var mn = node.move.variationMoveNumber;
 				this.nodesByMoveNumber[mn] = node;
 			}
 		}
 	},
 
-	unindexNode : function(node){
+	unindexNode : function(node) {
 		this.nodeMap[node.id] = null;
 		if (node.status.move) {
 			var realGame = node.belongingVariation.realGame;
 			if (realGame) {
-				var point=node.move.point;
-				var pointMovesX=this.pointMovesMatrix[point.x];
+				var point = node.move.point;
+				var pointMovesX = this.pointMovesMatrix[point.x];
 				var pointMoves = pointMovesX[point.y];
 				if (pointMoves) {
-					var index=pointMoves.indexOf(node);
-					if(index>=0){
-						pointMoves.splice(index,1);
+					var index = pointMoves.indexOf(node);
+					if (index >= 0) {
+						pointMoves.splice(index, 1);
 					}
 				}
 
-				var mn = node.numbers.variationMoveNumber;
+				var mn = node.move.variationMoveNumber;
 				this.nodesByMoveNumber[mn] = null;
 			}
 		}
@@ -143,7 +143,7 @@ Variation.prototype = {
 		}
 		return variations[nextVindex];
 	},
-	
+
 	previousVariation : function() {
 		var variations = this.baseNode.variations;
 		var nextVindex = (this.index - 1 + variations.length)
@@ -153,7 +153,7 @@ Variation.prototype = {
 		}
 		return variations[nextVindex];
 	},
-	
+
 	realGameBaseNode : function() {
 		var variation = this;
 		while (variation && !variation.realGame) {
@@ -177,17 +177,41 @@ function Node(previousNode, belongingVariation) {
 	this.props = {};
 	this.basic = {};
 	this.move = {};
-	this.status = {variationLastNode:true};
+	this.status = {};
 	this.id = 'n' + yogo.nextuid();
 	this.position = null;
 
-	if(!previousNode){
-		this.status.variationFirstNode=true;
+	if (!previousNode) {
 		this.setMoveNumber();
 	}
 }
 
 Node.prototype = {
+
+	isVariationFirstNode : function() {
+		var pn = this.previousNode;
+		return !pn || pn.belongingVariation !== this.belongingVariation;
+	},
+
+	isVariationLastNode : function() {
+		return !this.nextNode && !this.variations;
+	},
+
+	isSetup : function() {
+		return !!this.setup;
+	},
+
+	hasComment : function() {
+		return !!(this.basic && this.basic['C']);
+	},
+
+	hasMarks : function() {
+		return !!this.marks;
+	},
+
+	hasRemark : function() {
+		return !!this.remark;
+	},
 
 	findNodeInAncestors : function(predicate) {
 		var node = this;
@@ -260,7 +284,7 @@ Node.prototype = {
 			} else if (node.variations) {
 				for (var vi = 0; vi < node.variations.length; vi++) {
 					var variation = node.variations[vi];
-					var goon = variation.traverseNodes(null,action,null);
+					var goon = variation.traverseNodes(null, action, null);
 					if (goon === false) {
 						return false;
 					}
@@ -277,7 +301,7 @@ Node.prototype = {
 
 	nextNodeAt : function(coor) {
 		var nextNode = this.nextNode;
-		if (nextNode&&nextNode.move.point) {
+		if (nextNode && nextNode.move.point) {
 			var point = nextNode.move.point;
 			if (coor.x === point.x && coor.y === point.y) {
 				return nextNode;
@@ -298,47 +322,47 @@ Node.prototype = {
 
 	newMoveColor : function() {
 		var color;
-		if(this.move['PL']){
-			color=this.move['PL'];
-		}else if(this.move.color){
-			color=this.move.color;
-			color=(color==='B')? 'W':'B';
-		}else if(this.status.pass){
-			var pn=this.previousNode;
-			if(pn&&pn.move.color){
-				color=this.move.color;
+		if (this.move['PL']) {
+			color = this.move['PL'];
+		} else if (this.move.color) {
+			color = this.move.color;
+			color = (color === 'B') ? 'W' : 'B';
+		} else if (this.status.pass) {
+			var pn = this.previousNode;
+			if (pn && pn.move.color) {
+				color = this.move.color;
 			}
 		}
-		//TODO: handicap
-		if(!color){
-			color='B';
+		// TODO: handicap
+		if (!color) {
+			color = 'B';
 		}
 		return color;
 	},
 
 	setMoveNumber : function() {
-		var playOrPass=this.status.move || this.status.pass;
+		var playOrPass = this.status.move || this.status.pass;
 		var mns;
 		if (this.previousNode) {
-			var lastNumbers = this.previousNode.numbers;
-			mns = [ lastNumbers.displayMoveNumber + (playOrPass? 1:0),
-					lastNumbers.variationMoveNumber + (playOrPass? 1:0) ];
+			var lastMove = this.previousNode.move;
+			mns = [ lastMove.displayMoveNumber + (playOrPass ? 1 : 0),
+					lastMove.variationMoveNumber + (playOrPass ? 1 : 0) ];
 		} else {
-			mns = playOrPass? [ 1, 1 ] : [ 0, 0 ];
+			mns = playOrPass ? [ 1, 1 ] : [ 0, 0 ];
 		}
-		var numbers=this.numbers = {
-			displayMoveNumber : mns[0],
-			variationMoveNumber : mns[1]
-		};
+
+		this.move.displayMoveNumber = mns[0];
+		this.move.variationMoveNumber = mns[1];
 
 		var thisVariation = this.belongingVariation;
 		var realGame = thisVariation.realGame;
-		if (this.status.variationFirstNode&&!realGame&&thisVariation.index>0) {
-			numbers.displayMoveNumber = playOrPass? 1:0;
-			numbers.variationMoveNumber = playOrPass? 1:0;
+		if (this.isVariationFirstNode() && !realGame && thisVariation.index > 0) {
+			this.move.displayMoveNumber = playOrPass ? 1 : 0;
+			this.move.variationMoveNumber = playOrPass ? 1 : 0;
 		}
+
 		if (this.move['MN']) {
-			numbers.displayMoveNumber = node.move['MN'];
+			this.move.displayMoveNumber = node.move['MN'];
 		}
 	},
 
@@ -350,13 +374,16 @@ Node.prototype = {
 		var branchPoints = [];
 		for (var i = 0; i < variations.length; i++) {
 			var variation = variations[i];
-			variation.index=i;
+			variation.index = i;
 			var node0 = variation.nodes[0];
 			if (node0.status.move) {
 				var coordinate = node0.move.point;
 				branchPoints.push(coordinate);
-			}else{
-				branchPoints.push({x:52,y:52});
+			} else {
+				branchPoints.push({
+					x : 52,
+					y : 52
+				});
 			}
 		}
 		this.branchPoints = branchPoints;
@@ -364,7 +391,7 @@ Node.prototype = {
 
 	diffPosition : function(fromNode) {
 		var fromPosition = fromNode.position;
-		var toPosition=this.position;
+		var toPosition = this.position;
 		var stonesToRemove = [];
 		var stonesToAddW = [];
 		var stonesToAddB = [];
