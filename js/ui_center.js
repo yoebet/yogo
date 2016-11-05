@@ -371,7 +371,7 @@ GameViewer.prototype = {
 
 	onNodeRemoved : function(node,newVariation0) {
 		if (this.gameTree) {
-			this.gameTree.removeNode(node,newVariation0);
+			this.gameTree.removeLastNode(node,newVariation0);
 		}
 	}
 }

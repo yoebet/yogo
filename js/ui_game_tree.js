@@ -123,8 +123,9 @@ GameTree.prototype = {
 		}
 		var move = '';
 		if (node.status.move) {
-			// move=node.props['B']||node.props['W'];
 			$treeNode.addClass((node.move.color == 'B') ? 'black' : 'white');
+			var point=node.move.point;
+			//move=' ('+node.id+') ['+(point.x+1)+','+(point.y+1)+']';
 		} else if (node.status.pass) {
 			move = 'pass';
 		} else if (node.status.setup) {
@@ -153,6 +154,9 @@ GameTree.prototype = {
 			nodeName=nodeName.substr(1);
 		}
 		$treeNode.find('.node-info').html(nodeInfo);
+
+		var moveNumber = node.numbers.variationMoveNumber;
+		$treeNode.data('mn', moveNumber);
 	},
 
 	createNode : function(node){
@@ -252,6 +256,7 @@ GameTree.prototype = {
 			var ng=this.createNodeGroup(groupStart);
 			$tree.append(ng.$nodeGroup);
 			$treeNodes = ng.$treeNodes;
+			$nodeGroup=ng.$nodeGroup;
 		}else{
 			$treeNodes=$('> .tree-nodes',$nodeGroup);
 		}
@@ -299,7 +304,7 @@ GameTree.prototype = {
 		this.showNode(newNode.id);
 	},
 
-	removeNode : function(node,newVariation0) {
+	removeLastNode : function(node,newVariation0) {
 		if(!node.status.variationLastNode){
 			return false;
 		}
@@ -307,6 +312,15 @@ GameTree.prototype = {
 		if(!node.status.variationFirstNode){
 			var $node = $('#' + node.id, this.$container);
 			$node.remove();
+			if(node.status.move||node.status.pass){
+				var moveNumber = node.numbers.variationMoveNumber;
+				var groupStart=moveNumber-(moveNumber-1)%this.groupMoveCount;
+				var $nodeGroup=$('#node-group-'+groupStart,this.$container);
+				var $nodes=$nodeGroup.find(' > ul.tree-nodes > li.tree-node');
+				if($nodes.length==0){
+					$nodeGroup.remove();
+				}
+			}
 			return;
 		}
 
@@ -344,10 +358,10 @@ GameTree.prototype = {
 			$remainVariationNodes.each(function(){
 				var $li=$(this);
 				if($li.is('.tree-node')){
-					gt._appendRealGameNode($li);
-					$lastNode=$li;
 					var node=gameModel.nodeMap[this.id];
 					gameTree.setNodeInfo(node, $li);
+					gt._appendRealGameNode($li);
+					$lastNode=$li;
 				}else{//.variation
 					$lastNode.after($li);
 				}
@@ -358,7 +372,6 @@ GameTree.prototype = {
 				cv=cv.parentVariation;
 			}
 			var $container=$('#'+cv.id+ '> .tree-nodes',this.$container);
-			$container.append($remainVariationNodes);
 			$remainVariationNodes.each(function(){
 				var $li=$(this);
 				if($li.is('.tree-node')){
@@ -366,6 +379,7 @@ GameTree.prototype = {
 					gameTree.setNodeInfo(node, $li);
 				}
 			});
+			$container.append($remainVariationNodes);
 		}
 	},
 
