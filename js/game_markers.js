@@ -132,10 +132,10 @@ Game.Markers.prototype = {
 		} else {
 			this.board.markCurrentMove(this.game.curNode.move.point);
 		}
-		this.resetMoveNumbers();
+		this.showMoveNumbers();
 	},
 
-	resetMoveNumbers : function() {
+	showMoveNumbers : function() {
 		if (!this.showMoveNumber) {
 			this.board.hideMoveNumbers();
 			return;
@@ -182,6 +182,9 @@ Game.Markers.prototype = {
 					&& (node.isVariationFirstNode() && node.belongingVariation.index > 0)) {
 				break;
 			}
+			if (node.move['MN']) {
+				break;
+			}
 			node = node.previousNode;
 			if (!node) {
 				break;
@@ -196,7 +199,6 @@ Game.Markers.prototype = {
 	},
 
 	handleMoveNumbers : function() {
-		var board = this.board;
 		var curNode = this.game.curNode;
 		if (curNode.hasMarks()) {
 			this.hideMoveNumberTemporarily = true;
@@ -207,6 +209,29 @@ Game.Markers.prototype = {
 			this.hideMoveNumberTemporarily = false;
 		}
 
-		this.resetMoveNumbers();
+		this.showMoveNumbers();
+	},
+
+	resetMoveNumber : function(mn) {
+		var curNode = this.game.curNode;
+		
+		if (mn === 'undo'){
+			if (typeof(curNode.move['MN']) === 'undefined') {
+				return;
+			}
+			curNode.move['MN'] = null;
+		} else {
+			if (typeof(mn) === 'string'){
+				mn=parseInt(mn);
+			}
+			mn = mn || 1;
+			if(curNode.move['MN'] === mn){
+				return;
+			}
+			curNode.move['MN'] = mn;
+		}
+
+		curNode.resetMoveNumber();
+		this.handleMoveNumbers();
 	}
 };

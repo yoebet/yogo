@@ -90,6 +90,9 @@ Game.NodeNavigator.prototype = {
 
 	gotoNode : function(obj) {
 		var node;
+		if(/^\d+$/.test(obj)){
+			obj = parseInt(obj);
+		}
 		if (typeof (obj) === 'string') {
 			node = this.gameModel.nodeMap[obj];
 		} else if (typeof (obj) === 'number') {

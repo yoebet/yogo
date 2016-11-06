@@ -1,8 +1,8 @@
 Game.EditManager = function(game) {
 
 	this.game = game;
-	this.gameModel = game.gameModel;
 	this.board = game.board;
+	this.gameModel = game.gameModel;
 
 	// play
 	// setup: W/B
@@ -243,7 +243,7 @@ Game.EditManager.prototype = {
 		var pointStatus = curNode.position[coor.x][coor.y];
 		if (pointStatus) {
 			if (pointStatus.node === curNode && curNode.isSetup()) {
-				var positionBuilder = new PositionBuilder(this.game, curNode);
+				var positionBuilder = new PositionBuilder(this.board, this.gameModel, curNode);
 				var reverseColor = 'W';
 				var removed = yogo.removePoint(curNode.setup['AB'], coor);
 				if (!removed) {
@@ -388,7 +388,7 @@ Game.EditManager.prototype = {
 		var variation = curNode.belongingVariation;
 
 		newNode.belongingVariation = variation;
-		var positionBuilder = new PositionBuilder(this.game, newNode, true);
+		var positionBuilder = new PositionBuilder(this.board, this.gameModel, newNode, true);
 		var valid = positionBuilder.buildPosition();
 		if (!valid) {
 			return false;

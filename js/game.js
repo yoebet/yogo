@@ -4,7 +4,15 @@ function Game(board, gameModel) {
 	this.gameModel = gameModel;
 	this.boardSize = gameModel.boardSize;
 
-	this.curNode = gameModel.nodes[0];
+	this._initialNode = new Node(null,gameModel);
+	var initialPosition=[];
+	for (var x = 0; x < this.boardSize; x++) {
+		initialPosition[x] = [];
+	}
+	this._initialNode.position = initialPosition;
+	this._initialNode.nextNode = this.gameModel.nodes[0];
+
+	this.curNode = this._initialNode;
 
 	// view/find-move/edit
 	this.mode = 'view';
@@ -25,7 +33,7 @@ function Game(board, gameModel) {
 	this.markersManager = new Game.Markers(this);
 	yogo.exportFunctions.call(this, this.markersManager, [
 			'setCurrentNodeMarkers', 'setMarkers', 'setMarkCurrentMove',
-			'setMarkBranchPoints', 'markBranchPointsIfAny',
+			'setMarkBranchPoints', 'markBranchPointsIfAny', 'resetMoveNumber',
 			'setShowMoveNumber', 'hideMoveNumbers', 'handleMoveNumbers' ]);
 
 	this.editManager = new Game.EditManager(this);
@@ -66,7 +74,7 @@ Game.prototype = {
 				board.addStones(diffStones.stonesToAddW, 'W');
 			}
 		} else {
-			var positionBuilder = new PositionBuilder(this, curNode);
+			var positionBuilder = new PositionBuilder(this.board, this.gameModel, curNode);
 			success = positionBuilder.buildPosition();
 		}
 		this.setCurrentNodeMarkers();
@@ -77,9 +85,10 @@ Game.prototype = {
 	},
 
 	buildAllPositions : function() {
-		var game = this;
+		var board = this.board;
+		var gameModel = this.gameModel;
 		var nodeCallback = function(node, context) {
-			var positionBuilder = new PositionBuilder(game, node, true);
+			var positionBuilder = new PositionBuilder(board, gameModel, node, true);
 			var success = positionBuilder.buildPosition();
 			if (success === false) {
 				context.push(node);
@@ -88,6 +97,11 @@ Game.prototype = {
 		};
 		var invalidMoves = [];
 		this.gameModel.traverseNodes(null, nodeCallback, invalidMoves);
+
+		for (var i = 0; i < invalidMoves.length; i++) {
+			var node = invalidMoves[i];
+			yogo.logWarn('bad move: '+node.id,'game');
+		}
 		return invalidMoves;
 	},
 

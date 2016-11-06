@@ -84,7 +84,7 @@ GameViewer.prototype = {
 				return;
 			}
 			var number = $('.move-number-input', $v).val();
-			viewer.game.gotoNode(parseInt(number));
+			viewer.game.gotoNode(number);
 		});
 
 		$('.move-number-input', $v).keydown(function(e) {
@@ -92,7 +92,7 @@ GameViewer.prototype = {
 				return;
 			}
 			if (e.keyCode == 13) {
-				viewer.game.gotoNode(parseInt(this.value));
+				viewer.game.gotoNode(this.value);
 				this.blur();
 			}
 		});
@@ -144,6 +144,15 @@ GameViewer.prototype = {
 			}
 		});
 
+		$('button.reset-move-number', $v).click(function() {
+			var game = viewer.game;
+			if (!game) {
+				return;
+			}
+			var value = $(this).data('value');
+			game.resetMoveNumber(value);
+		});
+
 		$('.mark-current-move', $v).click(function() {
 			if (!viewer.game) {
 				return;
@@ -178,10 +187,7 @@ GameViewer.prototype = {
 		});
 
 		$('button.collapse-nodes', $treeContainer).click(function() {
-			if (!viewer.gameTree) {
-				return;
-			}
-			$('ul.tree-nodes:visible', viewer.gameTree.$container).hide(200);
+			$('ul.tree-nodes:visible', $treeContainer).hide(200);
 		});
 
 		$('button.scroll-into-view', $treeContainer).click(function() {
@@ -194,15 +200,61 @@ GameViewer.prototype = {
 
 	onPlayNode : function() {
 		var $v = this.$v;
-		var $commentBox = $('.comment-box', $v);
-		$commentBox.text('');
 		var curNode = this.game.curNode;
+
+		var comment = '';
 		if (curNode.basic['C']) {
-			$commentBox.text(curNode.basic['C']);
+			comment = curNode.basic['C'];
 		}
+		$('.comment-box', $v).text(comment);
+
+		var remarkText='';
+		if(curNode.remark) {
+			var rns=[
+				[
+					['GB','Good for Black'],
+					['GW','Good for White']
+				], [
+					['UC','Unclear Position'],
+					['DM','Even Position']
+				], [
+					['TE','Tesuji'],
+					['BM','Bad Move']
+				], [
+					['DO','Doubtful'],
+					['IT','Interesting']
+				], [
+					['HO','Hotspot']
+				]
+			];
+			var remark = curNode.remark;
+			for(var i = 0;i < rns.length; i++) {
+				var exclusiveGroup = rns[i];
+				for(var j = 0; j < exclusiveGroup.length; j++) {
+					var remProp = exclusiveGroup[0];
+					var name = remProp[0], text = remProp[1];
+					var value = remark[name];
+					if(!value){
+						continue;
+					}
+					if(remarkText != ''){
+						remarkText += '  ';
+					}
+					remarkText += text;
+					if(value == 2){
+						remarkText += '!';
+					} else {
+						remarkText += '.';
+					}
+					break;
+				}
+			}
+		}
+		$('.remark', $v).text(remarkText);
+
 		var captures = curNode.move.accumulatedCaptures;
-		$(".black-capture", $v).text(captures['B']);
-		$(".white-capture", $v).text(captures['W']);
+		$(".play-status .black-capture", $v).text(captures['B']);
+		$(".play-status .white-capture", $v).text(captures['W']);
 
 		$('.branch-select', $v).hide().find('button.branch').hide();
 		if (curNode.variations) {
@@ -235,13 +287,15 @@ GameViewer.prototype = {
 
 	_initGame : function() {
 
-		this.setupGameInfo();
+		this.setPlayStatus();
+
+		this.setGameInfo();
 
 		this.setupGame();
 
-		this.bindKeyAndWheelEvent();
-
 		this.setupGameTree();
+
+		this.bindKeyAndWheelEvent();
 
 		this.game.onPlayNode = this.onPlayNode.bind(this);
 
@@ -250,6 +304,9 @@ GameViewer.prototype = {
 		this.game.onNodeChanged = this.onNodeChanged.bind(this);
 
 		this.game.onNodeRemoved = this.onNodeRemoved.bind(this);
+
+
+		this.game.gotoBeginning();
 	},
 
 	newGame : function() {
@@ -311,9 +368,9 @@ GameViewer.prototype = {
 		this.game.buildAllPositions();
 	},
 
-	setupGameInfo : function() {
+	setPlayStatus : function() {
 
-		var $v = this.$v;
+		var $ps = $('.play-status',this.$v);
 		var gameInfo = this.gameModel.gameInfo;
 		var blackPlayer = gameInfo.blackPlayer;
 		var whitePlayer = gameInfo.whitePlayer;
@@ -325,7 +382,7 @@ GameViewer.prototype = {
 				player = player + ' ' + blackPlayer.rank;
 			}
 		}
-		$(".black-player-name", $v).text(player);
+		$(".black-player-name", $ps).text(player);
 
 		player = '';
 		if (whitePlayer) {
@@ -334,7 +391,50 @@ GameViewer.prototype = {
 				player = player + ' ' + whitePlayer.rank;
 			}
 		}
-		$(".white-player-name", $v).text(player);
+		$(".white-player-name", $ps).text(player);
+	},
+
+	setGameInfo : function() {
+		var $gi = $('.game-info',this.$v);
+		var gameInfo = this.gameModel.gameInfo;
+
+		for(var pi=0;pi<2;pi++){
+			var color=(pi==0)? 'black':'white';
+			var player=gameInfo[color+'Player'];
+			var $ec=$('.'+color+'-player',$gi);
+			$('.name',$ec).text(player.name||'');
+			$('.rank',$ec).text(player.rank||'');
+			$('.species',$ec).text(player.species||'');
+			$('.term',$ec).text(player.term||'');
+		}
+
+		var basic=gameInfo.basic;
+		$('.game-name',$gi).text(basic['GN']||'');
+		$('.event',$gi).text(basic['EV']||'');
+		$('.round',$gi).text(basic['RO']||'');
+		$('.game-date',$gi).text(basic['DT']||'');
+		$('.place',$gi).text(basic['PC']||'');
+		var gameResult=basic['RE']||'';
+		if(gameResult){
+			// 0/?/Void/W+[Score/R/Resign/T/Time/F/Forfeit]
+		}
+		$('.game-result',$gi).text(gameResult);
+
+		var rule=gameInfo.rule;
+		$('.handicap',$gi).text(rule['HA']||'');
+		$('.komi',$gi).text(rule['KM']||'');
+		$('.time-limit',$gi).text(rule['TM']||'');
+		$('.byo-yomi',$gi).text(rule['OT']||'');
+
+		var recorder=gameInfo.recorder;
+		$('.user',$gi).text(recorder['US']||'');
+		$('.source',$gi).text(recorder['SO']||'');
+		$('.app',$gi).text(recorder['AP']||'');
+
+		var misc=gameInfo.misc;
+		$('.annotate-by',$gi).text(misc['ON']||'');
+		$('.game-comment',$gi).text(misc['CP']||'');
+		$('.copyright',$gi).text(misc['AN']||'');
 	},
 
 	setupGameTree : function() {

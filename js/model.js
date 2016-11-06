@@ -276,7 +276,7 @@ Node.prototype = {
 		}
 	},
 
-	traverseSuccessorNodes : function(action) {
+	traverseSuccessorNodes : function(variationCallback,nodeCallback) {
 		var node = this;
 		while (true) {
 			if (node.nextNode) {
@@ -284,7 +284,14 @@ Node.prototype = {
 			} else if (node.variations) {
 				for (var vi = 0; vi < node.variations.length; vi++) {
 					var variation = node.variations[vi];
-					var goon = variation.traverseNodes(null, action, null);
+					if (variationCallback) {
+						var vcr = variationCallback.call(variation, variation,
+								null);
+						if (vcr === false) {
+							return false;
+						}
+					}
+					var goon = variation.traverseNodes(variationCallback, nodeCallback, null);
 					if (goon === false) {
 						return false;
 					}
@@ -292,7 +299,7 @@ Node.prototype = {
 			} else {
 				return true;
 			}
-			var goon = action.call(node, node);
+			var goon = nodeCallback.call(node, node);
 			if (goon === false) {
 				return false;
 			}
@@ -362,8 +369,22 @@ Node.prototype = {
 		}
 
 		if (this.move['MN']) {
-			this.move.displayMoveNumber = node.move['MN'];
+			this.move.displayMoveNumber = this.move['MN'];
 		}
+	},
+
+	resetMoveNumber : function() {
+		this.setMoveNumber();
+		var thisVariation = this.belongingVariation;
+		var vcb = function(variation) {
+			if(variation !== thisVariation && variation.index > 0){
+				return false;
+			}
+		};
+		var ncb = function(node) {
+			node.setMoveNumber();
+		};
+		this.traverseSuccessorNodes(vcb, ncb);
 	},
 
 	setBranchPoints : function() {

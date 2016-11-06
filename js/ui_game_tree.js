@@ -20,7 +20,6 @@ GameTree.prototype = {
 
 	setup : function() {
 		var gameTree = this;
-		var game = this.game;
 
 		$('.game-tree', this.$container).remove();
 

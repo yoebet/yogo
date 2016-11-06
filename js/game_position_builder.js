@@ -1,8 +1,7 @@
-PositionBuilder = function(game, node, buildPositionOnly) {
-	this.game = game;
-	this.board = game.board;
-	this.gameModel = game.gameModel;
-	this.boardSize = game.gameModel.boardSize;
+PositionBuilder = function(board, gameModel, node, buildPositionOnly) {
+	this.board = board;
+	this.gameModel = gameModel;
+	this.boardSize = gameModel.boardSize;
 	this.curNode = node;
 	this.buildPositionOnly = buildPositionOnly || false;
 
@@ -319,7 +318,7 @@ PositionBuilder.prototype = {
 		var previousNode = curNode.previousNode;
 		if (previousNode) {
 			if (!previousNode.status.positionBuilt) {
-				var positionBuilder = new PositionBuilder(this.game,
+				var positionBuilder = new PositionBuilder(this.board, this.gameModel,
 						previousNode);
 				positionBuilder.buildPosition();
 			}
@@ -334,8 +333,6 @@ PositionBuilder.prototype = {
 				B : 0,
 				W : 0
 			};
-			this.buildPositionOnly = false;// the first node must set up the
-			// board
 		}
 		if (curNode.status.move) {
 			success = this.evaluateMove();
