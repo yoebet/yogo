@@ -4,8 +4,8 @@ function Game(board, gameModel) {
 	this.gameModel = gameModel;
 	this.boardSize = gameModel.boardSize;
 
-	this._initialNode = new Node(null,gameModel);
-	var initialPosition=[];
+	this._initialNode = new Node(null, gameModel);
+	var initialPosition = [];
 	for (var x = 0; x < this.boardSize; x++) {
 		initialPosition[x] = [];
 	}
@@ -74,7 +74,8 @@ Game.prototype = {
 				board.addStones(diffStones.stonesToAddW, 'W');
 			}
 		} else {
-			var positionBuilder = new PositionBuilder(this.board, this.gameModel, curNode);
+			var positionBuilder = new PositionBuilder(this.board,
+					this.gameModel, curNode);
 			success = positionBuilder.buildPosition();
 		}
 		this.setCurrentNodeMarkers();
@@ -87,20 +88,21 @@ Game.prototype = {
 	buildAllPositions : function() {
 		var board = this.board;
 		var gameModel = this.gameModel;
-		var nodeCallback = function(node, context) {
-			var positionBuilder = new PositionBuilder(board, gameModel, node, true);
+		var invalidMoves = [];
+		var nodeCallback = function(node) {
+			var positionBuilder = new PositionBuilder(board, gameModel, node,
+					true);
 			var success = positionBuilder.buildPosition();
 			if (success === false) {
-				context.push(node);
+				invalidMoves.push(node);
 				yogo.logWarn('invalid, node ' + node.id, 'buildPosition');
 			}
 		};
-		var invalidMoves = [];
-		this.gameModel.traverseNodes(null, nodeCallback, invalidMoves);
+		this.gameModel.traverseNodes(nodeCallback);
 
 		for (var i = 0; i < invalidMoves.length; i++) {
 			var node = invalidMoves[i];
-			yogo.logWarn('bad move: '+node.id,'game');
+			yogo.logWarn('bad move: ' + node.id, 'game');
 		}
 		return invalidMoves;
 	},
@@ -205,21 +207,21 @@ Game.prototype = {
 	},
 
 	passMove : function() {
-		if(this.mode !== 'edit'){
+		if (this.mode !== 'edit') {
 			return false;
 		}
 		this.editManager.passMove();
 	},
 
 	removeLastNode : function() {
-		if(this.mode !== 'edit'){
+		if (this.mode !== 'edit') {
 			return false;
 		}
 		this.editManager.removeLastNode();
 	},
 
 	setPlayFirst : function(color) {
-		if(this.mode !== 'edit'){
+		if (this.mode !== 'edit') {
 			return false;
 		}
 		this.editManager.setPlayFirst(color);
@@ -227,46 +229,46 @@ Game.prototype = {
 
 };
 
-
 Game.getHandicapPoints = function(boardSize, handicap) {
-	var s=boardSize;
-	if(s < 13){
-		return null;
+	var s = boardSize;
+	var sd = 4;
+	if (s < 13) {
+		sd = 3;
 	}
-	
+
 	var stars=[
-		[{x:3,y:3},{x:(s - 1) / 2,y:3},{x:s - 4,y:3}],
-		[{x:3,y:(s - 1) / 2},{x:(s - 1) / 2,y:(s - 1) / 2},{x:s - 4,y:(s - 1) / 2}],
-		[{x:3,y:s - 4},{x:(s - 1) / 2,y:s - 4},{x:s - 4,y:s - 4}]
+		[{x:sd - 1,y:sd - 1},{x:(s - 1) / 2,y:sd - 1},{x:s - sd,y:sd - 1}],
+		[{x:sd - 1,y:(s - 1) / 2},{x:(s - 1) / 2,y:(s - 1) / 2},{x:s - sd,y:(s - 1) / 2}],
+		[{x:sd - 1,y:s - sd},{x:(s - 1) / 2,y:s - sd},{x:s - sd,y:s - sd}]
 	];
-	var r=[stars[2][0],stars[0][2]];
-	if(handicap==2){
+	var r = [ stars[2][0], stars[0][2] ];
+	if (handicap == 2) {
 		return r;
 	}
 	r.push(stars[0][0]);
-	if(handicap==3){
+	if (handicap == 3) {
 		return r;
 	}
 	r.push(stars[2][2]);
-	if(handicap==4){
+	if (handicap == 4) {
 		return r;
 	}
-	if(handicap==5){
+	if (handicap == 5) {
 		r.push(stars[1][1]);
 		return r;
 	}
 	r.push(stars[1][0]);
 	r.push(stars[1][2]);
-	if(handicap==6){
+	if (handicap == 6) {
 		return r;
 	}
-	if(handicap==7){
+	if (handicap == 7) {
 		r.push(stars[1][1]);
 		return r;
 	}
 	r.push(stars[0][1]);
 	r.push(stars[2][1]);
-	if(handicap==8){
+	if (handicap == 8) {
 		return r;
 	}
 	r.push(stars[1][1]);

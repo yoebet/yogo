@@ -340,7 +340,7 @@ Game.EditManager.prototype = {
 							};
 							variationCallback.call(tv, tv);
 						}
-						tv.traverseNodes(variationCallback, setNodeMN, null);
+						tv.traverseNodes(setNodeMN, variationCallback);
 					}
 				}
 				node = node.nextNode;

@@ -201,7 +201,7 @@ SgfParser.prototype = {
 
 			var parser = this;
 
-			var nodeCallback = function(node, context) {
+			var nodeCallback = function(node) {
 
 				var props = node.props;
 				for (name in props) {
@@ -257,9 +257,9 @@ SgfParser.prototype = {
 
 			};
 
-			gameModel.traverseNodes(null, nodeCallback, null);
+			gameModel.traverseNodes(nodeCallback);
 
-			var nodeCallback2 = function(node, context) {
+			var nodeCallback2 = function(node) {
 
 				node.setMoveNumber();
 
@@ -268,7 +268,7 @@ SgfParser.prototype = {
 				gameModel.indexNode(node);
 			};
 
-			gameModel.traverseNodes(null, nodeCallback2, null);
+			gameModel.traverseNodes(nodeCallback2);
 		}
 	},
 

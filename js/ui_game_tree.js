@@ -46,7 +46,7 @@ GameTree.prototype = {
 
 		var variationNodeContainerMap = {};
 
-		var nodeCallback = function(node, context) {
+		var nodeCallback = function(node) {
 
 			var belongingVariation = node.belongingVariation;
 
@@ -96,7 +96,7 @@ GameTree.prototype = {
 			}
 		};
 
-		this.gameModel.traverseNodes(null, nodeCallback, null);
+		this.gameModel.traverseNodes(nodeCallback);
 
 		if ($currentNodeGroup) {
 			var lastMoveNumber = this.gameModel.gameEndingNode.move.variationMoveNumber;

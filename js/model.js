@@ -24,11 +24,13 @@ GameModel.newModel = function(boardSize, handicapPoints) {
 	gameModel.nodes[0] = firstNode;
 	gameModel.gameEndingNode = firstNode;
 
-	if(handicapPoints && handicapPoints.length > 0) {
+	if (handicapPoints && handicapPoints.length > 0) {
 		var gameInfo = gameModel.gameInfo;
 		gameInfo.rule = {};
 		gameInfo.rule['HA'] = handicapPoints.length;
-		firstNode.setup = {'AB':handicapPoints};
+		firstNode.setup = {
+			'AB' : handicapPoints
+		};
 	}
 
 	return gameModel;
@@ -80,15 +82,16 @@ GameModel.prototype = {
 		}
 	},
 
-	traverseNodes : function(variationCallback, nodeCallback, context) {
+	traverseNodes : function(nodeCallback, variationCallback,
+			variationCompleteCallback) {
 
 		var nodes = this.nodes;
 		for (var ni = 0; ni < nodes.length; ni++) {
 			var node = nodes[ni];
 			if (nodeCallback) {
-				var ncr = nodeCallback.call(node, node, context);
+				var ncr = nodeCallback.call(node, node);
 				if (ncr === false) {
-					return context;
+					return;
 				}
 			}
 			var variations = node.variations;
@@ -98,41 +101,50 @@ GameModel.prototype = {
 			for (var vi = 0; vi < variations.length; vi++) {
 				var variation = variations[vi];
 				if (variationCallback) {
-					var vcr = variationCallback.call(variation, variation,
-							context);
+					var vcr = variationCallback.call(variation, variation);
 					if (vcr === false) {
-						return context;
+						return;
 					}
 				}
-				variation.traverseNodes(variationCallback, nodeCallback,
-						context);
+				variation.traverseNodes(nodeCallback, variationCallback,
+						variationCompleteCallback);
+				if (variationCompleteCallback) {
+					var vcr = variationCompleteCallback.call(variation,
+							variation);
+					if (vcr === false) {
+						return;
+					}
+				}
 			}
 		}
 
-		return context;
+		return;
 	},
 
 	selectNodes : function(predicate) {
-		return this.traverseNodes(null, function(node, context) {
+		var nodes = [];
+		this.traverseNodes(function(node) {
 			if (predicate.call(node, node)) {
-				context.push(node);
+				nodes.push(node);
 			}
-		}, []);
+		});
+		return nodes;
 	},
 
 	findNode : function(predicate) {
-		var result = this.traverseNodes(null, function(node, context) {
+		var found = [];
+		this.traverseNodes(function(node) {
 			var result = predicate.call(node, node);
 			if (result === null) {
 				return false;
 			}
 			if (result === true) {
-				context.push(node);
+				found.push(node);
 				return false;
 			}
-		}, []);
+		});
 
-		return result[0] || null;
+		return found[0] || null;
 	}
 };
 
@@ -294,7 +306,7 @@ Node.prototype = {
 		}
 	},
 
-	traverseSuccessorNodes : function(variationCallback, nodeCallback) {
+	traverseSuccessorNodes : function(nodeCallback, variationCallback) {
 		var node = this;
 		while (true) {
 			if (node.nextNode) {
@@ -309,8 +321,8 @@ Node.prototype = {
 							return false;
 						}
 					}
-					var goon = variation.traverseNodes(variationCallback,
-							nodeCallback, null);
+					var goon = variation.traverseNodes(nodeCallback,
+							variationCallback);
 					if (goon === false) {
 						return false;
 					}
@@ -372,10 +384,10 @@ Node.prototype = {
 			color = this.move['PL'];
 		} else if (this.move.color) {
 			color = (this.move.color === 'B') ? 'W' : 'B';
-		} else if(this.isGameBegining()){
+		} else if (this.isGameBegining()) {
 			var v = this.belongingVariation;
 			// v is GameModel
-			if(v.gameInfo.rule && v.gameInfo.rule['HA']) {
+			if (v.gameInfo.rule && v.gameInfo.rule['HA']) {
 				color = 'W';
 			}
 		}
@@ -422,7 +434,7 @@ Node.prototype = {
 		var ncb = function(node) {
 			node.setMoveNumber();
 		};
-		this.traverseSuccessorNodes(vcb, ncb);
+		this.traverseSuccessorNodes(ncb, vcb);
 	},
 
 	setBranchPoints : function() {

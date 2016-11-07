@@ -43,8 +43,8 @@ Board.getDefaultBoardSetting = function(boardSize) {
 		baseCoor : boardPadding + coordinateWidth / 2
 	};
 	var strokes = {
-		outerBorderLine : gridWidth * 0.030,
-		borderLine : gridWidth * 0.025,
+		outerBorderLine : gridWidth * 0.03,
+		borderLine : gridWidth * (boardSize <= 15? 0.018 : 0.025),
 		star : gridWidth * 0.045,
 		stone : gridWidth * 0.02,
 		stoneSpacing : gridWidth * 0.01
@@ -66,7 +66,7 @@ Board.getDefaultBoardSetting = function(boardSize) {
 			y : (boardSize - 1) / 2
 		});
 	}
-	if (boardSize >= 13) {
+	if (boardSize >= 15) {
 		starPoints.push({
 			x : 3,
 			y : (boardSize - 1) / 2
@@ -84,7 +84,7 @@ Board.getDefaultBoardSetting = function(boardSize) {
 			y : boardSize - 4
 		});
 	}
-	if (boardSize >= 11) {
+	if (boardSize > 11) {
 		starPoints.push({
 			x : 3,
 			y : 3
@@ -101,7 +101,7 @@ Board.getDefaultBoardSetting = function(boardSize) {
 			x : boardSize - 4,
 			y : boardSize - 4
 		});
-	} else if (boardSize == 8 || boardSize == 9) {
+	} else if (boardSize >= 8 && boardSize <= 11) {
 		starPoints.push({
 			x : 2,
 			y : 2
