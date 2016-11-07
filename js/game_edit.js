@@ -55,7 +55,7 @@ Game.EditManager.prototype = {
 				+ (this.modeParam || ''));
 
 		if (this.editMode === 'play' && mousekey === 3) {
-			this.removeLastNode(coor);
+			this.removeLastNode();
 			return;
 		}
 		if (this.editMode === 'setup') {
@@ -79,6 +79,39 @@ Game.EditManager.prototype = {
 				.isVariationLastNode());
 	},
 
+	setPlayFirst : function(color) {
+		var curNode = this.game.curNode;
+		var nextColor = (curNode.move.color === 'B') ? 'W' : 'B';
+		if(nextColor == color){
+			if(curNode.move['PL']){
+				curNode.move['PL']=null;
+			}
+			return;
+		}
+		curNode.move['PL'] = color;
+	},
+
+	passMove : function() {
+		if (this.editMode !== 'play') {
+			return false;
+		}
+
+		var curNode = this.game.curNode;
+		var color = curNode.nextMoveColor();
+
+		var enn = curNode.nextPass(color);
+		if (enn) {
+			this.game.playNode(enn);
+			return false;
+		}
+
+		var newNode = new Node(curNode);
+		newNode.status.pass = true;
+		newNode.move.color = color;
+
+		return this._addNewNode(newNode);
+	},
+
 	playMove : function(coor) {
 		var curNode = this.game.curNode;
 
@@ -93,8 +126,8 @@ Game.EditManager.prototype = {
 			return false;
 		}
 
-		var color = curNode.newMoveColor();
-		var useCurrentNode = this.stillNewGame() && !curNode.isSetup();
+		var color = curNode.nextMoveColor();
+		var useCurrentNode = this.stillNewGame() && !curNode.isSetup() && !curNode.move['PL'];
 		if (!useCurrentNode) {
 			createNewNode = true;
 			curNode = new Node(curNode);
@@ -120,7 +153,90 @@ Game.EditManager.prototype = {
 		}
 	},
 
-	removeLastNode : function(coor) {
+	_addNewNode : function(newNode) {
+		var curNode = this.game.curNode;
+		var nextNode = curNode.nextNode;
+		var variation = curNode.belongingVariation;
+
+		newNode.belongingVariation = variation;
+		var positionBuilder = new PositionBuilder(this.board, this.gameModel, newNode, true);
+		var valid = positionBuilder.buildPosition();
+		if (!valid) {
+			return false;
+		}
+
+		if (curNode.isVariationLastNode()) {
+			curNode.nextNode = newNode;
+			if (variation.realGame) {
+				this.gameModel.gameEndingNode = newNode;
+			}
+			variation.nodes.push(newNode);
+		} else if (curNode.variations) {
+			var newVariation = new Variation(curNode, variation);
+			newVariation.index = curNode.variations.length;
+			curNode.variations.push(newVariation);
+
+			newNode.belongingVariation = newVariation;
+			newVariation.nodes.push(newNode);
+
+			curNode.setBranchPoints();
+		} else if (nextNode) {
+			curNode.nextNode = null;
+			curNode.variations = [];
+
+			var newVariation1 = new Variation(curNode, variation);
+			newVariation1.realGame = variation.realGame;
+			curNode.variations.push(newVariation1);
+
+			var node = nextNode;
+			while (node) {
+				node.belongingVariation = newVariation1;
+				newVariation1.nodes.push(node);
+				if (node.variations) {
+					for (var vi = 0; vi < node.variations.length; vi++) {
+						var tv = node.variations[vi];
+						tv.parentVariation = newVariation1;
+					}
+				}
+				node = node.nextNode;
+			}
+
+			var pns = curNode.belongingVariation.nodes;
+			var ci = pns.indexOf(curNode);
+			var spliceLength = newVariation1.nodes.length;
+			pns.splice(ci + 1, spliceLength);
+
+
+			var newVariation2 = new Variation(curNode, variation);
+			curNode.variations.push(newVariation2);
+			newNode.belongingVariation = newVariation2;
+			newVariation2.nodes.push(newNode);
+
+			curNode.setBranchPoints();
+		}
+
+		newNode.setMoveNumber();
+		this.gameModel.indexNode(newNode);
+
+		newNode.status.alter = true;
+		newNode.alter = {
+			type : 'new-node'
+		};
+
+		this.game.playNode(newNode);
+
+		if (this.game.onNodeCreated) {
+			this.game.onNodeCreated(newNode);
+		}
+
+		return true;
+	},
+
+	removeLastNode : function() {
+		if (this.editMode !== 'play') {
+			return false;
+		}
+
 		var curNode = this.game.curNode;
 		if (!curNode.isVariationLastNode()) {
 			return false;
@@ -280,7 +396,7 @@ Game.EditManager.prototype = {
 		var createNewNode = false;
 		if ((curNode.status.alter && curNode.isSetup()) || this.stillNewGame()) {
 			PositionBuilder.amendAddStone(this.game, curNode, coor, color);
-			if (!isSetup && this.game.onNodeChanged) {
+			if (!curNode.isSetup() && this.game.onNodeChanged) {
 				this.game.onNodeChanged(curNode);
 			}
 		} else {
@@ -380,67 +496,5 @@ Game.EditManager.prototype = {
 				type : 'prop-changed'
 			};
 		}
-	},
-
-	_addNewNode : function(newNode) {
-		var curNode = this.game.curNode;
-		var nextNode = curNode.nextNode;
-		var variation = curNode.belongingVariation;
-
-		newNode.belongingVariation = variation;
-		var positionBuilder = new PositionBuilder(this.board, this.gameModel, newNode, true);
-		var valid = positionBuilder.buildPosition();
-		if (!valid) {
-			return false;
-		}
-
-		if (curNode.isVariationLastNode()) {
-			curNode.nextNode = newNode;
-			if (variation.realGame) {
-				this.gameModel.gameEndingNode = newNode;
-			}
-			variation.nodes.push(newNode);
-		} else if (curNode.variations) {
-			var newVariation = new Variation(curNode, variation);
-			newVariation.index = curNode.variations.length;
-			curNode.variations.push(newVariation);
-
-			newNode.belongingVariation = newVariation;
-			newVariation.nodes.push(newNode);
-
-			curNode.setBranchPoints();
-		} else if (nextNode) {
-			curNode.nextNode = null;
-			curNode.variations = [];
-
-			var newVariation1 = new Variation(curNode, variation);
-			newVariation1.realGame = variation.realGame;
-			curNode.variations.push(newVariation1);
-			nextNode.belongingVariation = newVariation1;
-			newVariation1.nodes.push(nextNode);
-
-			var newVariation2 = new Variation(curNode, variation);
-			curNode.variations.push(newVariation2);
-			newNode.belongingVariation = newVariation2;
-			newVariation2.nodes.push(newNode);
-
-			curNode.setBranchPoints();
-		}
-
-		newNode.setMoveNumber();
-		this.gameModel.indexNode(newNode);
-
-		newNode.status.alter = true;
-		newNode.alter = {
-			type : 'new-node'
-		};
-
-		this.game.playNode(newNode);
-
-		if (this.game.onNodeCreated) {
-			this.game.onNodeCreated(newNode);
-		}
-
-		return true;
 	}
 };

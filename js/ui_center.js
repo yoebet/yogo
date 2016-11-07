@@ -37,7 +37,9 @@ GameViewer.prototype = {
 		$('button.new-game', $v).click(function() {
 			// TODO: save current
 
-			viewer.newGame();
+			var bz = $('input.new-game-size', $v).val();
+			var hc = $('input.new-game-handicap', $v).val();
+			viewer.newGame(bz,hc);
 		});
 
 		$('button.perspective', $v).click(function() {
@@ -79,7 +81,23 @@ GameViewer.prototype = {
 			viewer.game.setEditMode(mode, param);
 		});
 
-		$('.goto-node', $v).click(function() {
+		$('button.play-mode', $v).click(function() {
+			if (!viewer.game) {
+				return;
+			}
+			var op = $(this).data('value');
+			if(op=='pass'){
+				viewer.game.passMove();
+			} else if(op=='cancel-latest'){
+				viewer.game.removeLastNode();
+			} else if(op=='black-first'){
+				viewer.game.setPlayFirst('B');
+			} else if(op=='white-first'){
+				viewer.game.setPlayFirst('W');
+			}
+		});
+
+		$('button.goto-node', $v).click(function() {
 			if (!viewer.game) {
 				return;
 			}
@@ -87,7 +105,7 @@ GameViewer.prototype = {
 			viewer.game.gotoNode(number);
 		});
 
-		$('.move-number-input', $v).keydown(function(e) {
+		$('input.move-number-input', $v).keydown(function(e) {
 			if (!viewer.game) {
 				return;
 			}
@@ -153,7 +171,7 @@ GameViewer.prototype = {
 			game.resetMoveNumber(value);
 		});
 
-		$('.mark-current-move', $v).click(function() {
+		$('button.mark-current-move', $v).click(function() {
 			if (!viewer.game) {
 				return;
 			}
@@ -208,40 +226,29 @@ GameViewer.prototype = {
 		}
 		$('.comment-box', $v).text(comment);
 
-		var remarkText='';
-		if(curNode.remark) {
-			var rns=[
-				[
-					['GB','Good for Black'],
-					['GW','Good for White']
-				], [
-					['UC','Unclear Position'],
-					['DM','Even Position']
-				], [
-					['TE','Tesuji'],
-					['BM','Bad Move']
-				], [
-					['DO','Doubtful'],
-					['IT','Interesting']
-				], [
-					['HO','Hotspot']
-				]
-			];
+		var remarkText = '';
+		if (curNode.remark) {
+			var rns = [
+					[ [ 'GB', 'Good for Black' ], [ 'GW', 'Good for White' ] ],
+					[ [ 'UC', 'Unclear Position' ], [ 'DM', 'Even Position' ] ],
+					[ [ 'TE', 'Tesuji' ], [ 'BM', 'Bad Move' ] ],
+					[ [ 'DO', 'Doubtful' ], [ 'IT', 'Interesting' ] ],
+					[ [ 'HO', 'Hotspot' ] ] ];
 			var remark = curNode.remark;
-			for(var i = 0;i < rns.length; i++) {
+			for (var i = 0; i < rns.length; i++) {
 				var exclusiveGroup = rns[i];
-				for(var j = 0; j < exclusiveGroup.length; j++) {
+				for (var j = 0; j < exclusiveGroup.length; j++) {
 					var remProp = exclusiveGroup[0];
 					var name = remProp[0], text = remProp[1];
 					var value = remark[name];
-					if(!value){
+					if (!value) {
 						continue;
 					}
-					if(remarkText != ''){
+					if (remarkText != '') {
 						remarkText += '  ';
 					}
 					remarkText += text;
-					if(value == 2){
+					if (value == 2) {
 						remarkText += '!';
 					} else {
 						remarkText += '.';
@@ -305,12 +312,43 @@ GameViewer.prototype = {
 
 		this.game.onNodeRemoved = this.onNodeRemoved.bind(this);
 
-
 		this.game.gotoBeginning();
 	},
 
-	newGame : function() {
-		var gameModel = this.gameModel = GameModel.newModel();
+	newGame : function(boardSize, handicap) {
+
+		if(boardSize){
+			boardSize = parseInt(boardSize);
+			if(!isNaN(boardSize)) {
+				if(boardSize < 5) {
+					boardSize = 5;
+				} else if(boardSize > 23){
+					boardSize = 23;
+				}
+			}
+		}
+		boardSize = boardSize || 19;
+		if(boardSize % 2 == 0) {
+			boardSize += 1;
+		}
+
+		var handicapPoints = null;
+		if(handicap) {
+			handicap = parseInt(handicap);
+			if(!isNaN(handicap)) {
+				if(handicap < 2) {
+					handicap = null;
+				} else if(handicap > 9){
+					handicap = 9;
+				}
+			}
+			if(handicap) {
+				handicapPoints = Game.getHandicapPoints(boardSize, handicap);
+			}
+		}
+
+		var gameModel = this.gameModel = GameModel.newModel(boardSize, handicapPoints);
+
 
 		this.setupBoard();
 		this._initGame();
@@ -370,7 +408,7 @@ GameViewer.prototype = {
 
 	setPlayStatus : function() {
 
-		var $ps = $('.play-status',this.$v);
+		var $ps = $('.play-status', this.$v);
 		var gameInfo = this.gameModel.gameInfo;
 		var blackPlayer = gameInfo.blackPlayer;
 		var whitePlayer = gameInfo.whitePlayer;
@@ -395,46 +433,49 @@ GameViewer.prototype = {
 	},
 
 	setGameInfo : function() {
-		var $gi = $('.game-info',this.$v);
+		var $gi = $('.game-info', this.$v);
 		var gameInfo = this.gameModel.gameInfo;
 
-		for(var pi=0;pi<2;pi++){
-			var color=(pi==0)? 'black':'white';
-			var player=gameInfo[color+'Player'];
-			var $ec=$('.'+color+'-player',$gi);
-			$('.name',$ec).text(player.name||'');
-			$('.rank',$ec).text(player.rank||'');
-			$('.species',$ec).text(player.species||'');
-			$('.term',$ec).text(player.term||'');
+		for (var pi = 0; pi < 2; pi++) {
+			var color = (pi == 0) ? 'black' : 'white';
+			var player = gameInfo[color + 'Player'];
+			if (!player) {
+				continue;
+			}
+			var $ec = $('.' + color + '-player', $gi);
+			$('.name', $ec).text(player.name || '');
+			$('.rank', $ec).text(player.rank || '');
+			$('.species', $ec).text(player.species || '');
+			$('.term', $ec).text(player.term || '');
 		}
 
-		var basic=gameInfo.basic;
-		$('.game-name',$gi).text(basic['GN']||'');
-		$('.event',$gi).text(basic['EV']||'');
-		$('.round',$gi).text(basic['RO']||'');
-		$('.game-date',$gi).text(basic['DT']||'');
-		$('.place',$gi).text(basic['PC']||'');
-		var gameResult=basic['RE']||'';
-		if(gameResult){
+		var basic = gameInfo.basic || {};
+		$('.game-name', $gi).text(basic['GN'] || '');
+		$('.event', $gi).text(basic['EV'] || '');
+		$('.round', $gi).text(basic['RO'] || '');
+		$('.game-date', $gi).text(basic['DT'] || '');
+		$('.place', $gi).text(basic['PC'] || '');
+		var gameResult = basic['RE'] || '';
+		if (gameResult) {
 			// 0/?/Void/W+[Score/R/Resign/T/Time/F/Forfeit]
 		}
-		$('.game-result',$gi).text(gameResult);
+		$('.game-result', $gi).text(gameResult);
 
-		var rule=gameInfo.rule;
-		$('.handicap',$gi).text(rule['HA']||'');
-		$('.komi',$gi).text(rule['KM']||'');
-		$('.time-limit',$gi).text(rule['TM']||'');
-		$('.byo-yomi',$gi).text(rule['OT']||'');
+		var rule = gameInfo.rule || {};
+		$('.handicap', $gi).text(rule['HA'] || '');
+		$('.komi', $gi).text(rule['KM'] || '');
+		$('.time-limit', $gi).text(rule['TM'] || '');
+		$('.byo-yomi', $gi).text(rule['OT'] || '');
 
-		var recorder=gameInfo.recorder;
-		$('.user',$gi).text(recorder['US']||'');
-		$('.source',$gi).text(recorder['SO']||'');
-		$('.app',$gi).text(recorder['AP']||'');
+		var recorder = gameInfo.recorder || {};
+		$('.user', $gi).text(recorder['US'] || '');
+		$('.source', $gi).text(recorder['SO'] || '');
+		$('.app', $gi).text(recorder['AP'] || '');
 
-		var misc=gameInfo.misc;
-		$('.annotate-by',$gi).text(misc['ON']||'');
-		$('.game-comment',$gi).text(misc['CP']||'');
-		$('.copyright',$gi).text(misc['AN']||'');
+		var misc = gameInfo.misc || {};
+		$('.annotate-by', $gi).text(misc['ON'] || '');
+		$('.game-comment', $gi).text(misc['CP'] || '');
+		$('.copyright', $gi).text(misc['AN'] || '');
 	},
 
 	setupGameTree : function() {

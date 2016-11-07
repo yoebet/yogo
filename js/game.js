@@ -187,6 +187,10 @@ Game.prototype = {
 		}
 	},
 
+	nextMoveColor : function() {
+		return this.curNode.nextMoveColor();
+	},
+
 	onBoardMouseup : function(coor, mousekey) {
 		yogo.logInfo('(' + coor.x + ',' + coor.y + ') mouseup, mousekey: '
 				+ mousekey, 'board');
@@ -198,6 +202,73 @@ Game.prototype = {
 
 	setMode : function(mode) {
 		this.mode = mode;
+	},
+
+	passMove : function() {
+		if(this.mode !== 'edit'){
+			return false;
+		}
+		this.editManager.passMove();
+	},
+
+	removeLastNode : function() {
+		if(this.mode !== 'edit'){
+			return false;
+		}
+		this.editManager.removeLastNode();
+	},
+
+	setPlayFirst : function(color) {
+		if(this.mode !== 'edit'){
+			return false;
+		}
+		this.editManager.setPlayFirst(color);
 	}
 
+};
+
+
+Game.getHandicapPoints = function(boardSize, handicap) {
+	var s=boardSize;
+	if(s < 13){
+		return null;
+	}
+	
+	var stars=[
+		[{x:3,y:3},{x:(s - 1) / 2,y:3},{x:s - 4,y:3}],
+		[{x:3,y:(s - 1) / 2},{x:(s - 1) / 2,y:(s - 1) / 2},{x:s - 4,y:(s - 1) / 2}],
+		[{x:3,y:s - 4},{x:(s - 1) / 2,y:s - 4},{x:s - 4,y:s - 4}]
+	];
+	var r=[stars[2][0],stars[0][2]];
+	if(handicap==2){
+		return r;
+	}
+	r.push(stars[0][0]);
+	if(handicap==3){
+		return r;
+	}
+	r.push(stars[2][2]);
+	if(handicap==4){
+		return r;
+	}
+	if(handicap==5){
+		r.push(stars[1][1]);
+		return r;
+	}
+	r.push(stars[1][0]);
+	r.push(stars[1][2]);
+	if(handicap==6){
+		return r;
+	}
+	if(handicap==7){
+		r.push(stars[1][1]);
+		return r;
+	}
+	r.push(stars[0][1]);
+	r.push(stars[2][1]);
+	if(handicap==8){
+		return r;
+	}
+	r.push(stars[1][1]);
+	return r;
 };

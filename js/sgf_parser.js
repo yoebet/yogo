@@ -230,27 +230,29 @@ SgfParser.prototype = {
 					node[group][name] = propValue;
 				}
 
-				node.status.move = !!(node.move['W'] || node.move['B']);
-				node.status.pass = node.move['W'] === null
-						|| node.move === null;
-
-				if (node.isVariationLastNode()) {
-					var realGame = node.belongingVariation.realGame;
-					if (realGame) {
-						gameModel.gameEndingNode = node;
-					}
-				}
-
 				if (node.move['W'] && node.move['B']) {
 					yogo.logWarn('both Black and White move in one node: B['
 							+ node.props['B'] + '],W[' + node.props['W'] + ']',
 							'node');
 				}
 
+				node.status.move = !!(node.move['W'] || node.move['B']);
+				node.status.pass = node.move['W'] === null
+						|| node.move === null;
+
 				if (node.status.move) {
 					var point = (node.move['W'] || node.move['B']);
-					node.move.color = (node.move['B']) ? 'B' : 'W';
 					node.move.point = point;
+					node.move.color = (node.move['B']) ? 'B' : 'W';
+				}else if(node.status.pass){
+					node.move.color = (node.move['B'] === null) ? 'B' : 'W';
+				}
+
+				if (node.isVariationLastNode()) {
+					var realGame = node.belongingVariation.realGame;
+					if (realGame) {
+						gameModel.gameEndingNode = node;
+					}
 				}
 
 			};

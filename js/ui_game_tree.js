@@ -122,9 +122,11 @@ GameTree.prototype = {
 				}
 			}
 		}
+		if (node.move.color) {
+			$treeNode.addClass((node.move.color == 'B') ? 'black' : 'white');
+		}
 		var move = '';
 		if (node.status.move) {
-			$treeNode.addClass((node.move.color == 'B') ? 'black' : 'white');
 			var point = node.move.point;
 			// move=' ('+node.id+') ['+(point.x+1)+','+(point.y+1)+']';
 		} else if (node.status.pass) {
@@ -133,6 +135,9 @@ GameTree.prototype = {
 			move = 'setup';
 		}
 		if (move != '') {
+			if (nodeName != '') {
+				nodeName += ' ';
+			}
 			nodeName += move;
 		}
 		if (node.basic['N']) {
