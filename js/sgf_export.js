@@ -10,7 +10,7 @@ SgfExport.prototype = {
 		if (typeof (value) !== 'string') {
 			return value;
 		}
-		return value.replace('\\', '\\\\').replace(']', '\\]');
+		return value.replace(/\\/g, '\\\\').replace(/]/g, '\\]');
 	},
 
 	_genProps : function(props, names) {
@@ -40,11 +40,10 @@ SgfExport.prototype = {
 		var sgf = 'GM[1]FF[4]';
 		sgf += 'SZ[' + this.gameModel.boardSize + ']';
 		sgf += 'CA[UTF-8]';
+		sgf += 'AP[' + this.app + ']\n';
 		if (root && root['ST']) {
-			sgf += 'ST[' + root['ST'] + ']';
+			sgf += 'ST[' + root['ST'] + ']\n';
 		}
-		sgf += 'AP[' + this.app + ']';
-		sgf += '\n';
 
 		var bl = gameInfo.blackPlayer;
 		if (bl) {
@@ -213,7 +212,7 @@ SgfExport.prototype = {
 			sgf += ';' + nodeSgf;
 		};
 
-		var variationCallback = function(variation) {
+		var variationBeginCallback = function(variation) {
 			sgf += '(';
 		};
 
@@ -221,13 +220,12 @@ SgfExport.prototype = {
 			sgf += ')';
 		};
 
-		gameModel.traverseNodes(nodeCallback, variationCallback,
+		this.gameModel.traverseNodes(nodeCallback, variationBeginCallback,
 				variationCompleteCallback);
 
 		sgf += ')';
 
-		sgf = sgf.replace(')(', ')\n(');
-		sgf = sgf.replace('](', ']\n(');
+		sgf = sgf.replace(/\)\(/g, ')\n(').replace(/\]\(/g, ']\n(');
 
 		return sgf;
 	}

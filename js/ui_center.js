@@ -24,6 +24,12 @@ GameViewer.prototype = {
 		var viewer = this;
 		var $v = this.$v;
 
+		$('button.paste-sgf', $v).click(function() {
+			$('.paste-sgf-container', $v).show();
+			var $textarea = $('textarea.sgf-text', $v);
+			$textarea.get(0).select();
+		});
+
 		$('button.parse-sgf', $v).click(function() {
 			var sgfText = $('textarea.sgf-text', $v).val();
 			if (!sgfText.trim()) {
@@ -32,6 +38,44 @@ GameViewer.prototype = {
 			// TODO: save current
 
 			viewer.loadGameFromSgfText(sgfText);
+
+			$('.paste-sgf-container', $v).hide();
+		});
+
+		$('button.parse-sgf-cancel', $v).click(function() {
+
+			$('.paste-sgf-container', $v).hide();
+		});
+
+		$('button.export-sgf', $v).click(function() {
+			$('.export-sgf-container', $v).show();
+
+			if (!viewer.gameModel) {
+				return;
+			}
+			var exp = new SgfExport(viewer.gameModel);
+
+			var expSgf = exp.generateSgf();
+
+			$('textarea.export-sgf-text').val(expSgf).get(0).select();
+		});
+
+		$('button.export-sgf-cancel', $v).click(function() {
+
+			$('.export-sgf-container', $v).hide();
+		});
+
+		$('button.node-history', $v).click(function() {
+			if (!viewer.game) {
+				return;
+			}
+
+			var dir = $(this).data('value');
+			if (dir === 'goback') {
+				viewer.game.historyGoback();
+			} else if (dir === 'goforward') {
+				viewer.game.historyGoforward();
+			}
 		});
 
 		$('button.new-game', $v).click(function() {
@@ -39,7 +83,7 @@ GameViewer.prototype = {
 
 			var bz = $('input.new-game-size', $v).val();
 			var hc = $('input.new-game-handicap', $v).val();
-			viewer.newGame(bz,hc);
+			viewer.newGame(bz, hc);
 		});
 
 		$('button.perspective', $v).click(function() {
@@ -48,8 +92,9 @@ GameViewer.prototype = {
 			}
 			var perspective = $(this).data('value');
 			var fn = viewer.board[perspective];
-			if (typeof (fn) !== 'function')
+			if (typeof (fn) !== 'function') {
 				return;
+			}
 			fn.call(viewer.board);
 		});
 
@@ -59,8 +104,9 @@ GameViewer.prototype = {
 			}
 			var navi = $(this).data('navi');
 			var fn = viewer.game[navi];
-			if (typeof (fn) !== 'function')
+			if (typeof (fn) !== 'function') {
 				return;
+			}
 			fn.call(viewer.game);
 		});
 
@@ -70,6 +116,11 @@ GameViewer.prototype = {
 			}
 			var mode = $(this).val();
 			viewer.game.setMode(mode);
+			if (mode === 'auto-play') {
+				viewer.game.startAutoPlay();
+			} else {
+				viewer.game.stopAutoPlay();
+			}
 		});
 
 		$('input.game-edit-mode', $v).click(function() {
@@ -86,15 +137,34 @@ GameViewer.prototype = {
 				return;
 			}
 			var op = $(this).data('value');
-			if(op=='pass'){
+			if (op == 'pass') {
 				viewer.game.passMove();
-			} else if(op=='cancel-latest'){
+			} else if (op == 'cancel-latest') {
 				viewer.game.removeLastNode();
-			} else if(op=='black-first'){
+			} else if (op == 'black-first') {
 				viewer.game.setPlayFirst('B');
-			} else if(op=='white-first'){
+			} else if (op == 'white-first') {
 				viewer.game.setPlayFirst('W');
 			}
+		});
+
+		$('button.auto-play', $v).click(function() {
+			if (!viewer.game) {
+				return;
+			}
+			var op = $(this).data('value');
+			if (op == 'start') {
+				viewer.game.startAutoPlay();
+			} else if (op == 'stop') {
+				viewer.game.stopAutoPlay();
+			}
+		});
+
+		$('input.auto-play-interval', $v).change(function() {
+			if (!viewer.game) {
+				return;
+			}
+			viewer.game.setAutoPlayInterval(this.value);
 		});
 
 		$('button.goto-node', $v).click(function() {
@@ -214,6 +284,90 @@ GameViewer.prototype = {
 			}
 			viewer.gameTree.showNode(viewer.game.curNode.id, true);
 		});
+
+		this._handlerFullscreen();
+	},
+
+	_handlerFullscreen : function() {
+		var viewer = this;
+		var $v = this.$v;
+
+		var lastFullscreenElement;
+		var showCoordinate;
+		var onfullscreenchange = function(e) {
+			var isFullScreen = document.webkitIsFullScreen;
+			if (typeof (isFullScreen) === 'undefined') {
+				isFullScreen = document.mozFullScreen;
+			}
+			if (isFullScreen === true) {
+				lastFullscreenElement = document.webkitFullscreenElement;
+				if (!lastFullscreenElement) {
+					lastFullscreenElement = document.mozFullScreenElement;
+				}
+				if (!lastFullscreenElement) {
+					lastFullscreenElement = document.msFullscreenElement;
+				}
+				var $fe = $(lastFullscreenElement);
+				if ($fe.is('.board-container')) {
+					var width = $(window).width();
+					var height = $(window).height();
+					if (height < width) {
+						width = height;
+					}
+					$fe.width(width).height(width);
+				}
+			} else if (isFullScreen === false && lastFullscreenElement) {
+				var $fe = $(lastFullscreenElement);
+				if ($fe.is('.board-container')) {
+					var width = $fe.data('width');
+					var height = $fe.data('height');
+					$fe.width(width).height(height);
+				}
+				lastFullscreenElement = null;
+				if (showCoordinate) {
+					viewer.board.showCoordinate();
+				} else {
+					viewer.board.hideCoordinate();
+				}
+			}
+		}
+
+		$(document).on(
+				'fullscreenchange webkitfullscreenchange mozfullscreenchange'
+						+ ' fullscreenchange msfullscreenchange',
+				onfullscreenchange);
+
+		$('button.fullscreen', $v).click(function() {
+			if (!viewer.board) {
+				return;
+			}
+
+			var elem;
+			var elemName = $(this).data('value');
+			if (elemName === 'board') {
+				elem = viewer.board.boardContainer;
+			} else if (elemName === 'viewer') {
+				elem = viewer.$v.get(0);
+			}
+			if (elem) {
+				if (elem.requestFullscreen) {
+					elem.requestFullscreen();
+				} else if (elem.msRequestFullscreen) {
+					elem.msRequestFullscreen();
+				} else if (elem.mozRequestFullScreen) {
+					elem.mozRequestFullScreen();
+				} else if (elem.webkitRequestFullscreen) {
+					elem.webkitRequestFullscreen();
+				}
+
+				if (elemName === 'board') {
+					showCoordinate = viewer.board.coordinateStatus().show;
+					viewer.board.hideCoordinate();
+				}
+			}
+		});
+
+		// exitFullscreen,webkitExitFullscreen,mozCancelFullScreen,msExitFullscreen
 	},
 
 	onPlayNode : function() {
@@ -317,38 +471,38 @@ GameViewer.prototype = {
 
 	newGame : function(boardSize, handicap) {
 
-		if(boardSize){
+		if (boardSize) {
 			boardSize = parseInt(boardSize);
-			if(!isNaN(boardSize)) {
-				if(boardSize < 5) {
+			if (!isNaN(boardSize)) {
+				if (boardSize < 5) {
 					boardSize = 5;
-				} else if(boardSize > 23){
+				} else if (boardSize > 23) {
 					boardSize = 23;
 				}
 			}
 		}
 		boardSize = boardSize || 19;
-		if(boardSize % 2 == 0) {
+		if (boardSize % 2 == 0) {
 			boardSize += 1;
 		}
 
 		var handicapPoints = null;
-		if(handicap) {
+		if (handicap) {
 			handicap = parseInt(handicap);
-			if(!isNaN(handicap)) {
-				if(handicap < 2) {
+			if (!isNaN(handicap)) {
+				if (handicap < 2) {
 					handicap = null;
-				} else if(handicap > 9){
+				} else if (handicap > 9) {
 					handicap = 9;
 				}
 			}
-			if(handicap) {
+			if (handicap) {
 				handicapPoints = Game.getHandicapPoints(boardSize, handicap);
 			}
 		}
 
-		var gameModel = this.gameModel = GameModel.newModel(boardSize, handicapPoints);
-
+		var gameModel = this.gameModel = GameModel.newModel(boardSize,
+				handicapPoints);
 
 		this.setupBoard();
 		this._initGame();
@@ -391,6 +545,9 @@ GameViewer.prototype = {
 		var existedPaper = this.game && this.game.board.paper;
 
 		var $boardContainer = $(".board-container", $v);
+		$boardContainer.data('width', $boardContainer.width());
+		$boardContainer.data('height', $boardContainer.height());
+
 		$boardContainer.bind('contextmenu', function() {
 			return false;
 		});

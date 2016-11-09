@@ -82,9 +82,9 @@ Game.EditManager.prototype = {
 	setPlayFirst : function(color) {
 		var curNode = this.game.curNode;
 		var nextColor = (curNode.move.color === 'B') ? 'W' : 'B';
-		if(nextColor == color){
-			if(curNode.move['PL']){
-				curNode.move['PL']=null;
+		if (nextColor == color) {
+			if (curNode.move['PL']) {
+				curNode.move['PL'] = null;
 			}
 			return;
 		}
@@ -127,7 +127,8 @@ Game.EditManager.prototype = {
 		}
 
 		var color = curNode.nextMoveColor();
-		var useCurrentNode = this.stillNewGame() && !curNode.isSetup() && !curNode.move['PL'];
+		var useCurrentNode = this.stillNewGame() && !curNode.isSetup()
+				&& !curNode.move['PL'];
 		if (!useCurrentNode) {
 			createNewNode = true;
 			curNode = new Node(curNode);
@@ -159,7 +160,8 @@ Game.EditManager.prototype = {
 		var variation = curNode.belongingVariation;
 
 		newNode.belongingVariation = variation;
-		var positionBuilder = new PositionBuilder(this.board, this.gameModel, newNode, true);
+		var positionBuilder = new PositionBuilder(this.board, this.gameModel,
+				newNode, true);
 		var valid = positionBuilder.buildPosition();
 		if (!valid) {
 			return false;
@@ -205,7 +207,6 @@ Game.EditManager.prototype = {
 			var ci = pns.indexOf(curNode);
 			var spliceLength = newVariation1.nodes.length;
 			pns.splice(ci + 1, spliceLength);
-
 
 			var newVariation2 = new Variation(curNode, variation);
 			curNode.variations.push(newVariation2);
@@ -359,7 +360,8 @@ Game.EditManager.prototype = {
 		var pointStatus = curNode.position[coor.x][coor.y];
 		if (pointStatus) {
 			if (pointStatus.node === curNode && curNode.isSetup()) {
-				var positionBuilder = new PositionBuilder(this.board, this.gameModel, curNode);
+				var positionBuilder = new PositionBuilder(this.board,
+						this.gameModel, curNode);
 				var reverseColor = 'W';
 				var removed = yogo.removePoint(curNode.setup['AB'], coor);
 				if (!removed) {

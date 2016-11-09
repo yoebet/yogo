@@ -14,8 +14,13 @@ function Game(board, gameModel) {
 
 	this.curNode = this._initialNode;
 
+	this._nodeHistory=[];
+	this._nodeHistoryIndex=-1;
+	this._nodeHistoryMaxIndex=-1;
+
 	// view/find-move/edit
 	this.mode = 'view';
+	this.autoPlayIntervalSeconds = 2;
 
 	this.board.pointClickHandler = this.onBoardClick.bind(this);
 	this.board.pointMouseupHandler = this.onBoardMouseup.bind(this);
@@ -42,7 +47,7 @@ function Game(board, gameModel) {
 
 Game.prototype = {
 
-	playNode : function(node) {
+	playNode : function(node, context) {
 		if (!node) {
 			return false;
 		}
@@ -82,7 +87,42 @@ Game.prototype = {
 		if (typeof (this.onPlayNode) === 'function') {
 			this.onPlayNode();
 		}
+
+		if(!context || context.nodeHistory !== false){
+			if(lastNode == this._initialNode ||
+				(lastNode.nextNode !== curNode &&
+				 lastNode.previousNode !== curNode)){
+				var ni = this._nodeHistoryIndex;
+				ni++;
+				this._nodeHistory[ni] = curNode;
+				this._nodeHistoryIndex = ni;
+				this._nodeHistoryMaxIndex = ni;
+			}
+		}
+
 		return success;
+	},
+
+	historyGoback : function() {
+		var ni = this._nodeHistoryIndex;
+		ni--;
+		if(ni < 0){
+			return false;
+		}
+		var node = this._nodeHistory[ni];
+		this._nodeHistoryIndex = ni;
+		return this.playNode(node, {nodeHistory: false});
+	},
+
+	historyGoforward : function() {
+		var ni = this._nodeHistoryIndex;
+		ni++;
+		if(ni > this._nodeHistoryMaxIndex){
+			return false;
+		}
+		var node = this._nodeHistory[ni];
+		this._nodeHistoryIndex = ni;
+		this.playNode(node, {nodeHistory: false});
 	},
 
 	buildAllPositions : function() {
@@ -183,10 +223,45 @@ Game.prototype = {
 			this._boardClickFindAMove(coor);
 			return;
 		}
+		if (this.mode === 'auto-play') {
+			this.startAutoPlay();
+			return;
+		}
 		if (this.mode === 'edit') {
 			this.editManager.onBoardClick(coor);
 			return;
 		}
+	},
+
+	startAutoPlay : function() {
+		if(this.autoPlayHandler){
+			return false;
+		}
+		var autoPlayFun;
+		autoPlayFun=function(){
+			var success=this.nextNode();
+			if(success){
+				this.autoPlayHandler=setTimeout(autoPlayFun, this.autoPlayIntervalSeconds * 1000);
+			}else{
+				this.stopAutoPlay();
+			}
+		}.bind(this);
+		this.autoPlayHandler=setTimeout(autoPlayFun, this.autoPlayIntervalSeconds * 1000);
+	},
+
+	stopAutoPlay : function() {
+		clearTimeout(this.autoPlayHandler);
+		this.autoPlayHandler=null;
+	},
+
+	setAutoPlayInterval : function(seconds) {
+		if(typeof(seconds)==='string'){
+			seconds=parseFloat(seconds);
+		}
+		if(typeof(seconds)!=='number' || isNaN(seconds)){
+			return;
+		}
+		this.autoPlayIntervalSeconds=seconds;
 	},
 
 	nextMoveColor : function() {
