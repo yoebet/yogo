@@ -278,11 +278,18 @@ GameViewer.prototype = {
 			$('ul.tree-nodes:visible', $treeContainer).hide(200);
 		});
 
-		$('button.scroll-into-view', $treeContainer).click(function() {
+		$('button.show-current-node', $treeContainer).click(function() {
 			if (!viewer.gameTree || !viewer.game) {
 				return;
 			}
 			viewer.gameTree.showNode(viewer.game.curNode.id, true);
+		});
+
+		$('select.node-group-count', $treeContainer).change(function() {
+			if (!viewer.gameTree || !viewer.game) {
+				return;
+			}
+			viewer.gameTree.setGroupMoveCount($(this).val());
 		});
 
 		this._handlerFullscreen();
@@ -561,6 +568,8 @@ GameViewer.prototype = {
 
 		this.game = new Game(this.board, this.gameModel);
 		this.game.buildAllPositions();
+
+		$('input.auto-play-interval', this.$v).change();
 	},
 
 	setPlayStatus : function() {
@@ -639,6 +648,11 @@ GameViewer.prototype = {
 
 		var $treeContainer = $('.game-tree-container', this.$v);
 		this.gameTree = new GameTree($treeContainer, this.game);
+
+		var groupMoveCount=$('select.node-group-count', $treeContainer).val();
+		if(parseInt(groupMoveCount)){
+			this.gameTree.groupMoveCount=groupMoveCount;
+		}
 
 		this.gameTree.setup();
 	},

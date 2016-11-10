@@ -26,6 +26,39 @@ GameTree.prototype = {
 		this.render();
 	},
 
+	setGroupMoveCount : function(count) {
+		if(typeof(count)==='string'){
+			count=parseInt(count);
+		}
+		if(typeof(count)!=='number' || isNaN(count)){
+			return;
+		}
+		if(count<3){
+			return;
+		}
+		this.groupMoveCount=count;
+
+		var gameTree = this;
+		var gameModel = this.gameModel;
+
+		var $nodeGroups = $('.node-group', this.$container).detach();
+		var $nodes = $nodeGroups.find('> .tree-nodes > *');
+		var $lastNode;
+		$nodes.each(function() {
+			var $li = $(this);
+			if ($li.is('.tree-node')) {
+				var node = gameModel.nodeMap[this.id];
+				gameTree.setNodeInfo(node, $li);
+				gameTree._appendRealGameNode($li);
+				$lastNode = $li;
+			} else {// ul.variation
+				$lastNode.after($li);
+			}
+		});
+
+		$('button.show-current-node', this.$container).click();
+	},
+
 	render : function() {
 
 		var ets = this.elementTemplates;
@@ -361,23 +394,22 @@ GameTree.prototype = {
 		}
 
 		var $newVariation0 = $('#' + newVariation0.id, this.$container);
-		var $remainVariationNodes = $newVariation0.find('> .tree-nodes > li');
+		var $remainVariationNodes = $newVariation0.find('> .tree-nodes > *');
 		$newVariation0.detach();
 
 		var gameTree = this;
 		var gameModel = this.gameModel;
 		var node0 = newVariation0.nodes[0];
 		if (node0.belongingVariation.realGame) {
-			var gt = this;
 			var $lastNode;
 			$remainVariationNodes.each(function() {
 				var $li = $(this);
 				if ($li.is('.tree-node')) {
 					var node = gameModel.nodeMap[this.id];
 					gameTree.setNodeInfo(node, $li);
-					gt._appendRealGameNode($li);
+					gameTree._appendRealGameNode($li);
 					$lastNode = $li;
-				} else {// .variation
+				} else {// ul.variation
 					$lastNode.after($li);
 				}
 			});

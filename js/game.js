@@ -20,7 +20,7 @@ function Game(board, gameModel) {
 
 	// view/find-move/edit
 	this.mode = 'view';
-	this.autoPlayIntervalSeconds = 2;
+	this.autoPlayIntervalSeconds = 1;
 
 	this.board.pointClickHandler = this.onBoardClick.bind(this);
 	this.board.pointMouseupHandler = this.onBoardMouseup.bind(this);
@@ -103,26 +103,31 @@ Game.prototype = {
 		return success;
 	},
 
-	historyGoback : function() {
-		var ni = this._nodeHistoryIndex;
-		ni--;
-		if(ni < 0){
+	_historyVisit : function(ni) {
+		if(ni < 0 || ni > this._nodeHistoryMaxIndex){
 			return false;
 		}
 		var node = this._nodeHistory[ni];
-		this._nodeHistoryIndex = ni;
-		return this.playNode(node, {nodeHistory: false});
+		if(this.gameModel.nodeMap[node.id]){
+			this._nodeHistoryIndex = ni;
+			return this.playNode(node, {nodeHistory: false});
+		}else {
+			this._nodeHistory.splice(ni, 1);
+			ni--;
+			this._nodeHistoryIndex = ni;
+			this._nodeHistoryMaxIndex--;
+			return this._historyVisit(ni);
+		}
+	},
+
+	historyGoback : function() {
+		var ni = this._nodeHistoryIndex;
+		this._historyVisit(ni-1);
 	},
 
 	historyGoforward : function() {
 		var ni = this._nodeHistoryIndex;
-		ni++;
-		if(ni > this._nodeHistoryMaxIndex){
-			return false;
-		}
-		var node = this._nodeHistory[ni];
-		this._nodeHistoryIndex = ni;
-		this.playNode(node, {nodeHistory: false});
+		this._historyVisit(ni+1);
 	},
 
 	buildAllPositions : function() {
@@ -149,6 +154,10 @@ Game.prototype = {
 
 	inRealGame : function() {
 		return this.curNode.belongingVariation.realGame;
+	},
+
+	nextMoveColor : function() {
+		return this.curNode.nextMoveColor();
 	},
 
 	_boardClickView : function(coor) {
@@ -214,7 +223,7 @@ Game.prototype = {
 	},
 
 	onBoardClick : function(coor, elementType) {
-		yogo.logInfo('(' + coor.x + ',' + coor.y + ') clicked', 'board');
+		// yogo.logInfo('(' + coor.x + ',' + coor.y + ') clicked', 'board');
 		if (this.mode === 'view') {
 			this._boardClickView(coor);
 			return;
@@ -231,6 +240,40 @@ Game.prototype = {
 			this.editManager.onBoardClick(coor);
 			return;
 		}
+	},
+
+	onBoardMouseup : function(coor, mousekey) {
+		// yogo.logInfo('(' + coor.x + ',' + coor.y + ') mouseup, mousekey: '
+		// 		+ mousekey, 'board');
+		if (this.mode === 'edit') {
+			this.editManager.onBoardMouseup(coor, mousekey);
+			return;
+		}
+	},
+
+	setMode : function(mode) {
+		this.mode = mode;
+	},
+
+	passMove : function() {
+		if (this.mode !== 'edit') {
+			return false;
+		}
+		this.editManager.passMove();
+	},
+
+	removeLastNode : function() {
+		if (this.mode !== 'edit') {
+			return false;
+		}
+		this.editManager.removeLastNode();
+	},
+
+	setPlayFirst : function(color) {
+		if (this.mode !== 'edit') {
+			return false;
+		}
+		this.editManager.setPlayFirst(color);
 	},
 
 	startAutoPlay : function() {
@@ -262,44 +305,6 @@ Game.prototype = {
 			return;
 		}
 		this.autoPlayIntervalSeconds=seconds;
-	},
-
-	nextMoveColor : function() {
-		return this.curNode.nextMoveColor();
-	},
-
-	onBoardMouseup : function(coor, mousekey) {
-		yogo.logInfo('(' + coor.x + ',' + coor.y + ') mouseup, mousekey: '
-				+ mousekey, 'board');
-		if (this.mode === 'edit') {
-			this.editManager.onBoardMouseup(coor, mousekey);
-			return;
-		}
-	},
-
-	setMode : function(mode) {
-		this.mode = mode;
-	},
-
-	passMove : function() {
-		if (this.mode !== 'edit') {
-			return false;
-		}
-		this.editManager.passMove();
-	},
-
-	removeLastNode : function() {
-		if (this.mode !== 'edit') {
-			return false;
-		}
-		this.editManager.removeLastNode();
-	},
-
-	setPlayFirst : function(color) {
-		if (this.mode !== 'edit') {
-			return false;
-		}
-		this.editManager.setPlayFirst(color);
 	}
 
 };

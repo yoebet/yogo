@@ -30,8 +30,8 @@ Game.EditManager.prototype = {
 
 	onBoardClick : function(coor) {
 
-		yogo.logInfo('edit mode: ' + this.editMode + ' '
-				+ (this.modeParam || ''));
+		// yogo.logInfo('edit mode: ' + this.editMode + ' '
+		// 		+ (this.modeParam || ''));
 		if (this.editMode === 'play') {
 			this.playMove(coor);
 			return;
@@ -51,9 +51,8 @@ Game.EditManager.prototype = {
 	},
 
 	onBoardMouseup : function(coor, mousekey) {
-		yogo.logInfo('edit mode: ' + this.editMode + ' '
-				+ (this.modeParam || ''));
-
+		// yogo.logInfo('edit mode: ' + this.editMode + ' '
+		// 		+ (this.modeParam || ''));
 		if (this.editMode === 'play' && mousekey === 3) {
 			this.removeLastNode();
 			return;
