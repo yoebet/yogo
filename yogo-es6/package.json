@@ -1,0 +1,43 @@
+{
+  "name": "yogo-es6",
+  "version": "1.0.0",
+  "description": "yogo",
+  "repository": "..",
+  "main": "index.js",
+  "scripts": {
+    "concat": "concat-cli -f src/**/*.js -o dist/bundle.js",
+    "build": "browserify -r ./src/util.js -r ./src/game_model/sgf_parser.js > dist/sgf_parser.js",
+    "build:viewer": "browserify browser-test/viewer_test.js > browser-test/viewer_bundle.js",
+    "build:test": "browserify -x ./src/util.js -x ./src/game_model/sgf_parser.js browser-test/*.js > dist/test.js",
+    "uglify": "uglifyjs -c -m -o dist/yogo.min.js -- dist/yogo.js",
+    "uglify:test": "uglifyjs -c -m -o dist/test.min.js -- dist/test.js",
+    "test": "jasmine"
+  },
+  "keywords": [
+    "go",
+    "weiqi",
+    "baduk"
+  ],
+  "author": "wsx",
+  "license": "ISC",
+  "dependencies": {
+    "debug": "^2.6.8",
+    "extend": "~3.0.0"
+  },
+  "devDependencies": {
+    "browserify": "^14.4.0",
+    "del": "^3.0.0",
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-jasmine-browser": "^1.9.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sourcemaps": "^2.6.0",
+    "gulp-uglify": "^3.0.0",
+    "gulp-uglify-es": "^0.1.3",
+    "gulp-util": "^3.0.8",
+    "jasmine": "^2.7.0",
+    "uglify-es": "^3.0.27",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0"
+  }
+}

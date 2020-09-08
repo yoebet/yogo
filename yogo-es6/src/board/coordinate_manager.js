@@ -1,0 +1,359 @@
+
+class CoordinateManager {
+
+	constructor(board) {
+		this.board = board;
+		this.boardSize = board.boardSize;
+		this.boardSetting = board.boardSetting;
+		this.paper = board.paper;
+		this.setting = this.boardSetting.coordinate;
+		this.fullCoordinate = this.setting.fullCoordinate;
+
+		this.show = this.setting.show;
+		this.xType = this.setting.xType;
+		this.yType = this.setting.yType;
+
+		this.drawed = false;
+		this.xCoordinateLabels1 = [];
+		this.yCoordinateLabels1 = [];
+		this.xCoordinateLabels2 = [];
+		this.yCoordinateLabels2 = [];
+
+		var coordinateManager = this;
+
+		this.onCircleCoordinateChange = function() {
+			var coor = this.data('coor');
+			var vbCoor = coordinateManager.boardCoorToViewBoxCoor(coor);
+			this.attr({
+				cx : vbCoor.x,
+				cy : vbCoor.y
+			});
+		};
+
+		this.onLabelCoordinateChange = function() {
+			var coor = this.data('coor');
+
+			if (coordinateManager.boardSetting.labels.eraseBoardLine) {
+				var lineOrStarElements = this.data('lineOrStarElements');
+				if (lineOrStarElements) {
+					for (let i = 0; i < lineOrStarElements.length; i++) {
+						lineOrStarElements[i].show();
+					}
+					var newPhCoor = coordinateManager._transformCoor(coor, false);
+					lineOrStarElements = coordinateManager.board.lineOrStarMatrix[newPhCoor.x][newPhCoor.y];
+					for (let i = 0; i < lineOrStarElements.length; i++) {
+						lineOrStarElements[i].hide();
+					}
+					this.data('lineOrStarElements', lineOrStarElements);
+				}
+			}
+
+			var vbCoor = coordinateManager.boardCoorToViewBoxCoor(coor);
+			this.attr({
+				x : vbCoor.x,
+				y : vbCoor.y
+			});
+		};
+
+		this.onCoordLabelCoordinateChange = function() {
+			var coor = this.data('coor');
+			var vbCoor = coordinateManager._transformCoor(coor, true);
+			this.attr({
+				x : vbCoor.x,
+				y : vbCoor.y
+			});
+		};
+	}
+
+	_transformCoor(coor, isViewBoxCoor) {
+		var coorMax = isViewBoxCoor ? this.boardSetting.viewBoxSize
+				: (this.boardSize - 1);
+		var x = coor.x, y = coor.y;
+		if (this.board.reversed) {
+			x = y;
+			y = coor.x;
+		}
+		var rotate90 = this.board.rotate90;
+		while (rotate90 > 0) {
+			var tmp = y;
+			y = x;
+			x = coorMax - tmp;
+			rotate90--;
+		}
+		return {x,y};
+	}
+
+	_reverseTransformCoor(coor, isViewBoxCoor) {
+		var coorMax = isViewBoxCoor ? this.boardSetting.viewBoxSize
+				: (this.boardSize - 1);
+
+		var x = coor.x, y = coor.y;
+		var rotate90 = (4 - this.board.rotate90) % 4;
+		while (rotate90 > 0) {
+			var tmp = y;
+			y = x;
+			x = coorMax - tmp;
+			rotate90--;
+		}
+		if (this.board.reversed) {
+			var tmp = x;
+			x = y;
+			y = tmp;
+		}
+
+		return {x,y};
+	}
+
+	boardCoorToViewBoxCoor(coor) {
+		var tc = this._transformCoor(coor, false);
+		var boardOrigin = this.boardSetting.boardOrigin;
+		var gridWidth = this.boardSetting.gridWidth;
+		var vx = boardOrigin.x + gridWidth * tc.x;
+		var vy = boardOrigin.y + gridWidth * tc.y;
+		return {
+			x : vx,
+			y : vy
+		};
+	}
+
+	generateCoordinateLabel(coor, type) {
+		var label = '' + (coor + 1);
+
+		if (type === '1') {
+			;
+		} else if ('aA⒜🄐ⓐⒶ'.indexOf(type) >= 0) {
+			if (coor >= 26) {
+				if (type === 'a') {
+					type = 'A';
+				} else if (type === '⒜') {
+					type = '🄐';
+				} else if (type === 'ⓐ') {
+					type = 'Ⓐ';
+				}
+				coor = coor % 26;
+			}
+			label = String.fromCharCode(type.charCodeAt(0) + coor);
+		} else if (type === '一') {
+			var zhArray = '一二三四五六七八九十'.split('');
+			label = zhArray[coor % 10];
+			if (coor > 9) {
+				zhArray[0] = zhArray[9];
+				label = zhArray[parseInt(coor / 10) - 1] + label;
+			}
+		} else if ('①⑴⒈'.indexOf(type) >= 0) {
+			coor = coor % 20;
+			label = String.fromCharCode(type.charCodeAt(0) + coor);
+		}
+		return label;
+	}
+
+	drawCoordinate() {
+		if (!this.show || this.drawed) {
+			return;
+		}
+
+		var gridWidth = this.boardSetting.gridWidth;
+		var boardOrigin = this.boardSetting.boardOrigin;
+		var viewBoxSize = this.boardSetting.viewBoxSize;
+
+		for (let coor = 0; coor < this.boardSize; coor++) {
+			var oriX = boardOrigin.x + gridWidth * coor;
+			var oriY = this.setting.baseCoor;
+
+			var tc = this._transformCoor({
+				x : oriX,
+				y : oriY
+			}, true);
+			var xlabel = this.generateCoordinateLabel(coor, this.xType);
+			var xlabelElement = this.paper.text(tc.x, tc.y, xlabel).attr({
+				'font-size' : this.setting.fontSize
+			});
+			xlabelElement.data({
+				type : 'coordinate',
+				boardElement : true,
+				coor : tc,
+				onCoordinateChange : this.onCoordLabelCoordinateChange
+			});
+			this.xCoordinateLabels1.push(xlabelElement);
+
+			if (this.fullCoordinate) {
+				var tc2 = this._transformCoor({
+					x : oriX,
+					y : viewBoxSize - oriY
+				}, true);
+				var xlabelElement2 = xlabelElement.clone().attr({
+					x : tc2.x,
+					y : tc2.y
+				});
+				xlabelElement2.data({
+					type : 'coordinate',
+					boardElement : true,
+					coor : tc2,
+					onCoordinateChange : this.onCoordLabelCoordinateChange
+				});
+				this.xCoordinateLabels2.push(xlabelElement2);
+			}
+		}
+
+		for (let coor = 0; coor < this.boardSize; coor++) {
+			var oriX = this.setting.baseCoor;
+			var oriY = boardOrigin.y + gridWidth * coor;
+
+			var tc = this._transformCoor({
+				x : oriX,
+				y : oriY
+			}, true);
+			var ylabel = this.generateCoordinateLabel(coor, this.yType);
+			var ylabelElement = this.paper.text(tc.x, tc.y, ylabel).attr({
+				'font-size' : this.setting.fontSize
+			});
+			ylabelElement.data({
+				type : 'coordinate',
+				boardElement : true,
+				coor : tc,
+				onCoordinateChange : this.onCoordLabelCoordinateChange
+			});
+			this.yCoordinateLabels1.push(ylabelElement);
+
+			if (this.fullCoordinate) {
+				var tc2 = this._transformCoor({
+					x : viewBoxSize - oriX,
+					y : oriY
+				}, true);
+				var ylabelElement2 = ylabelElement.clone().attr({
+					x : tc2.x,
+					y : tc2.y
+				});
+				ylabelElement2.data({
+					type : 'coordinate',
+					boardElement : true,
+					coor : tc2,
+					onCoordinateChange : this.onCoordLabelCoordinateChange
+				});
+				this.yCoordinateLabels2.push(ylabelElement2);
+			}
+		}
+
+		this.drawed = true;
+	}
+
+	setXCoordinateType(type) {
+		if (this.xType == type) {
+			return;
+		}
+		this.xType = type;
+		if (!this.drawed) {
+			return;
+		}
+		for (let i = 0; i < this.boardSize; i++) {
+			var label = this.generateCoordinateLabel(i, type);
+			this.xCoordinateLabels1[i].attr({
+				text : label
+			});
+			if (this.fullCoordinate) {
+				this.xCoordinateLabels2[i].attr({
+					text : label
+				});
+			}
+		}
+	}
+
+	setYCoordinateType(type) {
+		if (this.yType == type) {
+			return;
+		}
+		this.yType = type;
+		if (!this.drawed) {
+			return;
+		}
+		for (let i = 0; i < this.boardSize; i++) {
+			var label = this.generateCoordinateLabel(i, type);
+			this.yCoordinateLabels1[i].attr({
+				text : label
+			});
+			if (this.fullCoordinate) {
+				this.yCoordinateLabels2[i].attr({
+					text : label
+				});
+			}
+		}
+	}
+
+	redrawCoordinate() {
+		while (this.xCoordinateLabels1.length > 0) {
+			this.xCoordinateLabels1.pop().remove();
+		}
+		while (this.yCoordinateLabels1.length > 0) {
+			this.yCoordinateLabels1.pop().remove();
+		}
+		while (this.xCoordinateLabels2.length > 0) {
+			this.xCoordinateLabels2.pop().remove();
+		}
+		while (this.yCoordinateLabels2.length > 0) {
+			this.yCoordinateLabels2.pop().remove();
+		}
+		this.drawed = false;
+		this.drawCoordinate();
+	}
+
+	setFullCoordinate(full) {
+		if (full === this.fullCoordinate) {
+			return;
+		}
+		this.fullCoordinate = full;
+		this.redrawCoordinate();
+		this.board.setViewBox();
+	}
+
+	showCoordinate() {
+		if (this.show) {
+			return;
+		}
+		this.show = true;
+		this.board.setViewBox();
+
+		if (!this.drawed) {
+			this.drawCoordinate();
+			return;
+		}
+		for (let i = 0; i < this.boardSize; i++) {
+			this.xCoordinateLabels1[i].show();
+			this.yCoordinateLabels1[i].show();
+			if (this.fullCoordinate) {
+				this.xCoordinateLabels2[i].show();
+				this.yCoordinateLabels2[i].show();
+			}
+		}
+	}
+
+	hideCoordinate() {
+		if (!this.show) {
+			return;
+		}
+		for (let i = 0; i < this.boardSize; i++) {
+			this.xCoordinateLabels1[i].hide();
+			this.yCoordinateLabels1[i].hide();
+			if (this.fullCoordinate) {
+				this.xCoordinateLabels2[i].hide();
+				this.yCoordinateLabels2[i].hide();
+			}
+		}
+		this.show = false;
+		this.board.setViewBox();
+	}
+
+	coordinateStatus() {
+		return {
+			show : this.show,
+			xType : this.xType,
+			yType : this.yType
+		};
+	}
+
+	getOneAxisWidth() {
+		return this.setting.coordinatePadding + this.setting.coordinateWidth;
+	}
+}
+
+
+module.exports=CoordinateManager;
