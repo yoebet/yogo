@@ -1,0 +1,733 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="460" version="1.1" onload="init(evt)">
+  <script type="text/ecmascript">
+  <![CDATA[
+    function init(evt)
+    {
+        if ( window.svgDocument == null )
+        {
+            svgDocument = evt.target.ownerDocument;
+        }
+    }
+  var prisonerTurns  = [42,55,61,73,92,124,149,154,171,174,178,185,191,232,242,248];
+  var prisonerStones = [[25],[46],[42],[68],[31],[115],[40],[121],[154],[171],[117],[180],[176],[169],[231, 239],[247]];
+  var prisonersBlack = 0;
+  var prisonersWhite = 0;
+  var num_moves = 251;
+  
+var current_move = 0;
+var stoneNumbersVisible = 0;
+
+function nextMove(evt)
+{
+    current_move++;
+    if (current_move > num_moves)
+    {
+        current_move--;
+        return;
+    }
+ 
+    stone = svgDocument.getElementById("stone"+current_move); 
+    toggleStoneVisibility(current_move, 'visible');
+    
+    var p = prisonerTurns.indexOf(current_move);
+    if (p != -1)
+    {
+        if (stone.getAttributeNS(null, "class") == 'black-stone')
+        {
+            prisonersBlack += prisonerStones[p].length;
+            svgDocument.getElementById("black-prisoners").firstChild.data = "Black prisoners: " + prisonersBlack;
+        }
+        else
+        {
+            prisonersWhite += prisonerStones[p].length;
+            svgDocument.getElementById("white-prisoners").firstChild.data = "White prisoners: " + prisonersWhite;
+        }
+        
+        for (var stone=0; stone<prisonerStones[p].length; stone++)
+        {
+            toggleStoneVisibility(prisonerStones[p][stone], 'hidden');
+        }
+    }
+    
+    stone_mark = svgDocument.getElementById("stone_mark");
+    stone_mark.setAttributeNS(null, "visibility", "visible");
+    stone_mark.setAttributeNS(null, "x", stone.getAttributeNS(null, "cx")-3);
+    stone_mark.setAttributeNS(null, "y", stone.getAttributeNS(null, "cy")-3);
+    
+    if (stone.getAttributeNS(null, "class") == 'white-stone')
+    {
+        stone_mark.setAttributeNS(null, "style", "fill:black;");
+    }
+    else
+    {
+        stone_mark.setAttributeNS(null, "style", "fill:white;");
+    }
+    
+}
+
+function prevMove(evt)
+{
+    toggleStoneVisibility(current_move, 'hidden');
+    svgDocument.getElementById("stone_mark").setAttributeNS(null, "visibility", "hidden");
+    
+    var p = prisonerTurns.indexOf(current_move);
+    if (p != -1)
+    {
+        for (var stone=0; stone<prisonerStones[p].length; stone++)
+        {
+            toggleStoneVisibility(prisonerStones[p][stone], 'visible');
+        }
+    }
+    
+    current_move--;
+}
+
+function toggleStoneVisibility(stone_id, visibility)
+{
+    svgDocument.getElementById("stone"  + stone_id).setAttributeNS(null, "visibility", visibility);
+    if (stoneNumbersVisible == 1)
+    {
+        svgDocument.getElementById("number" + stone_id).setAttributeNS(null, "visibility", visibility);
+    }
+}
+
+function toggleStoneNumbers(evt)
+{
+    if (stoneNumbersVisible == 0)
+    {
+        stoneNumbersVisible = 1;
+        visibility = 'visible';
+    }
+    else
+    {
+        stoneNumbersVisible = 0;
+        visibility = 'hidden';
+    }
+    
+    for (var i=1; i<=current_move; i++)
+    {
+        if (svgDocument.getElementById("stone"+i).getAttributeNS(null, "visibility") == 'visible')
+        {
+            svgDocument.getElementById("number"+i).setAttributeNS(null, "visibility", visibility);
+        }
+    }
+}
+
+  ]]>
+  </script>
+  <style>
+    .white-stone-number{
+      font-size:	10px;
+    }
+    .hoshii{
+      stroke:	black;
+    }
+    .black-stone-number{
+      font-size:	10px;
+      fill:	white;
+    }
+    .button_text{
+      font-size:	16px;
+    }
+    .button{
+      cursor: pointer;
+      opacity: 0.5;
+    }
+    .circle-button{
+      fill: blue;
+      stroke: gray;
+      stroke-width: 1;
+    }
+    .button:hover{
+      opacity: 1;
+    }
+    .circle-triangle{
+      fill: white;
+    }
+    .board{
+      stroke:	black;
+      stroke-width:	2;
+      fill:	#DEC090;
+    }
+    .black-stone{
+      stroke:	white;
+      fill:	black;
+    }
+    .white-stone{
+      stroke:	black;
+      fill:	white;
+    }
+    .board-line{
+      stroke:	black;
+      stroke-width:	1;
+      fill:	none;
+    }
+  </style>
+
+  <rect class="board" x="10.5" y="10.5" width="380" height="380"/>
+  <rect class="board-line" x="22.3947368421" y="22.3947368421" width="356.210526316" height="356.210526316"/>
+  <line class="board-line" x1="22.3947368421" y1="22.3947368421" x2="22.3947368421" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="22.3947368421" x2="378.605263158" y2="22.3947368421"/>
+  <line class="board-line" x1="42.1842105263" y1="22.3947368421" x2="42.1842105263" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="42.1842105263" x2="378.605263158" y2="42.1842105263"/>
+  <line class="board-line" x1="61.9736842105" y1="22.3947368421" x2="61.9736842105" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="61.9736842105" x2="378.605263158" y2="61.9736842105"/>
+  <line class="board-line" x1="81.7631578947" y1="22.3947368421" x2="81.7631578947" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="81.7631578947" x2="378.605263158" y2="81.7631578947"/>
+  <line class="board-line" x1="101.552631579" y1="22.3947368421" x2="101.552631579" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="101.552631579" x2="378.605263158" y2="101.552631579"/>
+  <line class="board-line" x1="121.342105263" y1="22.3947368421" x2="121.342105263" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="121.342105263" x2="378.605263158" y2="121.342105263"/>
+  <line class="board-line" x1="141.131578947" y1="22.3947368421" x2="141.131578947" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="141.131578947" x2="378.605263158" y2="141.131578947"/>
+  <line class="board-line" x1="160.921052632" y1="22.3947368421" x2="160.921052632" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="160.921052632" x2="378.605263158" y2="160.921052632"/>
+  <line class="board-line" x1="180.710526316" y1="22.3947368421" x2="180.710526316" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="180.710526316" x2="378.605263158" y2="180.710526316"/>
+  <line class="board-line" x1="200.5" y1="22.3947368421" x2="200.5" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="200.5" x2="378.605263158" y2="200.5"/>
+  <line class="board-line" x1="220.289473684" y1="22.3947368421" x2="220.289473684" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="220.289473684" x2="378.605263158" y2="220.289473684"/>
+  <line class="board-line" x1="240.078947368" y1="22.3947368421" x2="240.078947368" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="240.078947368" x2="378.605263158" y2="240.078947368"/>
+  <line class="board-line" x1="259.868421053" y1="22.3947368421" x2="259.868421053" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="259.868421053" x2="378.605263158" y2="259.868421053"/>
+  <line class="board-line" x1="279.657894737" y1="22.3947368421" x2="279.657894737" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="279.657894737" x2="378.605263158" y2="279.657894737"/>
+  <line class="board-line" x1="299.447368421" y1="22.3947368421" x2="299.447368421" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="299.447368421" x2="378.605263158" y2="299.447368421"/>
+  <line class="board-line" x1="319.236842105" y1="22.3947368421" x2="319.236842105" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="319.236842105" x2="378.605263158" y2="319.236842105"/>
+  <line class="board-line" x1="339.026315789" y1="22.3947368421" x2="339.026315789" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="339.026315789" x2="378.605263158" y2="339.026315789"/>
+  <line class="board-line" x1="358.815789474" y1="22.3947368421" x2="358.815789474" y2="378.605263158"/>
+  <line class="board-line" x1="22.3947368421" y1="358.815789474" x2="378.605263158" y2="358.815789474"/>
+  <circle class="hoshii" cx="81.7631578947" cy="81.7631578947" r="2"/>
+  <circle class="hoshii" cx="81.7631578947" cy="200.5" r="2"/>
+  <circle class="hoshii" cx="81.7631578947" cy="319.236842105" r="2"/>
+  <circle class="hoshii" cx="200.5" cy="81.7631578947" r="2"/>
+  <circle class="hoshii" cx="200.5" cy="200.5" r="2"/>
+  <circle class="hoshii" cx="200.5" cy="319.236842105" r="2"/>
+  <circle class="hoshii" cx="319.236842105" cy="81.7631578947" r="2"/>
+  <circle class="hoshii" cx="319.236842105" cy="200.5" r="2"/>
+  <circle class="hoshii" cx="319.236842105" cy="319.236842105" r="2"/>
+
+  <circle class="black-stone" id="stone1" cx="299.4" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone2" cx="339.0" cy="299.4" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone3" cx="62.0" cy="81.8" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone4" cx="62.0" cy="319.2" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone5" cx="101.6" cy="339.0" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone6" cx="160.9" cy="339.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone7" cx="160.9" cy="319.2" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone8" cx="180.7" cy="339.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone9" cx="141.1" cy="339.0" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone10" cx="180.7" cy="319.2" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone11" cx="62.0" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone12" cx="81.8" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone13" cx="81.8" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone14" cx="101.6" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone15" cx="101.6" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone16" cx="160.9" cy="299.4" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone17" cx="62.0" cy="339.0" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone18" cx="42.2" cy="339.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone19" cx="121.3" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone20" cx="81.8" cy="339.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone21" cx="141.1" cy="319.2" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone22" cx="101.6" cy="319.2" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone23" cx="121.3" cy="319.2" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone24" cx="319.2" cy="339.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone25" cx="101.6" cy="299.4" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone26" cx="81.8" cy="299.4" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone27" cx="160.9" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone28" cx="180.7" cy="299.4" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone29" cx="180.7" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone30" cx="200.5" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone31" cx="200.5" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone32" cx="220.3" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone33" cx="121.3" cy="81.8" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone34" cx="220.3" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone35" cx="319.2" cy="101.6" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone36" cx="200.5" cy="240.1" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone37" cx="160.9" cy="240.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone38" cx="81.8" cy="121.3" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone39" cx="101.6" cy="101.6" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone40" cx="62.0" cy="101.6" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone41" cx="42.2" cy="81.8" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone42" cx="121.3" cy="299.4" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone43" cx="141.1" cy="299.4" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone44" cx="62.0" cy="160.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone45" cx="62.0" cy="200.5" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone46" cx="42.2" cy="200.5" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone47" cx="42.2" cy="180.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone48" cx="62.0" cy="180.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone49" cx="42.2" cy="160.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone50" cx="81.8" cy="200.5" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone51" cx="62.0" cy="220.3" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone52" cx="42.2" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone53" cx="42.2" cy="220.3" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone54" cx="22.4" cy="160.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone55" cx="22.4" cy="200.5" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone56" cx="101.6" cy="121.3" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone57" cx="141.1" cy="121.3" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone58" cx="141.1" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone59" cx="160.9" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone60" cx="121.3" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone61" cx="101.6" cy="299.4" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone62" cx="81.8" cy="319.2" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone63" cx="319.2" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone64" cx="319.2" cy="240.1" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone65" cx="339.0" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone66" cx="358.8" cy="299.4" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone67" cx="299.4" cy="240.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone68" cx="299.4" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone69" cx="319.2" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone70" cx="339.0" cy="240.1" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone71" cx="279.7" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone72" cx="299.4" cy="220.3" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone73" cx="299.4" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone74" cx="279.7" cy="220.3" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone75" cx="299.4" cy="319.2" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone76" cx="299.4" cy="339.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone77" cx="259.9" cy="319.2" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone78" cx="319.2" cy="299.4" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone79" cx="259.9" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone80" cx="279.7" cy="299.4" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone81" cx="240.1" cy="240.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone82" cx="299.4" cy="299.4" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone83" cx="259.9" cy="200.5" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone84" cx="240.1" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone85" cx="259.9" cy="240.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone86" cx="319.2" cy="160.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone87" cx="220.3" cy="319.2" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone88" cx="220.3" cy="299.4" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone89" cx="319.2" cy="200.5" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone90" cx="319.2" cy="220.3" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone91" cx="200.5" cy="220.3" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone92" cx="180.7" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone93" cx="180.7" cy="240.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone94" cx="160.9" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone95" cx="141.1" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone96" cx="141.1" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone97" cx="121.3" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone98" cx="141.1" cy="240.1" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone99" cx="141.1" cy="220.3" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone100" cx="81.8" cy="81.8" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone101" cx="81.8" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone102" cx="160.9" cy="160.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone103" cx="259.9" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone104" cx="121.3" cy="220.3" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone105" cx="121.3" cy="240.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone106" cx="200.5" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone107" cx="180.7" cy="220.3" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone108" cx="141.1" cy="200.5" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone109" cx="160.9" cy="220.3" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone110" cx="240.1" cy="339.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone111" cx="240.1" cy="319.2" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone112" cx="220.3" cy="358.8" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone113" cx="220.3" cy="339.0" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone114" cx="240.1" cy="358.8" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone115" cx="200.5" cy="180.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone116" cx="200.5" cy="160.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone117" cx="220.3" cy="160.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone118" cx="180.7" cy="180.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone119" cx="339.0" cy="200.5" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone120" cx="299.4" cy="180.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone121" cx="339.0" cy="160.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone122" cx="220.3" cy="180.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone123" cx="240.1" cy="180.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone124" cx="200.5" cy="200.5" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone125" cx="358.8" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone126" cx="339.0" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone127" cx="358.8" cy="220.3" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone128" cx="358.8" cy="160.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone129" cx="299.4" cy="200.5" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone130" cx="358.8" cy="101.6" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone131" cx="220.3" cy="220.3" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone132" cx="339.0" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone133" cx="339.0" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone134" cx="358.8" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone135" cx="200.5" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone136" cx="101.6" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone137" cx="81.8" cy="101.6" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone138" cx="101.6" cy="81.8" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone139" cx="121.3" cy="101.6" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone140" cx="81.8" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone141" cx="62.0" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone142" cx="121.3" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone143" cx="62.0" cy="121.3" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone144" cx="160.9" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone145" cx="62.0" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone146" cx="141.1" cy="81.8" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone147" cx="319.2" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone148" cx="141.1" cy="101.6" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone149" cx="42.2" cy="101.6" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone150" cx="121.3" cy="121.3" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone151" cx="358.8" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone152" cx="240.1" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone153" cx="358.8" cy="180.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone154" cx="339.0" cy="180.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone155" cx="299.4" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone156" cx="378.6" cy="180.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone157" cx="358.8" cy="200.5" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone158" cx="319.2" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone159" cx="220.3" cy="81.8" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone160" cx="259.9" cy="101.6" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone161" cx="299.4" cy="121.3" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone162" cx="240.1" cy="121.3" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone163" cx="339.0" cy="81.8" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone164" cx="358.8" cy="81.8" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone165" cx="319.2" cy="180.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone166" cx="378.6" cy="121.3" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone167" cx="299.4" cy="160.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone168" cx="279.7" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone169" cx="339.0" cy="121.3" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone170" cx="358.8" cy="121.3" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone171" cx="339.0" cy="160.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone172" cx="299.4" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone173" cx="319.2" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone174" cx="339.0" cy="180.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone175" cx="220.3" cy="121.3" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone176" cx="220.3" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone177" cx="240.1" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone178" cx="240.1" cy="160.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone179" cx="259.9" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone180" cx="220.3" cy="101.6" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone181" cx="240.1" cy="81.8" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone182" cx="259.9" cy="81.8" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone183" cx="240.1" cy="101.6" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone184" cx="259.9" cy="121.3" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone185" cx="200.5" cy="101.6" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone186" cx="259.9" cy="160.9" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone187" cx="279.7" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone188" cx="220.3" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone189" cx="200.5" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone190" cx="200.5" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone191" cx="220.3" cy="160.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone192" cx="319.2" cy="121.3" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone193" cx="220.3" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone194" cx="62.0" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone195" cx="42.2" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone196" cx="81.8" cy="141.1" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone197" cx="62.0" cy="101.6" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone198" cx="101.6" cy="220.3" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone199" cx="62.0" cy="22.4" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone200" cx="101.6" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone201" cx="160.9" cy="121.3" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone202" cx="279.7" cy="319.2" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone203" cx="259.9" cy="339.0" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone204" cx="259.9" cy="358.8" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone205" cx="240.1" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone206" cx="62.0" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone207" cx="101.6" cy="358.8" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone208" cx="141.1" cy="358.8" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone209" cx="62.0" cy="358.8" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone210" cx="42.2" cy="358.8" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone211" cx="81.8" cy="358.8" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone212" cx="42.2" cy="378.6" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone213" cx="121.3" cy="358.8" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone214" cx="240.1" cy="200.5" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone215" cx="259.9" cy="180.7" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone216" cx="220.3" cy="200.5" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone217" cx="220.3" cy="240.1" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone218" cx="180.7" cy="358.8" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone219" cx="160.9" cy="200.5" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone220" cx="141.1" cy="180.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone221" cx="42.2" cy="259.9" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone222" cx="42.2" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone223" cx="160.9" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone224" cx="141.1" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone225" cx="180.7" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone226" cx="180.7" cy="22.4" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone227" cx="180.7" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone228" cx="358.8" cy="279.7" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone229" cx="141.1" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone230" cx="160.9" cy="22.4" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone231" cx="141.1" cy="378.6" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone232" cx="339.0" cy="101.6" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone233" cx="279.7" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone234" cx="259.9" cy="62.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone235" cx="299.4" cy="22.4" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone236" cx="259.9" cy="42.2" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone237" cx="319.2" cy="81.8" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone238" cx="160.9" cy="358.8" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone239" cx="160.9" cy="378.6" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone240" cx="180.7" cy="378.6" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone241" cx="200.5" cy="358.8" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone242" cx="121.3" cy="378.6" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone243" cx="200.5" cy="339.0" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone244" cx="200.5" cy="378.6" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone245" cx="279.7" cy="358.8" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone246" cx="279.7" cy="339.0" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone247" cx="220.3" cy="378.6" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone248" cx="240.1" cy="378.6" r="9.0" visibility="hidden"/>
+  <circle class="black-stone" id="stone249" cx="141.1" cy="378.6" r="9.0" visibility="hidden"/>
+  <circle class="white-stone" id="stone250" cx="358.8" cy="240.1" r="9.0" visibility="hidden"/>
+
+  <text class="black-stone-number" id="number1" x="296.9" y="65.0" visibility="hidden">1</text>
+  <text class="white-stone-number" id="number2" x="336.5" y="302.4" visibility="hidden">2</text>
+  <text class="black-stone-number" id="number3" x="59.5" y="84.8" visibility="hidden">3</text>
+  <text class="white-stone-number" id="number4" x="59.5" y="322.2" visibility="hidden">4</text>
+  <text class="black-stone-number" id="number5" x="99.1" y="342.0" visibility="hidden">5</text>
+  <text class="white-stone-number" id="number6" x="158.4" y="342.0" visibility="hidden">6</text>
+  <text class="black-stone-number" id="number7" x="158.4" y="322.2" visibility="hidden">7</text>
+  <text class="white-stone-number" id="number8" x="178.2" y="342.0" visibility="hidden">8</text>
+  <text class="black-stone-number" id="number9" x="138.6" y="342.0" visibility="hidden">9</text>
+  <text class="white-stone-number" id="number10" x="175.7" y="322.2" visibility="hidden">10</text>
+  <text class="black-stone-number" id="number11" x="57.0" y="262.9" visibility="hidden">11</text>
+  <text class="white-stone-number" id="number12" x="76.8" y="282.7" visibility="hidden">12</text>
+  <text class="black-stone-number" id="number13" x="76.8" y="262.9" visibility="hidden">13</text>
+  <text class="white-stone-number" id="number14" x="96.6" y="282.7" visibility="hidden">14</text>
+  <text class="black-stone-number" id="number15" x="96.6" y="262.9" visibility="hidden">15</text>
+  <text class="white-stone-number" id="number16" x="155.9" y="302.4" visibility="hidden">16</text>
+  <text class="black-stone-number" id="number17" x="57.0" y="342.0" visibility="hidden">17</text>
+  <text class="white-stone-number" id="number18" x="37.2" y="342.0" visibility="hidden">18</text>
+  <text class="black-stone-number" id="number19" x="116.3" y="282.7" visibility="hidden">19</text>
+  <text class="white-stone-number" id="number20" x="76.8" y="342.0" visibility="hidden">20</text>
+  <text class="black-stone-number" id="number21" x="136.1" y="322.2" visibility="hidden">21</text>
+  <text class="white-stone-number" id="number22" x="96.6" y="322.2" visibility="hidden">22</text>
+  <text class="black-stone-number" id="number23" x="116.3" y="322.2" visibility="hidden">23</text>
+  <text class="white-stone-number" id="number24" x="314.2" y="342.0" visibility="hidden">24</text>
+  <text class="black-stone-number" id="number25" x="96.6" y="302.4" visibility="hidden">25</text>
+  <text class="white-stone-number" id="number26" x="76.8" y="302.4" visibility="hidden">26</text>
+  <text class="black-stone-number" id="number27" x="155.9" y="282.7" visibility="hidden">27</text>
+  <text class="white-stone-number" id="number28" x="175.7" y="302.4" visibility="hidden">28</text>
+  <text class="black-stone-number" id="number29" x="175.7" y="282.7" visibility="hidden">29</text>
+  <text class="white-stone-number" id="number30" x="195.5" y="282.7" visibility="hidden">30</text>
+  <text class="black-stone-number" id="number31" x="195.5" y="262.9" visibility="hidden">31</text>
+  <text class="white-stone-number" id="number32" x="215.3" y="282.7" visibility="hidden">32</text>
+  <text class="black-stone-number" id="number33" x="116.3" y="84.8" visibility="hidden">33</text>
+  <text class="white-stone-number" id="number34" x="215.3" y="262.9" visibility="hidden">34</text>
+  <text class="black-stone-number" id="number35" x="314.2" y="104.6" visibility="hidden">35</text>
+  <text class="white-stone-number" id="number36" x="195.5" y="243.1" visibility="hidden">36</text>
+  <text class="black-stone-number" id="number37" x="155.9" y="243.1" visibility="hidden">37</text>
+  <text class="white-stone-number" id="number38" x="76.8" y="124.3" visibility="hidden">38</text>
+  <text class="black-stone-number" id="number39" x="96.6" y="104.6" visibility="hidden">39</text>
+  <text class="white-stone-number" id="number40" x="57.0" y="104.6" visibility="hidden">40</text>
+  <text class="black-stone-number" id="number41" x="37.2" y="84.8" visibility="hidden">41</text>
+  <text class="white-stone-number" id="number42" x="116.3" y="302.4" visibility="hidden">42</text>
+  <text class="black-stone-number" id="number43" x="136.1" y="302.4" visibility="hidden">43</text>
+  <text class="white-stone-number" id="number44" x="57.0" y="163.9" visibility="hidden">44</text>
+  <text class="black-stone-number" id="number45" x="57.0" y="203.5" visibility="hidden">45</text>
+  <text class="white-stone-number" id="number46" x="37.2" y="203.5" visibility="hidden">46</text>
+  <text class="black-stone-number" id="number47" x="37.2" y="183.7" visibility="hidden">47</text>
+  <text class="white-stone-number" id="number48" x="57.0" y="183.7" visibility="hidden">48</text>
+  <text class="black-stone-number" id="number49" x="37.2" y="163.9" visibility="hidden">49</text>
+  <text class="white-stone-number" id="number50" x="76.8" y="203.5" visibility="hidden">50</text>
+  <text class="black-stone-number" id="number51" x="57.0" y="223.3" visibility="hidden">51</text>
+  <text class="white-stone-number" id="number52" x="37.2" y="144.1" visibility="hidden">52</text>
+  <text class="black-stone-number" id="number53" x="37.2" y="223.3" visibility="hidden">53</text>
+  <text class="white-stone-number" id="number54" x="17.4" y="163.9" visibility="hidden">54</text>
+  <text class="black-stone-number" id="number55" x="17.4" y="203.5" visibility="hidden">55</text>
+  <text class="white-stone-number" id="number56" x="96.6" y="124.3" visibility="hidden">56</text>
+  <text class="black-stone-number" id="number57" x="136.1" y="124.3" visibility="hidden">57</text>
+  <text class="white-stone-number" id="number58" x="136.1" y="144.1" visibility="hidden">58</text>
+  <text class="black-stone-number" id="number59" x="155.9" y="144.1" visibility="hidden">59</text>
+  <text class="white-stone-number" id="number60" x="116.3" y="144.1" visibility="hidden">60</text>
+  <text class="black-stone-number" id="number61" x="96.6" y="302.4" visibility="hidden">61</text>
+  <text class="white-stone-number" id="number62" x="76.8" y="322.2" visibility="hidden">62</text>
+  <text class="black-stone-number" id="number63" x="314.2" y="282.7" visibility="hidden">63</text>
+  <text class="white-stone-number" id="number64" x="314.2" y="243.1" visibility="hidden">64</text>
+  <text class="black-stone-number" id="number65" x="334.0" y="282.7" visibility="hidden">65</text>
+  <text class="white-stone-number" id="number66" x="353.8" y="302.4" visibility="hidden">66</text>
+  <text class="black-stone-number" id="number67" x="294.4" y="243.1" visibility="hidden">67</text>
+  <text class="white-stone-number" id="number68" x="294.4" y="262.9" visibility="hidden">68</text>
+  <text class="black-stone-number" id="number69" x="314.2" y="262.9" visibility="hidden">69</text>
+  <text class="white-stone-number" id="number70" x="334.0" y="243.1" visibility="hidden">70</text>
+  <text class="black-stone-number" id="number71" x="274.7" y="262.9" visibility="hidden">71</text>
+  <text class="white-stone-number" id="number72" x="294.4" y="223.3" visibility="hidden">72</text>
+  <text class="black-stone-number" id="number73" x="294.4" y="282.7" visibility="hidden">73</text>
+  <text class="white-stone-number" id="number74" x="274.7" y="223.3" visibility="hidden">74</text>
+  <text class="black-stone-number" id="number75" x="294.4" y="322.2" visibility="hidden">75</text>
+  <text class="white-stone-number" id="number76" x="294.4" y="342.0" visibility="hidden">76</text>
+  <text class="black-stone-number" id="number77" x="254.9" y="322.2" visibility="hidden">77</text>
+  <text class="white-stone-number" id="number78" x="314.2" y="302.4" visibility="hidden">78</text>
+  <text class="black-stone-number" id="number79" x="254.9" y="282.7" visibility="hidden">79</text>
+  <text class="white-stone-number" id="number80" x="274.7" y="302.4" visibility="hidden">80</text>
+  <text class="black-stone-number" id="number81" x="235.1" y="243.1" visibility="hidden">81</text>
+  <text class="white-stone-number" id="number82" x="294.4" y="302.4" visibility="hidden">82</text>
+  <text class="black-stone-number" id="number83" x="254.9" y="203.5" visibility="hidden">83</text>
+  <text class="white-stone-number" id="number84" x="235.1" y="262.9" visibility="hidden">84</text>
+  <text class="black-stone-number" id="number85" x="254.9" y="243.1" visibility="hidden">85</text>
+  <text class="white-stone-number" id="number86" x="314.2" y="163.9" visibility="hidden">86</text>
+  <text class="black-stone-number" id="number87" x="215.3" y="322.2" visibility="hidden">87</text>
+  <text class="white-stone-number" id="number88" x="215.3" y="302.4" visibility="hidden">88</text>
+  <text class="black-stone-number" id="number89" x="314.2" y="203.5" visibility="hidden">89</text>
+  <text class="white-stone-number" id="number90" x="314.2" y="223.3" visibility="hidden">90</text>
+  <text class="black-stone-number" id="number91" x="195.5" y="223.3" visibility="hidden">91</text>
+  <text class="white-stone-number" id="number92" x="175.7" y="262.9" visibility="hidden">92</text>
+  <text class="black-stone-number" id="number93" x="175.7" y="243.1" visibility="hidden">93</text>
+  <text class="white-stone-number" id="number94" x="155.9" y="262.9" visibility="hidden">94</text>
+  <text class="black-stone-number" id="number95" x="136.1" y="282.7" visibility="hidden">95</text>
+  <text class="white-stone-number" id="number96" x="136.1" y="262.9" visibility="hidden">96</text>
+  <text class="black-stone-number" id="number97" x="116.3" y="262.9" visibility="hidden">97</text>
+  <text class="white-stone-number" id="number98" x="136.1" y="243.1" visibility="hidden">98</text>
+  <text class="black-stone-number" id="number99" x="136.1" y="223.3" visibility="hidden">99</text>
+  <text class="white-stone-number" id="number100" x="74.3" y="84.8" visibility="hidden">100</text>
+  <text class="black-stone-number" id="number101" x="74.3" y="65.0" visibility="hidden">101</text>
+  <text class="white-stone-number" id="number102" x="153.4" y="163.9" visibility="hidden">102</text>
+  <text class="black-stone-number" id="number103" x="252.4" y="262.9" visibility="hidden">103</text>
+  <text class="white-stone-number" id="number104" x="113.8" y="223.3" visibility="hidden">104</text>
+  <text class="black-stone-number" id="number105" x="113.8" y="243.1" visibility="hidden">105</text>
+  <text class="white-stone-number" id="number106" x="193.0" y="262.9" visibility="hidden">106</text>
+  <text class="black-stone-number" id="number107" x="173.2" y="223.3" visibility="hidden">107</text>
+  <text class="white-stone-number" id="number108" x="133.6" y="203.5" visibility="hidden">108</text>
+  <text class="black-stone-number" id="number109" x="153.4" y="223.3" visibility="hidden">109</text>
+  <text class="white-stone-number" id="number110" x="232.6" y="342.0" visibility="hidden">110</text>
+  <text class="black-stone-number" id="number111" x="232.6" y="322.2" visibility="hidden">111</text>
+  <text class="white-stone-number" id="number112" x="212.8" y="361.8" visibility="hidden">112</text>
+  <text class="black-stone-number" id="number113" x="212.8" y="342.0" visibility="hidden">113</text>
+  <text class="white-stone-number" id="number114" x="232.6" y="361.8" visibility="hidden">114</text>
+  <text class="black-stone-number" id="number115" x="193.0" y="183.7" visibility="hidden">115</text>
+  <text class="white-stone-number" id="number116" x="193.0" y="163.9" visibility="hidden">116</text>
+  <text class="black-stone-number" id="number117" x="212.8" y="163.9" visibility="hidden">117</text>
+  <text class="white-stone-number" id="number118" x="173.2" y="183.7" visibility="hidden">118</text>
+  <text class="black-stone-number" id="number119" x="331.5" y="203.5" visibility="hidden">119</text>
+  <text class="white-stone-number" id="number120" x="291.9" y="183.7" visibility="hidden">120</text>
+  <text class="black-stone-number" id="number121" x="331.5" y="163.9" visibility="hidden">121</text>
+  <text class="white-stone-number" id="number122" x="212.8" y="183.7" visibility="hidden">122</text>
+  <text class="black-stone-number" id="number123" x="232.6" y="183.7" visibility="hidden">123</text>
+  <text class="white-stone-number" id="number124" x="193.0" y="203.5" visibility="hidden">124</text>
+  <text class="black-stone-number" id="number125" x="351.3" y="262.9" visibility="hidden">125</text>
+  <text class="white-stone-number" id="number126" x="331.5" y="144.1" visibility="hidden">126</text>
+  <text class="black-stone-number" id="number127" x="351.3" y="223.3" visibility="hidden">127</text>
+  <text class="white-stone-number" id="number128" x="351.3" y="163.9" visibility="hidden">128</text>
+  <text class="black-stone-number" id="number129" x="291.9" y="203.5" visibility="hidden">129</text>
+  <text class="white-stone-number" id="number130" x="351.3" y="104.6" visibility="hidden">130</text>
+  <text class="black-stone-number" id="number131" x="212.8" y="223.3" visibility="hidden">131</text>
+  <text class="white-stone-number" id="number132" x="331.5" y="65.0" visibility="hidden">132</text>
+  <text class="black-stone-number" id="number133" x="331.5" y="45.2" visibility="hidden">133</text>
+  <text class="white-stone-number" id="number134" x="351.3" y="65.0" visibility="hidden">134</text>
+  <text class="black-stone-number" id="number135" x="193.0" y="65.0" visibility="hidden">135</text>
+  <text class="white-stone-number" id="number136" x="94.1" y="65.0" visibility="hidden">136</text>
+  <text class="black-stone-number" id="number137" x="74.3" y="104.6" visibility="hidden">137</text>
+  <text class="white-stone-number" id="number138" x="94.1" y="84.8" visibility="hidden">138</text>
+  <text class="black-stone-number" id="number139" x="113.8" y="104.6" visibility="hidden">139</text>
+  <text class="white-stone-number" id="number140" x="74.3" y="45.2" visibility="hidden">140</text>
+  <text class="black-stone-number" id="number141" x="54.5" y="65.0" visibility="hidden">141</text>
+  <text class="white-stone-number" id="number142" x="113.8" y="65.0" visibility="hidden">142</text>
+  <text class="black-stone-number" id="number143" x="54.5" y="124.3" visibility="hidden">143</text>
+  <text class="white-stone-number" id="number144" x="153.4" y="45.2" visibility="hidden">144</text>
+  <text class="black-stone-number" id="number145" x="54.5" y="144.1" visibility="hidden">145</text>
+  <text class="white-stone-number" id="number146" x="133.6" y="84.8" visibility="hidden">146</text>
+  <text class="black-stone-number" id="number147" x="311.7" y="65.0" visibility="hidden">147</text>
+  <text class="white-stone-number" id="number148" x="133.6" y="104.6" visibility="hidden">148</text>
+  <text class="black-stone-number" id="number149" x="34.7" y="104.6" visibility="hidden">149</text>
+  <text class="white-stone-number" id="number150" x="113.8" y="124.3" visibility="hidden">150</text>
+  <text class="black-stone-number" id="number151" x="351.3" y="45.2" visibility="hidden">151</text>
+  <text class="white-stone-number" id="number152" x="232.6" y="65.0" visibility="hidden">152</text>
+  <text class="black-stone-number" id="number153" x="351.3" y="183.7" visibility="hidden">153</text>
+  <text class="white-stone-number" id="number154" x="331.5" y="183.7" visibility="hidden">154</text>
+  <text class="black-stone-number" id="number155" x="291.9" y="144.1" visibility="hidden">155</text>
+  <text class="white-stone-number" id="number156" x="371.1" y="183.7" visibility="hidden">156</text>
+  <text class="black-stone-number" id="number157" x="351.3" y="203.5" visibility="hidden">157</text>
+  <text class="white-stone-number" id="number158" x="311.7" y="144.1" visibility="hidden">158</text>
+  <text class="black-stone-number" id="number159" x="212.8" y="84.8" visibility="hidden">159</text>
+  <text class="white-stone-number" id="number160" x="252.4" y="104.6" visibility="hidden">160</text>
+  <text class="black-stone-number" id="number161" x="291.9" y="124.3" visibility="hidden">161</text>
+  <text class="white-stone-number" id="number162" x="232.6" y="124.3" visibility="hidden">162</text>
+  <text class="black-stone-number" id="number163" x="331.5" y="84.8" visibility="hidden">163</text>
+  <text class="white-stone-number" id="number164" x="351.3" y="84.8" visibility="hidden">164</text>
+  <text class="black-stone-number" id="number165" x="311.7" y="183.7" visibility="hidden">165</text>
+  <text class="white-stone-number" id="number166" x="371.1" y="124.3" visibility="hidden">166</text>
+  <text class="black-stone-number" id="number167" x="291.9" y="163.9" visibility="hidden">167</text>
+  <text class="white-stone-number" id="number168" x="272.2" y="45.2" visibility="hidden">168</text>
+  <text class="black-stone-number" id="number169" x="331.5" y="124.3" visibility="hidden">169</text>
+  <text class="white-stone-number" id="number170" x="351.3" y="124.3" visibility="hidden">170</text>
+  <text class="black-stone-number" id="number171" x="331.5" y="163.9" visibility="hidden">171</text>
+  <text class="white-stone-number" id="number172" x="291.9" y="45.2" visibility="hidden">172</text>
+  <text class="black-stone-number" id="number173" x="311.7" y="45.2" visibility="hidden">173</text>
+  <text class="white-stone-number" id="number174" x="331.5" y="183.7" visibility="hidden">174</text>
+  <text class="black-stone-number" id="number175" x="212.8" y="124.3" visibility="hidden">175</text>
+  <text class="white-stone-number" id="number176" x="212.8" y="144.1" visibility="hidden">176</text>
+  <text class="black-stone-number" id="number177" x="232.6" y="144.1" visibility="hidden">177</text>
+  <text class="white-stone-number" id="number178" x="232.6" y="163.9" visibility="hidden">178</text>
+  <text class="black-stone-number" id="number179" x="252.4" y="144.1" visibility="hidden">179</text>
+  <text class="white-stone-number" id="number180" x="212.8" y="104.6" visibility="hidden">180</text>
+  <text class="black-stone-number" id="number181" x="232.6" y="84.8" visibility="hidden">181</text>
+  <text class="white-stone-number" id="number182" x="252.4" y="84.8" visibility="hidden">182</text>
+  <text class="black-stone-number" id="number183" x="232.6" y="104.6" visibility="hidden">183</text>
+  <text class="white-stone-number" id="number184" x="252.4" y="124.3" visibility="hidden">184</text>
+  <text class="black-stone-number" id="number185" x="193.0" y="104.6" visibility="hidden">185</text>
+  <text class="white-stone-number" id="number186" x="252.4" y="163.9" visibility="hidden">186</text>
+  <text class="black-stone-number" id="number187" x="272.2" y="144.1" visibility="hidden">187</text>
+  <text class="white-stone-number" id="number188" x="212.8" y="45.2" visibility="hidden">188</text>
+  <text class="black-stone-number" id="number189" x="193.0" y="144.1" visibility="hidden">189</text>
+  <text class="white-stone-number" id="number190" x="193.0" y="45.2" visibility="hidden">190</text>
+  <text class="black-stone-number" id="number191" x="212.8" y="163.9" visibility="hidden">191</text>
+  <text class="white-stone-number" id="number192" x="311.7" y="124.3" visibility="hidden">192</text>
+  <text class="black-stone-number" id="number193" x="212.8" y="144.1" visibility="hidden">193</text>
+  <text class="white-stone-number" id="number194" x="54.5" y="45.2" visibility="hidden">194</text>
+  <text class="black-stone-number" id="number195" x="34.7" y="45.2" visibility="hidden">195</text>
+  <text class="white-stone-number" id="number196" x="74.3" y="144.1" visibility="hidden">196</text>
+  <text class="black-stone-number" id="number197" x="54.5" y="104.6" visibility="hidden">197</text>
+  <text class="white-stone-number" id="number198" x="94.1" y="223.3" visibility="hidden">198</text>
+  <text class="black-stone-number" id="number199" x="54.5" y="25.4" visibility="hidden">199</text>
+  <text class="white-stone-number" id="number200" x="94.1" y="45.2" visibility="hidden">200</text>
+  <text class="black-stone-number" id="number201" x="153.4" y="124.3" visibility="hidden">201</text>
+  <text class="white-stone-number" id="number202" x="272.2" y="322.2" visibility="hidden">202</text>
+  <text class="black-stone-number" id="number203" x="252.4" y="342.0" visibility="hidden">203</text>
+  <text class="white-stone-number" id="number204" x="252.4" y="361.8" visibility="hidden">204</text>
+  <text class="black-stone-number" id="number205" x="232.6" y="282.7" visibility="hidden">205</text>
+  <text class="white-stone-number" id="number206" x="54.5" y="282.7" visibility="hidden">206</text>
+  <text class="black-stone-number" id="number207" x="94.1" y="361.8" visibility="hidden">207</text>
+  <text class="white-stone-number" id="number208" x="133.6" y="361.8" visibility="hidden">208</text>
+  <text class="black-stone-number" id="number209" x="54.5" y="361.8" visibility="hidden">209</text>
+  <text class="white-stone-number" id="number210" x="34.7" y="361.8" visibility="hidden">210</text>
+  <text class="black-stone-number" id="number211" x="74.3" y="361.8" visibility="hidden">211</text>
+  <text class="white-stone-number" id="number212" x="34.7" y="381.6" visibility="hidden">212</text>
+  <text class="black-stone-number" id="number213" x="113.8" y="361.8" visibility="hidden">213</text>
+  <text class="white-stone-number" id="number214" x="232.6" y="203.5" visibility="hidden">214</text>
+  <text class="black-stone-number" id="number215" x="252.4" y="183.7" visibility="hidden">215</text>
+  <text class="white-stone-number" id="number216" x="212.8" y="203.5" visibility="hidden">216</text>
+  <text class="black-stone-number" id="number217" x="212.8" y="243.1" visibility="hidden">217</text>
+  <text class="white-stone-number" id="number218" x="173.2" y="361.8" visibility="hidden">218</text>
+  <text class="black-stone-number" id="number219" x="153.4" y="203.5" visibility="hidden">219</text>
+  <text class="white-stone-number" id="number220" x="133.6" y="183.7" visibility="hidden">220</text>
+  <text class="black-stone-number" id="number221" x="34.7" y="262.9" visibility="hidden">221</text>
+  <text class="white-stone-number" id="number222" x="34.7" y="282.7" visibility="hidden">222</text>
+  <text class="black-stone-number" id="number223" x="153.4" y="65.0" visibility="hidden">223</text>
+  <text class="white-stone-number" id="number224" x="133.6" y="65.0" visibility="hidden">224</text>
+  <text class="black-stone-number" id="number225" x="173.2" y="45.2" visibility="hidden">225</text>
+  <text class="white-stone-number" id="number226" x="173.2" y="25.4" visibility="hidden">226</text>
+  <text class="black-stone-number" id="number227" x="173.2" y="65.0" visibility="hidden">227</text>
+  <text class="white-stone-number" id="number228" x="351.3" y="282.7" visibility="hidden">228</text>
+  <text class="black-stone-number" id="number229" x="133.6" y="45.2" visibility="hidden">229</text>
+  <text class="white-stone-number" id="number230" x="153.4" y="25.4" visibility="hidden">230</text>
+  <text class="black-stone-number" id="number231" x="133.6" y="381.6" visibility="hidden">231</text>
+  <text class="white-stone-number" id="number232" x="331.5" y="104.6" visibility="hidden">232</text>
+  <text class="black-stone-number" id="number233" x="272.2" y="65.0" visibility="hidden">233</text>
+  <text class="white-stone-number" id="number234" x="252.4" y="65.0" visibility="hidden">234</text>
+  <text class="black-stone-number" id="number235" x="291.9" y="25.4" visibility="hidden">235</text>
+  <text class="white-stone-number" id="number236" x="252.4" y="45.2" visibility="hidden">236</text>
+  <text class="black-stone-number" id="number237" x="311.7" y="84.8" visibility="hidden">237</text>
+  <text class="white-stone-number" id="number238" x="153.4" y="361.8" visibility="hidden">238</text>
+  <text class="black-stone-number" id="number239" x="153.4" y="381.6" visibility="hidden">239</text>
+  <text class="white-stone-number" id="number240" x="173.2" y="381.6" visibility="hidden">240</text>
+  <text class="black-stone-number" id="number241" x="193.0" y="361.8" visibility="hidden">241</text>
+  <text class="white-stone-number" id="number242" x="113.8" y="381.6" visibility="hidden">242</text>
+  <text class="black-stone-number" id="number243" x="193.0" y="342.0" visibility="hidden">243</text>
+  <text class="white-stone-number" id="number244" x="193.0" y="381.6" visibility="hidden">244</text>
+  <text class="black-stone-number" id="number245" x="272.2" y="361.8" visibility="hidden">245</text>
+  <text class="white-stone-number" id="number246" x="272.2" y="342.0" visibility="hidden">246</text>
+  <text class="black-stone-number" id="number247" x="212.8" y="381.6" visibility="hidden">247</text>
+  <text class="white-stone-number" id="number248" x="232.6" y="381.6" visibility="hidden">248</text>
+  <text class="black-stone-number" id="number249" x="133.6" y="381.6" visibility="hidden">249</text>
+  <text class="white-stone-number" id="number250" x="351.3" y="243.1" visibility="hidden">250</text>
+  <rect class="stone-mark" id="stone_mark" x="0" y="0" width="6" height="6" style="fill:white;" visibility="hidden"/>
+
+  <text class="game_info" id="black-prisoners" x="20" y="415">Black prisoners: 0</text>
+  <text class="game_info" id="white-prisoners" x="250" y="415">White prisoners: 0</text>
+  
+  <g class="button">
+    <circle class="circle-button" onclick="prevMove(evt)" cx="180" cy="420" r="12"/>
+    <path class="circle-triangle" onclick="prevMove(evt)" d="M184 414 L184 426 L174 420Z"/>
+  </g>
+
+  <g class="button">
+    <circle class="circle-button" onclick="nextMove(evt)" cx="220" cy="420" r="12"/>
+    <path class="circle-triangle" onclick="prevMove(evt)" d="M216 414 L216 426 L226 420Z"/>
+  </g>
+  
+  <text class="button" onclick="toggleStoneNumbers(evt)" x="20" y="435">Toogle Numbers</text>
+  
+</svg>
