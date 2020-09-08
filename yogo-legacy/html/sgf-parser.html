@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" />
+    <script type="text/javascript" src="../js/util.js"></script>
+    <script type="text/javascript" src="../js/model.js"></script>
+    <script type="text/javascript" src="../js/sgf_parser.js"></script>
+</head>
+<body>
+<textarea rows="10" cols="180" id="sgf-text">
+(;GM[1]FF[4]SZ[19]AP[SmartGo:0.7.1]CA[UTF-8]
+GN[20160309-Lee-Sedol-vs-AlphaGo-Commentary-An-Younggil]
+PW[AlphaGo]
+PB[Lee Sedol]BR[9d]
+EV[Google DeepMind Challenge Match]RO[Game 1]
+DT[2016-03-09]
+PC[Seoul, Korea]
+KM[7.5]
+RE[W+Resign]
+RU[Chinese]ST[2]WT[Computer]BT[Human]
+TM[7200.0]OT[3x60 byo-yomi]
+SO[https://gogameguru.com/]
+AN[An Younggil 8p]
+C[If there's any recent game that needs no introduction, it's this one.
+
+On March 9, 2016, the computer Go program 'AlphaGo' defeated Lee Sedol 9p in the first game of the Google DeepMind Challenge Match.
+
+The match was widely reported in mainstream media around the world, as well as by Go Game Guru. You can read more about game one of this five game match here: https://gogameguru.com/alphago-defeats-lee-sedol-game-1/
+
+Let's have a look at the game!]
+;B[qd]LB[qd:1]
+C[[Lee Sedol\] played \\Black\.];W[dd];B[pq];W[dp];B[fc];W[cf];B[ql]LB[fc:5][kc:A][lc:B][dd:2][cf:6][ql:7][dp:4][pq:3]
+C[Black started with two 3-4 points, and White established a two star formation with 2 and 4.
+
+AlphaGo seems to be fond of the two star formation, which is a flexible and well balanced opening for White.
+
+Creating a Chinese style opening with A or B is more common for Black, but Lee played an unusual move on the right side with 7.
+
+With Black 7, it seemed like Lee wanted avoid known openings and test AlphaGo's abilities, but this turned out to be a poor game plan.]
+;W[od];B[ld]
+(;W[qc]LB[qc:10][ld:9][od:8][ql:A]
+C[White's approach at 8 was to be expected, and pincering with Black 9 was natural.
+
+White 10 is unusual, but it was a practical move in this situation because White was trying to turn Black A into an inefficient move.]
+;B[rc];W[pc];B[re];W[of]
+(;B[pg]LB[pc:12][rc:11][re:13][of:14][pg:15]
+C[Responding with Black 11 to 13 was necessary and White 14 was the natural continuation of White's plan, but Black 15 was questionable.
+
+Lee wanted to test AlphaGo's fighting skills at the top, but it wasn't a good idea because AlphaGo's reading turned out to be more accurate than Lee expected.]
+;W[og];B[ph];W[id];B[lf];W[oh];B[pi];W[lh])
+(;B[pe];W[oe];B[id]LB[fc:A][id:3][ld:B][oe:2][pe:1][pf:D][qf:C][pg:E][qg:F]
+C[Peeping at Black 1 may feel crass, but Black should consider this alternative.
+
+Black 3 occupies a key point, supporting both A and B, so it's worth exchanging 1 for 2 in order to play 3. If Black doesn't exchange 1 for 2 first, White can play at C to press Black down.
+
+If White still peeps at C (after the exchange of 1 for 2) Black will push and cut with D to F. Instead of D, playing the tesuji at F immediately is also possible.]
+))
+(;W[pg];B[oe];W[ne];B[of]
+(;W[qc];B[qf];W[rd];B[nd];W[oc];B[re];W[pd];B[qe];W[md];B[le]LB[oc:9][qc:5][ld:A][md:13][nd:8][pd:11][rd:7][le:14][ne:3][oe:2][qe:12][re:10][of:4][qf:6][pg:1][ql:B]
+C[After Black's pincer at A, White 1 starts a joseki.
+
+However, the result up to Black 14 looks well balanced for Black, because B becomes an excellent move which develops the right side.]
+)
+(;W[pd];B[qf];W[qc];B[qe];W[nf];B[og];W[pb];B[id]LB[pb:11][qc:7][id:12][pd:5][ne:3][oe:2][qe:8][nf:9][of:4][qf:6][og:10][pg:1][ql:A][pq:B]
+C[White 5 is an older joseki, but Black develops efficient formations at the top and on the right side with Black 2 to 12.
+
+As you can see, A strikes a good balance with Black's position in the top right, as well as his stone at B.]
+)))
+
+
+</textarea>
+<br>
+
+
+<div id="boardContainer"></div>
+
+
+<script type="text/javascript">
+
+
+	var statTime=new Date().getTime();
+	var sgfTextarea=document.getElementById('sgf-text');
+	var sgfText=sgfTextarea.value;
+	var gameCollection=SgfParser.parse(sgfText);
+	var gameModel = gameCollection[0];
+
+	var endTime=new Date().getTime();
+	yogo.logInfo('cost '+(endTime-statTime)+' ms.','build gameModel');
+
+
+</script>
+</body>
+</html>
